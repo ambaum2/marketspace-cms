@@ -1,0 +1,15 @@
+name = Payment for Webform tests
+description = "Supports Payment for Webform's automated tests."
+core = 7.x
+dependencies[] = payment_webform
+dependencies[] = xtools
+package = Payment
+hidden = TRUE
+files[] = tests/PaymentWebformTestCallablesWebTestCase.test
+files[] = tests/PaymentWebformTestQueueWebTestCase.test
+; Information added by drupal.org packaging script on 2012-11-18
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "payment_webform"
+datestamp = "1353244924"
+

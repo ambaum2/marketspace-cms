@@ -1,0 +1,20 @@
+<?php
+
+class PaymentWebformTestCallablesWebTestCase extends XtoolsWebTestCase {
+
+  static function getInfo() {
+    return array(
+      'name' => 'Callables',
+      'group' => 'Payment for Webform',
+      'dependencies' => array('payment_webform', 'xtools'),
+    );
+  }
+
+  function setUp(array $modules = array()) {
+    parent::setUp($modules + array('xtools'));
+  }
+
+  function testCoreHookReturnValue() {
+    $this->XtoolsAssertCallables(array('payment_webform'), array('drupal', 'webform'));
+  }
+}
