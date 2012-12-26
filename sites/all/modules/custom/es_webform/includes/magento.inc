@@ -1,0 +1,73 @@
+<?php
+class magento {
+  private static $mage_singleton = null;
+  const api_user = "market_space_user"; //@TODO : should not be constat?
+  const api_password = "19e16eb11791a0a05033ada1baafc51c621c2abb "; //also should not? keep the space
+  private $encrypt_key = "b4baa5e8c5e5676db4baa5e";//8c5e5676d
+  const primary_host = "http://aaortho.net/index.php/api/v2_soap?wsdl";
+  
+  /*
+   * singleton design pattern
+   */
+  private function __construct() { }
+  
+  public static function getInstance() {
+    if(self::$mage_singleton == null) {
+      $mage_singleton = new magento();
+      $session_start_time = variable_get("session_start");
+      if(!empty($session_start_time)) { //if a session is active
+        if((time() - variable_get("session_start")) > 1200) { //login again session has been active for more than 20 minutes
+          $mage_singleton->login();
+        } 
+      } else { //login if session has not been started yet
+          $mage_singleton->login();    
+      }
+      return $mage_singleton;  
+    }
+  }
+  
+  /*
+   * login to specified host
+   * set session start and session id in client side cookies
+   * @TODO : set hosts api users session ids in a database column
+   * and update session id every twenty minutes on cron
+   */
+  private function login($host = magento::primary_host) {  
+    $proxy = new SoapClient("http://aaortho.net/api/v2_soap/?wsdl"); // @TODO : make url a variable
+    try {
+      $sessionId = $proxy->login(magento::api_user, magento::api_password); // @TODO : change login and pwd if necessary
+      variable_set("session_start",time());//set session start time   
+      $encrypted_session_id = $this->encryptText($sessionId);
+      variable_set("session_id", $encrypted_session_id); //set session login id
+    } catch(exception $e) {
+      throw $e;
+    }
+    return $sessionId;
+  }
+  
+  public function get_all_attributes($attribute_set_id, $session_id, $host = magento::primary_host) {
+    $proxy = new SoapClient($host);
+    try {
+      $result = $proxy->catalogProductAttributeList($session_id, $attribute_set_id);
+      return $result;
+    } catch (exception $e) {
+      throw $e;
+    }
+  }
+  /* 
+   * encrypt data for storage in end user cookies
+   * with triple des
+   */
+  function encryptText($plainText) {
+    $encText = mcrypt_encrypt(MCRYPT_TRIPLEDES, $this->encrypt_key, $plainText,MCRYPT_MODE_ECB);
+    return base64_encode($encText);
+  }
+  /*
+   * unencrypt end user cookie data 
+   */
+  function decryptText($encryptText) {
+    $cipherText = base64_decode($encryptText);
+    $res = mcrypt_decrypt(MCRYPT_TRIPLEDES, $this->encrypt_key, $cipherText, MCRYPT_MODE_ECB);
+    return $res;
+  }
+}

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Contains Webform component callbacks.
  */
@@ -21,10 +22,16 @@ function _webform_defaults_es_webform() {
  * Implements _webform_edit_[component]().
  */
 function _webform_edit_es_webform($component) {
+  module_load_include("inc", "es_webform", "includes/magento");
+  module_load_include("inc", "es_webform", "includes/product");
+  $magento = magento::getInstance();
+  $product = new product();
+  $attributes = $magento->get_all_attributes(14, $magento->decryptText(variable_get('session_id')));
+  
   $form['extra']['payment_currency_code'] = array(
     '#type' => 'select',
     '#title' => t('Currency'),
-    '#options' => array(2=>"Southern Illinois", 45=>'East Central Illinois'),
+    '#options' => $product->create_attribute_select_options($attributes),//array(2=>"Southern dfsfIllinois", 45=>'East Central Illinois'),
     '#default_value' => $component['extra']['payment_currency_code'],
     '#required' => TRUE,
   );
@@ -32,6 +39,12 @@ function _webform_edit_es_webform($component) {
     '#type' => 'textfield',
     '#title' => t('Description'),
     '#default_value' => $component['extra']['payment_description'],
+    '#required' => TRUE,
+  );
+  $form['extra']['payment_description'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Description'),
+    '#wysiwyg' => true,
     '#required' => TRUE,
   );
   $form['extra']['payment_line_items'] = array(
@@ -50,7 +63,11 @@ function _webform_edit_es_webform($component) {
  */
 function _webform_render_es_webform($component, $value = NULL, $filter = TRUE) {
   global $user;
-
+  module_load_include("inc", "es_webform", "includes/magento");
+  $magento = magento::getInstance();
+  echo variable_get('session_id');
+  echo "<br />unencrypted: " . $magento->decryptText(variable_get('session_id'));
+  echo "<pre>" . print_r($magento->get_all_attributes(14, $magento->decryptText(variable_get('session_id'))),true) . "</pre>";
   $form = array(
     '#type' => 'textfield',
     '#title' => $component['name'],

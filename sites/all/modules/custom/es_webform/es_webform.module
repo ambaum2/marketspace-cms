@@ -20,7 +20,7 @@ function es_webform_webform_select_options_info() {
  */
 function es_webform_webform_component_info() {
   $components['es_webform'] = array(
-    'label' => t('Magento Attribute'),
+    'label' => t('Magento es form'),
     'description' => t('Lets users pay before being able to submit a webform.'),
     'features' => array(
       'default_value' => FALSE,
