@@ -28,12 +28,17 @@ function _webform_edit_es_webform($component) {
   $product = new product();
   $attributes = $magento->get_all_attributes(14, $magento->decryptText(variable_get('session_id')));
   
-  $form['extra']['payment_currency_code'] = array(
+  $form['extra']['magento_attribute_code'] = array(
     '#type' => 'select',
-    '#title' => t('Currency'),
-    '#options' => $product->create_attribute_select_options($attributes),//array(2=>"Southern dfsfIllinois", 45=>'East Central Illinois'),
-    '#default_value' => $component['extra']['payment_currency_code'],
+    '#title' => t('Magento Attribute'),
+    '#options' => $product->create_attribute_select_options($attributes),
+    '#default_value' => $component['extra']['magento_attribute_code'],
     '#required' => TRUE,
+    '#ajax' => array(
+      'callback' => 'get_attribute_info',
+      'method' => 'replace',
+      'wrapper' => 'edit-extra-attribute-info'//apparenly this has to be the id of the destination element
+    )
   );
   $form['extra']['payment_description'] = array(
     '#type' => 'textfield',
@@ -41,11 +46,10 @@ function _webform_edit_es_webform($component) {
     '#default_value' => $component['extra']['payment_description'],
     '#required' => TRUE,
   );
-  $form['extra']['payment_description'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Description'),
-    '#wysiwyg' => true,
-    '#required' => TRUE,
+  $form['extra']['attribute_info'] = array(
+    '#type' => 'item',
+    '#title' => t('Attribute Info'),
+    '#markup' => "<p>The Info</p>",
   );
   $form['extra']['payment_line_items'] = array(
     '#type' => 'payment_line_item',
@@ -57,21 +61,28 @@ function _webform_edit_es_webform($component) {
 
   return $form;
 }
-
+function get_attribute_info($form, $form_state) {
+  $output = "<pre><span style='font-size:16px;'>" . date("g:i:s a",time()) . "</span><br />" . print_r($form,true) . "</pre>";
+  return $form['extra']['attribute_info'] = array('#markup'=>'<p id="edit-extra-attribute-info">' . $output . '</p>'); 
+}
 /**
  * Implements _webform_render_[component]().
  */
 function _webform_render_es_webform($component, $value = NULL, $filter = TRUE) {
   global $user;
   module_load_include("inc", "es_webform", "includes/magento");
+  module_load_include("inc", "es_webform", "includes/product");
   $magento = magento::getInstance();
+  $product = new product();
+  echo $product->_convert_attribute_type("text");
   echo variable_get('session_id');
   echo "<br />unencrypted: " . $magento->decryptText(variable_get('session_id'));
-  echo "<pre>" . print_r($magento->get_all_attributes(14, $magento->decryptText(variable_get('session_id'))),true) . "</pre>";
+  echo "<pre>" . print_r($component,true) . "</pre>";
+  echo "<pre>" . print_r($magento->get_attribute_information($magento->decryptText(variable_get('session_id')), $component['extra']['magento_attribute_code']),true) . "</pre>";
   $form = array(
     '#type' => 'textfield',
     '#title' => $component['name'],
-    '#default_value' => is_array($value) ? reset($value) : 0,
+    '#default_value' => $component['extra']['magento_attribute_code'],
     '#required' => $component['mandatory'],
     //'#payment_line_items' => $component['extra']['payment_line_items'],
     //'#payment_currency_code' => $component['extra']['payment_currency_code'],

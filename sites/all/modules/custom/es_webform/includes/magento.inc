@@ -45,10 +45,28 @@ class magento {
     return $sessionId;
   }
   
+  /*
+   * get all attributes for an attributes set for some magento install
+   * return array
+   */
   public function get_all_attributes($attribute_set_id, $session_id, $host = magento::primary_host) {
     $proxy = new SoapClient($host);
     try {
       $result = $proxy->catalogProductAttributeList($session_id, $attribute_set_id);
+      return $result;
+    } catch (exception $e) {
+      throw $e;
+    }
+  }
+  /*
+   * get information about an attribute. Its schema, default values,
+   * required or not, input type, etc
+   * return array
+   */
+  public function get_attribute_information($session_id, $attribute_code, $host = magento::primary_host) {
+    $proxy = new SoapClient($host);
+    try {
+      $result = $proxy->catalogProductAttributeInfo($session_id, $attribute_code);
       return $result;
     } catch (exception $e) {
       throw $e;
