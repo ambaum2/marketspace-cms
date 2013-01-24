@@ -74,7 +74,7 @@ function payment_webform_webform_select_options_info() {
  */
 function payment_webform_webform_component_info() {
   $components['payment_webform'] = array(
-    'label' => t('Magento Attribute'),
+    'label' => t('Do not use'),
     'description' => t('Lets users pay before being able to submit a webform.'),
     'features' => array(
       'default_value' => FALSE,

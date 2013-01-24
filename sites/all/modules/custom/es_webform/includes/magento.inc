@@ -9,10 +9,19 @@ class magento {
   /*
    * singleton design pattern
    */
-  private function __construct() { }
+   function __construct() {
+      $session_start_time = variable_get("session_start");
+      if(!empty($session_start_time)) { //if a session is active
+        if((time() - variable_get("session_start")) > 1200) { //login again session has been active for more than 20 minutes
+          $this->login();
+        } 
+      } else { //login if session has not been started yet
+          $this->login();    
+      } 
+  }
   
   public static function getInstance() {
-    if(self::$mage_singleton == null) {
+    /*if(self::$mage_singleton == null) {
       $mage_singleton = new magento();
       $session_start_time = variable_get("session_start");
       if(!empty($session_start_time)) { //if a session is active
@@ -23,7 +32,7 @@ class magento {
           $mage_singleton->login();    
       }
       return $mage_singleton;  
-    }
+    }*/
   }
   
   /*
