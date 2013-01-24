@@ -87,7 +87,6 @@ function _webform_render_es_webform($component, $value = NULL, $filter = TRUE) {
   global $user;
   module_load_include("inc", "es_webform", "includes/magento");
   module_load_include("inc", "es_webform", "includes/product");
-  //$magento = magento::getInstance();
   $magento = new magento();
   $product = new product();
   $attribute = get_stored_magento_attribute_data($component['extra']['magento_attribute_code']);
@@ -97,44 +96,16 @@ function _webform_render_es_webform($component, $value = NULL, $filter = TRUE) {
 }
 
 function _webform_display_es_webform($component, $value, $format = 'html') {
-  /*module_load_include("inc", "es_webform", "includes/magento");
-  module_load_include("inc", "es_webform", "includes/product");
-  //$magento = magento::getInstance();
-  $magento = new magento();
-  $product = new product();
-  $attribute = get_stored_magento_attribute_data($component['extra']['magento_attribute_code']);
-  $attribute = unserialize($attribute->data);
-  //return $product->create_attribute_input($attribute);*/
+
   return array(
     '#title' => $component['name'],
     '#weight' => $component['weight'],
-    //'#theme' => 'webform_display_textfield',
-    //'#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
-    //'#field_prefix' => $component['extra']['field_prefix'],
-    //'#field_suffix' => $component['extra']['field_suffix'],
     '#format' => $format,
     '#value' => isset($value[0]) ? $value[0] : '',
     '#translatable' => array('title', 'field_prefix', 'field_suffix'),
   );
 }
-/**
- * Implements _webform_submit_[component]().
- * occurs on frontend after user clicks submit or next button
- */
-//function _webform_submit_es_webform($component, $value) {
-  //es_webform_delete_by_pid($value);
-  /*$message = drupal_mail('openlayers', 'notice', "abaum@aaortho.org", language_default(), array(),null, FALSE); //locator@aaomembers.org
-  $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
-  $message['subject'] = "LOCATOR IS DOWN: " . strftime("%d/%m/%Y %r", time());
-  $message['body'] = "<table><tr><td>Term Search</td><td></td></tr><tr><td>IP Address</td><td>" 
-    . $_SERVER['REMOTE_ADDR'] . "</td></tr><tr><td>Time</td><td></td><td>" . strftime("%Y-%m-%d %H:%M:%S",time()) . "</td></tr>"
-    . "</table>";
-  $system = drupal_mail_system("openlayers", "locator");
-  $message['result'] = $system->mail($message);
-  //print_r($component);
-  //die;
-  return $value;*/
-//}
+
 /*
  * hook webform_component_presave
  * mofdify component before submitted
@@ -149,7 +120,6 @@ function es_webform_webform_component_presave(&$component) {
     module_load_include("inc", "es_webform", "includes/magento");
     $magento = new magento();
     $attribute = $magento->get_attribute_information($magento->decryptText(variable_get('session_id')), $component['extra']['magento_attribute_code']);
-    
       if(exists_magento_attribute($component['extra']['magento_attribute_code'])) {
         //update
         update_magento_attribute($component,serialize($attribute));
@@ -214,4 +184,22 @@ function es_webform_webform_component_presave(&$component) {
   }
  }
 
+/**
+ * Implements _webform_submit_[component]().
+ * occurs on frontend after user clicks submit or next button
+ */
+//function _webform_submit_es_webform($component, $value) {
+  //es_webform_delete_by_pid($value);
+  /*$message = drupal_mail('openlayers', 'notice', "abaum@aaortho.org", language_default(), array(),null, FALSE); //locator@aaomembers.org
+  $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+  $message['subject'] = "LOCATOR IS DOWN: " . strftime("%d/%m/%Y %r", time());
+  $message['body'] = "<table><tr><td>Term Search</td><td></td></tr><tr><td>IP Address</td><td>" 
+    . $_SERVER['REMOTE_ADDR'] . "</td></tr><tr><td>Time</td><td></td><td>" . strftime("%Y-%m-%d %H:%M:%S",time()) . "</td></tr>"
+    . "</table>";
+  $system = drupal_mail_system("openlayers", "locator");
+  $message['result'] = $system->mail($message);
+  //print_r($component);
+  //die;
+  return $value;*/
+//}
 

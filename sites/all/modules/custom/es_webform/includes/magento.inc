@@ -7,7 +7,7 @@ class magento {
   const primary_host = "http://aaortho.net/index.php/api/v2_soap?wsdl";
   
   /*
-   * singleton design pattern
+   * constructor to login and start session
    */
    function __construct() {
       $session_start_time = variable_get("session_start");
@@ -18,21 +18,6 @@ class magento {
       } else { //login if session has not been started yet
           $this->login();    
       } 
-  }
-  
-  public static function getInstance() {
-    /*if(self::$mage_singleton == null) {
-      $mage_singleton = new magento();
-      $session_start_time = variable_get("session_start");
-      if(!empty($session_start_time)) { //if a session is active
-        if((time() - variable_get("session_start")) > 1200) { //login again session has been active for more than 20 minutes
-          $mage_singleton->login();
-        } 
-      } else { //login if session has not been started yet
-          $mage_singleton->login();    
-      }
-      return $mage_singleton;  
-    }*/
   }
   
   /*
