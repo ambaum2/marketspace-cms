@@ -1,0 +1,47 @@
+<?php
+/**
+ * Implements hook_webform_select_options_info().
+ */
+function es_category_webform_select_options_info() {
+  /*$options['payment_method'] = array(
+    'title' => t('Payment methods'),
+    'options callback' => 'payment_method_options',
+  );
+  $options['payment_status'] = array(
+    'title' => t('Payment statuses'),
+    'options callback' => 'payment_status_options',
+  );*/
+
+  return $options;
+}
+
+/**
+ * Implements hook_webform_component_info().
+ */
+function es_category_webform_component_info() {
+  $components['es_category'] = array(
+    'label' => t('Magento Category Select'),
+    'description' => t('Lets users select magento categories.'),
+    'features' => array(
+      'default_value' => FALSE,
+      'required' => TRUE,
+    ),
+    'file' => 'es_category.webform.inc',
+  );
+
+  return $components;
+}
+
+/* add js and css 
+ * see webform.module line 1857 webform_client_form
+ * function for a good example
+ */
+function es_category_form_alter(&$form, $form_state, $form_id){
+  echo $form_id . "<br />";
+  if($form_id == 'es_category') {
+    $form['#attached'] = array(
+      'js' => array(drupal_get_path('module', 'es_category') . '/js/toggle_category.js'),
+      'css' => array(drupal_get_path('module', 'es_category') . '/css/custom_components.css'),
+    );
+   }
+}

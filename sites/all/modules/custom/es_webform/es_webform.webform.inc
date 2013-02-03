@@ -87,9 +87,11 @@ function _webform_render_es_webform($component, $value = NULL, $filter = TRUE) {
   global $user;
   module_load_include("inc", "es_webform", "includes/magento");
   module_load_include("inc", "es_webform", "includes/product");
+  module_load_include("inc", "es_webform", "includes/magento_product_attributes");
   $magento = new magento();
+  $magento_attribute = new magento_product_attributes();
   $product = new product();
-  $attribute = get_stored_magento_attribute_data($component['extra']['magento_attribute_code']);
+  $attribute = $magento_attribute->get_stored_magento_attribute_data($component['extra']['magento_attribute_code']);
   $attribute = unserialize($attribute->data);
   $form = $product->create_attribute_input($attribute);
   return $form;
@@ -118,71 +120,20 @@ function es_webform_webform_component_presave(&$component) {
     //check webform_es_attribute for the magento_attribute_code id
     if(isset($component['extra']['magento_attribute_code'])) {
     module_load_include("inc", "es_webform", "includes/magento");
+    module_load_include("inc","es_webform", "includes/magento_product_attributes");
     $magento = new magento();
+    $magento_attributes = new magento_product_attributes();
     $attribute = $magento->get_attribute_information($magento->decryptText(variable_get('session_id')), $component['extra']['magento_attribute_code']);
-      if(exists_magento_attribute($component['extra']['magento_attribute_code'])) {
+      if($magento_attributes->exists_magento_attribute($component['extra']['magento_attribute_code'])) {
         //update
-        update_magento_attribute($component,serialize($attribute));
+        $magento_attributes->update_magento_attribute($component,serialize($attribute));
       } else {
         //insert
-        insert_magento_attribute($component,serialize($attribute));
+        $magento_attributes->insert_magento_attribute($component,serialize($attribute));
       }
     }
   }
 }
-
-/*
- * insert new data into webform_es_attribute
- * @TODO - put db functions into own class as 
- */
- function insert_magento_attribute($component, $attribute_info) {
-  $id = db_insert('webform_es_attribute')
-    ->fields(array(
-      'mage_id' => $component['extra']['magento_attribute_code'],
-      'data' => $attribute_info,//print_r($attribute_info,true)
-    ))
-    ->execute();
- }
- 
- /*
- * update  data for webform_es_attribute
- * @TODO - put db functions into own class as 
- */
- function update_magento_attribute($component, $attribute_info) {
-  $id = db_update('webform_es_attribute')
-    ->fields(array(
-      'data' => $attribute_info,
-    ))
-    ->condition('mage_id',$component['extra']['magento_attribute_code'])
-    ->execute();
- }
- /*
- * see if record exists into webform_es_attribute
- * @TODO - put db functions into own class as 
- */
- function exists_magento_attribute($mage_id) {
-  $query = db_select('webform_es_attribute', 'wea')
-    ->fields('wea',array('mage_id'))
-    ->condition('mage_id',$mage_id);
-  $result = $query->execute()->fetch();
-  if($result) {
-    return true;
-  } else {
-    return false;
-  }
- }
- 
- function get_stored_magento_attribute_data($mage_id) {
-  $query = db_select('webform_es_attribute', 'wea')
-    ->fields('wea',array('data'))
-    ->condition('mage_id',$mage_id);
-  $result = $query->execute()->fetch();
-  if($result) {
-    return $result;
-  } else {
-    return false;
-  }
- }
 
 /**
  * Implements _webform_submit_[component]().
