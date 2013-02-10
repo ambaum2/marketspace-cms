@@ -1,0 +1,6 @@
+name=ajodo login test
+description = testing ajodo automatic login
+; Includes
+
+
+core = 7.x

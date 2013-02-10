@@ -1,5 +1,5 @@
 /* category products */
 .child_category_select {float:left;display:block;width:15px; height:15px;background:url(../images/plus_sign.png) no-repeat;cursor:pointer;}
 .child_category_expand {background:url(../images/minus_sign.png) no-repeat; }
-.child_categories_container {}
+.child_categories_container {background:yellow;}
 .child_categories_hide {display:none;}

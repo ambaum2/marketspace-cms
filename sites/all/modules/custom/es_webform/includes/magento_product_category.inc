@@ -27,59 +27,60 @@ class magento_product_category extends magento {
     foreach($categories as $item) {
       $current_level = ($item->level)-1;
       if($item->children_count == 0) {
-          //$result = $this->get_category_first_or_last($item->id, $item->parent_id, "DESC");
-          
-          $form[$item->level - 1][$item->parent_id][$item->name . "_" . $item->id] = array(
-            '#type' => "checkbox",
-            '#title' => $item->name,
-            '#prefix' => "<div style='margin-left:" . (($item->level)*25) . "px;'>",
-            '#suffix' => "</div>",
-          );
-      /*} elseif($item->level == 2) {
-          $form[$item->name . "_" . $item->id] = array(
-            '#type' => "checkbox",
-            '#title' => $item->name,
-            '#prefix' => "<div style='margin-left:" . (($item->level)*25) . "px;'>",
-            '#suffix' => "</div>",
-          );*/
+        $this->category_level_create(&$form, $item, "child");          
+          //$form[$item->level - 1][$item->parent_id][$item->name . "_" . $item->id] = array(
       } else {
-        $array_string = "";
-        //$arr = array(, array(2));
-        echo "<pre>" . print_r($arr,true) . "</pre>";
-        //create multi dim array for a level
-        for($i=1;$i<4;$i++) {
-          $array_string .= '['. $i . ']';
-        }
-        //
-        eval('$thearray' . $array_string . '=array(1);');
-        echo $array_string;
-        $thearray = array();
-        
-        echo "<pre>" . print_r($thearray,true) . "</pre>";
-        echo (20/.75);
-        //echo $item->level;
-        //  $depth = 5;
-        //eval('$array = '.str_repeat('array(', $depth).str_repeat(')', $depth).';');
-        //print_r($array);
-          //eval('$build_array = ' . str_repeat('array(', $item->level).str_repeat(')', $item->level).';');
-          //print_r($build_array);
-          die;
-          $form[$item->level][$item->name . "_" . $item->id] = array(
-            '#type' => "checkbox",
-            '#title' => $item->name,
-            '#prefix' => "<div class='parent_category' style='margin-left:" . (($item->level))*25 . "px;'>",
-            '#suffix' => "</div>", //style='margin-left:" . (($item->level))*25 . "px;'
-            '#field_suffix' => "<a class='child_category_select'></a>",
-          ); 
-          $form[$item->level][$item->id] = array(
-            '#type' => 'container',
-            '#prefix' => "<div class='child_categories_container child_categories_hide' style='margin-left:" . (($item->level)*5) . "px;'>",
-            '#suffix' => "</div>",
-          );
+        $this->category_level_create(&$form, $item, "parent");
+        $this->category_level_create(&$form, $item, "container");
+        //echo "<pre>" . print_r($thearray,true) . "</pre>";
+        //die;
+        //container should be nested by level [1][2]...[n-1][n]
+        //$form[$item->level][$item->id] = array(
       }
     }
     return $form;
   } 
+
+  /*
+   * create a multidimensional array for a given
+   * level (array[x][x+1]...[x+(n-1)][x+n])
+   * $item->level, $item->parent_id, $item->id
+   */
+  private function category_level_create(&$form, $item, $type) {
+    $array_string = "";
+    $parents = array();
+    $this->get_all_parents($item->id, $item->parent_id, $parents);
+    asort($parents);
+    //go up tree and get all parent ids
+    foreach($parents as $item) {
+      $array_string .= '['. $item . ']';
+    }
+    echo $array_string;
+    die;
+    if($type == "parent") {
+      eval('$form' . $array_string . '[' . $item->parent_id . ']' . '['.$item->id.']' . '=array(
+        "#type" => "checkbox",
+        "#title" => "' . $array_string . '[' . $item->parent_id . ']' . '['.$item->id.']' . '",
+        "#prefix" => "<div class=\'parent_category\' style=\'margin-left:" . (($item->level))*25 . "px;\'>",
+        "#suffix" => "</div>",
+        "#field_suffix" => "<a class=\'child_category_select\'></a>");'); 
+    } elseif($type == "container") {
+      eval('$form' . $array_string . '[' . $item->parent_id . ']' . '['.$item->id.']["c"]' . '=array(
+        "#type" => "container",
+        "#prefix" => "<div class=\'child_categories_container child_categories_hide\' style=\'background:yellow;margin-left:" . (('. $item->level .')*5) . "px;\'>",
+        "#suffix" => "</div>");');
+    } elseif($type == "child") {
+      eval('$form' . $array_string . '[' . $item->parent_id . ']' .'['.$item->id.']' . '=array(
+        "#type" => "checkbox",
+        "#title" => "' . $array_string . '[' . $item->parent_id . ']' .'['.$item->id.']' .'",
+        "#prefix" => "<div style=\'margin-left:" . (($item->level)*25) . "px;\'>",
+        "#suffix" => "</div>");');
+    }
+    //should be nested by level [1][2]...[n-1][n]
+    //$form[$item->level][$item->name . "_" . $item->id] = array(
+    return $form;
+  }
+  
   public function category_selector_add($content, $element) {
     if($element['#id'] != "edit-extra-magento-categories-experience-travel-packages-111") { 
     echo "<pre>" . print_r($element,true) . "</pre>";
@@ -97,6 +98,36 @@ class magento_product_category extends magento {
       return $result;
     } catch (exception $e) {
       throw $e;
+    }
+  }
+  
+  /*
+   * get parent category
+   * take an id and get its parent category
+   * until level of parent 
+   */
+  public function get_parent_category($id) {
+    $query = db_select('webform_es_category', 'wec')
+      ->fields('wec',array('id','parent_id'))
+      ->condition('id',$id)
+      ->range(0,1); //return 1
+    $result = $query->execute()->fetch();
+    if($result) {
+      return $result;
+    } else {
+      return false; 
+    }    
+  }
+  public function get_all_parents($id, $parent_id, &$parents) {
+    $result = $this->get_parent_category($id);
+    print_r($result);
+    $parents[] = $id;
+    echo '<br />' . $result->id . "<br />" . $result->parent_id . "<br />";
+    $result = $this->get_parent_category($result->parent_id); //get parent id's parent
+    if($result->parent_id != 1) {  
+      $this->get_all_parents($result->id, $result->parent_id);
+    } else {
+      $parents[] = $result->id;
     }
   }
   /*
@@ -231,4 +262,5 @@ class magento_product_category extends magento {
       return false;
     }
    }
+
 }
