@@ -35,6 +35,8 @@ function es_category_webform_component_info() {
 /* add js and css 
  * see webform.module line 1857 webform_client_form
  * function for a good example
+ * any webform will be webform_client_form_(nid)
+ * so webform_client_form_2
  */
 function es_category_form_alter(&$form, $form_state, $form_id){
   echo $form_id . "<br />";

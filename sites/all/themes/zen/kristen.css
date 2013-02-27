@@ -1,0 +1,15 @@
+@import url(http://fonts.googleapis.com/css?family=Skranji);
+p {color:red;}
+#navigation {background:url(images/menu_background.gif) no-repeat;}
+#navigation #main-menu .links li a {
+    color: white;
+    font-family: 'Skranji',cursive;
+    text-decoration: none;
+    font-size:20px;
+}
+
+#header #logo {
+	width:200px;
+	height:100px;
+}
+#navigation #main-menu .links li {margin-top:10px;}

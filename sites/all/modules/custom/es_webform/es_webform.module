@@ -31,3 +31,22 @@ function es_webform_webform_component_info() {
 
   return $components;
 }
+/* add js and css 
+ * see webform.module line 1857 webform_client_form
+ * function for a good example
+ * any webform will be webform_client_form_(nid)
+ * so webform_client_form_2
+ */
+function es_webform_form_alter(&$form, $form_state, $form_id){
+  if($form_id == "webform_client_form_2") {
+    /*$form['#attached'] = array(
+     'js' => array(drupal_get_path('module', 'es_category') . '/js/toggle_category.js'),
+      'css' => array(drupal_get_path('module', 'es_category') . '/css/custom_components.css'),
+    );*/
+    echo "<pre>" . print_r($form_state['input'],true) . "</pre>";
+    echo "<p>formstate values submitted array</p>";
+    unset($form_state['values']['submitted'][21]['categories']);
+      echo "<pre>" . print_r($form_state['values']['submitted'],true) . "</pre>";
+
+   }
+}

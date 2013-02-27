@@ -23,49 +23,23 @@ class magento_product_category extends magento {
    * TODO must fix by adding a query to recursively
    * search and get children for a parent that has children
    */
-  public function create_category_checkboxes($categories, &$form, $approved_categories = array()) {
-  	  $form['categories'][2][2] =array(
-        "#type" => "checkboxes",
-        "#title" => "select categories to display",
-        '#options' => null,
-        //"#prefix" => "<div class=\'category_container_'
-        //  . $item->id . ' parent_category_' . $item->parent_id 
-        //  . '\' style=\'margin-left:" . (($item->level)*25) . "px;\'>",
-        //"#suffix" => "</div>",
-        //"#collapsible" => TRUE,
-        //"#collapsed" => TRUE,
-        //"#field_suffix" => "<a class=\'child_category_select\'>Show Categories</a>");'); 
-        );
+  public function create_category_checkboxes($categories, &$form, $component, $frontend = false) {
+	  $form['categories'] =array(
+      "#type" => "checkboxes",
+      "#title" => "select categories to display",
+      '#options' => null,
+      "#collapsible" => TRUE,
+      "#collapsed" => TRUE,
+    );
     foreach($categories as $item) {
       $current_level = ($item->level)-1;
       if($item->children_count == 0) {
-        $this->category_level_create(&$form, $item, "child");          
+        $this->category_level_create($form, $item, "child", $component, $frontend);          
       } else {
-        $this->category_level_create(&$form, $item, "parent");
+        $this->category_level_create($form, $item, "parent", $component, $frontend);
       }
     }
-	
-/*	$form['test'] = array(
-		'#type' => 'checkboxes',
-		'#title' => t('Default options'),
-		'#options' => '', //none for now
-	);
-	$form['test'][4] = array( //[parent_id][id]
-		'#type'=>'checkbox',
-		'#title'=>'parent',
-	);
-	$form['test'][5] = array( //[parent_id][id+level_num]
-		'#type'=>'checkboxes',
-		'#title'=>'parent',
-	);
-
-	$form['test'][5]['child1'] = array(
-		'#type'=>'checkbox',
-		'#title' => 'child1',
-	);*/
-
-	//echo "<pre>" . print_r($form['test'],true) . "</pre>";
-    //asort($form['categories'][2][2]);
+  //  asort($form['categories'][2][2]);
     return $form;
   } 
 
@@ -74,12 +48,10 @@ class magento_product_category extends magento {
    * level (array[x][x+1]...[x+(n-1)][x+n])
    * $item->level, $item->parent_id, $item->id
    */
-  private function category_level_create(&$form, $item, $type) {
-    $array_string = "[categories]";
+  private function category_level_create(&$form, $item, $type, $component, $frontend = false) {
     $parents = array();
     $parents[] = $item->id;
     $this->get_all_parents($item->id, $parents);//get tree of parents plus this id
-    //($type=='container') ?  array_unshift($parents,$item->level + 1) : '';
     $checkbox_array_string = "['categories']";
 		$checkboxes_array_string = "['categories']";
     $parents_count = (count($parents) - 1);
@@ -93,32 +65,63 @@ class magento_product_category extends magento {
     for($i=$parents_count;$i >= 0; $i--) {
       $checkboxes_array_string .= '['. $parents[$i] . ']';
     }
-    if($type == "parent") {
-      eval('$form' . $checkboxes_array_string . '=array(
-        "#type" => "checkboxes",
-        "#title" => "' . $item->name . $checkboxes_array_string . '",
-        "#prefix" => "<div class=\'category_container_'
-          . $item->id . ' parent_category_' . $item->parent_id 
-          . '\' style=\'margin-left:" . (($item->level)*25) . "px;\'>",
-        "#suffix" => "</div>",
-        "#collapsible" => TRUE,
-        "#collapsed" => TRUE,
-        "#options" => null,
-        "#field_suffix" => "<a class=\'child_category_select\'>Show Categories</a>");'); 
-      eval('$form' . $checkbox_array_string . '=array(
-        "#type" => "checkbox",
-        "#title" => "' . $item->name . $checkbox_array_string . '",
-        "#prefix" => "<div class=\'category_select_'
-          . $item->id . ' parent_category_' . $item->parent_id 
-          . '\' style=\'margin-left:" . (($item->level)*25) . "px;\'>",
-        "#suffix" => "</div>");');
-    } elseif($type == "child") {
-      eval('$form' . $checkbox_array_string . '=array(
-        "#type" => "checkbox",
-        "#title" => "' . $item->name . $checkbox_array_string . '",
-        "#prefix" => "<div class=\'parent_category_' . $item->parent_id 
-          . '\' style=\'margin-left:" . (($item->level)*25) . "px;\'>",
-        "#suffix" => "</div>");');
+    if($frontend) {
+      if($type == "parent") {
+        $form['categories'][$item->id] =array(
+          "#type" => "checkbox",
+          "#title" => $item->name,
+          "#prefix" => "<div class='category_select_"
+            . $item->id . " parent_category_" . $item->parent_id 
+            . "' style='margin-left:" . (($item->level)*10) . "px;'>",
+          "#parents" => array("submitted","profile_information_header", "venue_sweets_categories",$item->id),
+          "#suffix" => "</div>",
+          "#field_prefix" => "<a class='child_category_select'></a>");    //<img src='http://aaortho.net/js/spacer.gif' />
+        /*$form['categories']['i' . $item->id] =array(
+          "#type" => "checkboxes",
+          "#prefix" => "<div class='category_container_"
+            . $item->id . " parent_category_" . $item->parent_id . " category_level_" . $item->level
+            . "' style='margin-left:" . (($item->level)*25) . "px;'>",
+          "#suffix" => "</div>",
+          "#options" => null);*/
+      } elseif($type=="child") {
+        $form['categories'][$item->id] =array(
+          "#type" => "checkbox",
+          "#title" => $item->name,
+          "#prefix" => "<div class='category_select_"
+            . $item->id . " parent_category_" . $item->parent_id 
+            . "' style='margin-left:" . (($item->level)*25) . "px;'>",
+          "#suffix" => "</div>",
+          "#parents" => array("submitted","profile_information_header", "venue_sweets_categories", $item->id),
+          "#field_prefix" => "<a class='child_category_select'><img src='http://aaortho.net/js/spacer.gif' /></a>");    
+      }
+    } else {
+      if($type == "parent") {
+        eval('$form' . $checkbox_array_string . '=array(
+          "#type" => "checkbox",
+          "#title" => "' . $item->name . '",
+          "#prefix" => "<div class=\'category_select_'
+            . $item->id . ' parent_category_' . $item->parent_id 
+            . '\' style=\'margin-left:" . (($item->level)*25) . "px;\'>",
+          "#suffix" => "</div>",
+          "#default_value" => isset($component["magento_categories"]' . $checkbox_array_string . ') ? $component["magento_categories"]' . $checkbox_array_string . ' : "",
+  				"#field_prefix" => "<a class=\'child_category_select\'><img src=\'http://aaortho.net/js/spacer.gif\' /></a>");');
+        eval('$form' . $checkboxes_array_string . '=array(
+          "#type" => "checkboxes",
+          "#prefix" => "<div class=\'category_container_'
+            . $item->id . ' parent_category_' . $item->parent_id . ' category_level_' . $item->level
+            . '\' style=\'margin-left:" . (($item->level)*25) . "px;\'>",
+          "#suffix" => "</div>",
+          "#options" => null);'); //"#field_suffix" => "<a class=\'child_category_select\'>Show Categories</a>"
+          //"#title" => "' . t( "<a class=\'category_selector\'> Show Categories</a>" . $item->name . $checkboxes_array_string) . '",
+      } elseif($type == "child") {
+        eval('$form' . $checkbox_array_string . '=array(
+          "#type" => "checkbox",
+          "#title" => "' . $item->name . '",
+          "#default_value" => isset($component["magento_categories"]' . $checkbox_array_string . ') ? $component["magento_categories"]' . $checkbox_array_string . ' : "",
+          "#prefix" => "<div class=\'parent_category_' . $item->parent_id 
+            . '\' style=\'margin-left:" . (($item->level)*25) . "px;\'>",
+          "#suffix" => "</div>");');
+      }
     }
     return $form;
   }

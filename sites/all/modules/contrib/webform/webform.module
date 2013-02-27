@@ -2179,10 +2179,19 @@ function _webform_client_form_add_component($node, $component, $component_value,
         $parent_fieldset[$component['form_key']]['#default_value'] = $component_value;
         if (is_array($component_value)) {
           foreach ($component_value as $key => $value) {
-            if (isset($parent_fieldset[$component['form_key']][$key])) {
+            if (isset($parent_fieldset[$component['form_key']][$key]) && ($key != "categories")) {
+              echo "goo2" . $value . $key;
+              echo "<p>component</p><pre>" . print_r($value,true) . "</pre>";
               $parent_fieldset[$component['form_key']][$key]['#default_value'] = $value;
+            } elseif($key == "categories") {
+              unset($parent_fieldset[$component['form_key']]['#webform_component']);
+              unset($parent_fieldset[$component['form_key']]['#default_value']);
+              unset($component_value['categories']);
+              $parent_fieldset[$component['form_key']]['categories']['#default_value'] = $component_value;
+              $parent_fieldset[$component['form_key']]['categories']['#webform_component'] = $component;
             }
           }
+          echo "<p>categories array now</p><pre>" . print_r($parent_fieldset[$component['form_key']],true) . "</pre>";
         }
       }
     }

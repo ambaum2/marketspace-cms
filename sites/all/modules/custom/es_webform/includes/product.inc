@@ -14,7 +14,6 @@ class product {
     asort($options); //sort alphabetically
     return $options;
   }
-  
   /*
    * take the magento api catalogProductAttributeInfo
    * optiosn array (which is an array of objects)

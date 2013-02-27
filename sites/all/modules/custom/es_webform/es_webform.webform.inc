@@ -85,9 +85,6 @@ function get_attribute_info($form, $form_state) {
  */
 function _webform_render_es_webform($component, $value = NULL, $filter = TRUE) {
   global $user;
-  module_load_include("inc", "es_webform", "includes/magento");
-  module_load_include("inc", "es_webform", "includes/product");
-  module_load_include("inc", "es_webform", "includes/magento_product_attributes");
   $magento = new magento();
   $magento_attribute = new magento_product_attributes();
   $product = new product();
@@ -107,7 +104,17 @@ function _webform_display_es_webform($component, $value, $format = 'html') {
     '#translatable' => array('title', 'field_prefix', 'field_suffix'),
   );
 }
+function es_webform_webform_submission_presave($node, &$submission) {
+  // Update some component's value before it is saved.
+  echo "<pre>" . print_r($submission,true) . "</pre>";
+  die;
+}
 
+function es_webform_webform_submission_update($node, $submission) {
+  // Update a record in a 3rd-party module table when a submission is updated.
+  echo "<pre>" . print_r($submission,true) . "</pre>";
+  die;
+}
 /*
  * hook webform_component_presave
  * mofdify component before submitted

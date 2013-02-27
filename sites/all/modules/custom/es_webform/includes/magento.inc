@@ -19,7 +19,7 @@ class magento {
           $this->login();    
       } 
   }
-  
+
   /*
    * login to specified host
    * set session start and session id in client side cookies
