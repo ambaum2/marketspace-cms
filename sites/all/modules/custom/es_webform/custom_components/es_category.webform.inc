@@ -29,7 +29,10 @@ function _webform_edit_es_category($component) {
   if(isset($webform->field_attribute_set_id['und'][0]['value'])) {
     $category->get_category_tree($magento->decryptText(variable_get('session_id')));
     $all_categories = $category->get_categories();
-     
+    $form['extra']['magento_attribute_code_name'] = array(
+      '#type' => 'hidden',
+      '#value' => "categories",
+    );
     $form['extra']['magento_categories'] = array(
       '#type' => 'fieldset',
       '#title' => 'Categories',
@@ -43,6 +46,7 @@ function _webform_edit_es_category($component) {
     );
   }
 
+dsm($webform);
   return $form;
 }
     /**
@@ -80,24 +84,27 @@ function array_searchRecursive( $needle, $haystack, $strict=false, $path=array()
 /**
  * Implements _webform_render_[component]().
  */
-function _webform_render_es_category($component, $value = NULL, $filter = TRUE) {
+function _webform_render_es_category($component, $value = NULL, $filter = TRUE, $form_state) {
   global $user;
   $magento = new magento();
   $product = new product();
   $category = new magento_product_category();
   $path2 = "";
-  $the_path = array_searchRecursive( "Array", $component, $strict=false, $path=array(), $path2);
   
+  if(isset($form_state['values']['submitted'])) {
+    //echo "<pre>" . print_r($form_state['values']['submitted'],true) . "</pre>";
+    $selected_values = $form_state['values']['submitted'][$component['cid']]['categories'];
+  } else {
+    $selected_values = array();
+  }
+  $the_path = array_searchRecursive( "Array", $component, $strict=false, $path=array(), $path2);
   $checked_categories = explode(",",$path2);
   $categories = $category->get_categories($checked_categories,$excluded_categories = array(2));
   
   //render category checkboxes
-  $category->create_category_checkboxes($categories, $category_select_element, $component, true);
-   /*    $category_select_element['categories']['i326'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Magento Attribute'),
-      '#markup' => "<p style='color:red;font-weight:900;'>mybox</p>",
-    );*/
+  isset($_POST['form_build_id']) ? $form_build_id = $_POST['form_build_id'] : $form_build_id = "";
+  //echo $form_build_id;
+  $category->create_category_checkboxes($categories, $category_select_element, $component, true, $selected_values);
   return $category_select_element;
 }
 

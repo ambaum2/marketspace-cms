@@ -66,6 +66,19 @@ class magento {
       throw $e;
     }
   }
+  
+  /*
+   * create product in magento
+   */
+   public function create_product($session_id, $type, $attribute_set, $sku, $data, $host = magento::primary_host) {
+     $proxy = new SoapClient($host);
+    try {  	
+   		$result = $proxy->catalogProductCreate($session_id, $type, $attribute_set, $sku, $data);
+   		return $result;
+	} catch (exception $e) {
+		throw $e;
+	}
+   }
   /* 
    * encrypt data for storage in end user cookies
    * with triple des

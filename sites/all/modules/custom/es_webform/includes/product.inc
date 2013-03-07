@@ -33,24 +33,47 @@ class product {
    * @TODO : need to take set default value for editing
    * existing product if there is one
    */
-  public function create_attribute_input($attribute) {
-    $form_field = array(
-      '#type' => $this->_convert_attribute_type($attribute->frontend_input),
-      '#title' => $attribute->frontend_label[0]->label,
-      //'#default_value' => $attribute->attribute_code,
-      '#required' => ($attribute->is_required == 1) ? 'TRUE' : 'FALSE',
-    );
-    if(isset($attribute->options)) {
-      $form_field['#options'] = $this->_convert_attribute_options($attribute->options);      
-      if($attribute->frontend_input == "multiselect") {
-        $form_field['#multiple'] = TRUE;
+  public function create_attribute_input($attribute, $form_state, $component) {
+      $form_field = array(
+        '#type' => $this->_convert_attribute_type($attribute->frontend_input),
+        '#title' => $attribute->frontend_label[0]->label,
+        '#required' => (($attribute->is_required == 1) ? TRUE : FALSE),
+        '#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
+      );
+      if(isset($attribute->options)) {
+        $form_field['#options'] = $this->_convert_attribute_options($attribute->options);      
+        if($attribute->frontend_input == "multiselect") {
+          $form_field['#multiple'] = TRUE;
+        }
       }
-    }
-    foreach($attribute->additional_fields as $field) {
-      if($field->key == 'is_wysiwyg_enabled' && $field->value == 1) {
-        $form_field['#type'] = 'text_format'; //http://drupal.org/node/1031160#comment-6256154
-        $form_field['#format'] = 'full_html';
-      }
+      foreach($attribute->additional_fields as $field) {
+        if($field->key == 'is_wysiwyg_enabled' && $field->value == 1) {
+  		if(isset($form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'])) {
+  			$default_text = $form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'];
+  		}
+  		$form_field = array();
+  		$form_field['text'] = array(
+  		  '#type' => 'fieldset',
+  		  '#title' => t('Contact settings'),
+  		  '#weight' => 5,
+  		  '#collapsible' => TRUE,
+  		  '#collapsed' => FALSE,
+  		);
+      
+      $form_field['text'][$attribute->frontend_input] = array(
+        '#type' => 'text_format', //http://drupal.org/node/1031160#comment-6256154
+        '#format' => 'content_admin',
+    		'#title' => $attribute->frontend_label[0]->label,
+    		'#required' => (($attribute->is_required == 1) ? TRUE : FALSE),
+    		'#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
+    		array('#attached'=>array('css' => array(drupal_get_path('module', 'es_webform') . '/css/es_webform_wysiwyg.css'))),
+  		);
+  		if(isset($form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'])) {
+  			$form_field['text'][$attribute->frontend_input]['#default_value'] = $default_text;
+  		}
+  
+        	return $form_field;
+  	  }
     }
     return $form_field;
   }

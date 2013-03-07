@@ -8,23 +8,20 @@
  * Implements _webform_defaults_[component]().
  */
 function _webform_defaults_es_webform() {
-  return array(
-    'extra' => array(
-      'payment_currency_code' => 'XXX',
-      'payment_description' => '',
-      'payment_line_items' => array(),
-      'private' => FALSE,
-    ),
-  );
+  //return array(
+    //'extra' => array(
+      //'payment_currency_code' => 'XXX',
+      //'payment_description' => '',
+      //'payment_line_items' => array(),
+      //'private' => FALSE,
+   // ),
+ // );
 }
 
 /**
  * Implements _webform_edit_[component]().
  */
 function _webform_edit_es_webform($component) {
-  module_load_include("inc", "es_webform", "includes/magento");
-  module_load_include("inc", "es_webform", "includes/product");
-  //$magento = magento::getInstance();
   $magento = new magento();
   $product = new product();
   $webform = node_load($component['nid']);
@@ -44,16 +41,17 @@ function _webform_edit_es_webform($component) {
         'wrapper' => 'edit-extra-attribute-info'//apparenly this has to be the id of the destination element
       )
     );
-    $form['extra']['attribute_info'] = array(
+   $form['extra']['magento_attribute_code_name'] = array(
+     '#type' => 'hidden',
+     '#prefix' => '<div id="attribute_code_name">',
+     '#suffix' => '</div>',
+     '#value' => isset($component['extra']['magento_attribute_code_name']) ? $component['extra']['magento_attribute_code_name'] : '1',
+   );
+   $form['extra']['attribute_info'] = array(
       '#type' => 'item',
       '#title' => t('Attribute Info'),
     );
-    $form['extra']['payment_description'] = array(
-      '#type' => 'text_format',
-      '#title' => t('Description'),
-      '#default_value' => $component['extra']['payment_description'],
-      '#format' => 'full_html'
-    );
+  return $form;
 
   } else {
      $form['extra']['warning'] = array(
@@ -61,36 +59,43 @@ function _webform_edit_es_webform($component) {
       '#title' => t('Magento Attribute'),
       '#markup' => "<p style='color:red;font-weight:900;'>You must set an attribute set id before you can select an attribute</p>",
     );
+	return $form;
   }
-
-  return $form;
 }
+
 /*
  * ['extra']['magento_attribute_code']['#value']
  */
 function get_attribute_info($form, $form_state) {
-  module_load_include("inc", "es_webform", "includes/magento");
-  //$magento = magento::getInstance();
   $magento = new magento();
   $attribute = $magento->get_attribute_information($magento->decryptText(variable_get('session_id')), $form['extra']['magento_attribute_code']['#value']);
   ($attribute->is_required == 1 ? $required = 'Yes' : $required = 'No');
-  $form['extra']['magento_attribute_code']['attribute_info'] = array('#type'=>'item',
-    '#markup'=>'<p id="edit-extra-attribute-info"><span>Frontend Name: ' . $attribute->frontend_label[0]->label 
+  $attribute_code_name = $attribute->code;
+  
+  //$form['extra']['attribute_info'] = array('#type'=>'item',
+  //  '#markup'=>'
+  $attribute_info ='<div id="edit-extra-attribute-info"><span>Frontend Name: ' . $attribute->frontend_label[0]->label 
     . '</span><br /><span>Form Type: ' . $attribute->frontend_input . '</span><br /><span>Required: ' 
-    . $required . '</p>'); //$attribute->frontend_label[0]->label
-  return $form['extra']['magento_attribute_code']['attribute_info'];
+    . $required . '</div>'; //$attribute->frontend_label[0]->label
+  $commands = array();
+  //$commands[] = ajax_command_before('edit-extra-attribute-info', $attribute_info);
+  $commands[] = ajax_command_replace("#attribute_code_name", '<div id="attribute_code_name"><input type="hidden" value="' . $attribute->attribute_code . '" name="extra[magento_attribute_code_name]"></div>');
+  $commands[] = ajax_command_replace("#edit-extra-attribute-info", $attribute_info);
+  return array('#type' => 'ajax', '#commands' => $commands);
+  //return $form;
 }
+
 /**
  * Implements _webform_render_[component]().
  */
-function _webform_render_es_webform($component, $value = NULL, $filter = TRUE) {
+function _webform_render_es_webform($component, $value = NULL, $filter = TRUE, $form_state) {
   global $user;
   $magento = new magento();
   $magento_attribute = new magento_product_attributes();
   $product = new product();
   $attribute = $magento_attribute->get_stored_magento_attribute_data($component['extra']['magento_attribute_code']);
   $attribute = unserialize($attribute->data);
-  $form = $product->create_attribute_input($attribute);
+  $form = $product->create_attribute_input($attribute, $form_state, $component);
   return $form;
 }
 
@@ -104,17 +109,108 @@ function _webform_display_es_webform($component, $value, $format = 'html') {
     '#translatable' => array('title', 'field_prefix', 'field_suffix'),
   );
 }
+/*
+ * do something before submission is saved. send new product to 
+ * magento and try to create. 
+ * is_draft will be 0 (not draft anymore). The data array has all the data should
+ * look through and if does not have categories key then lookup the key
+ * from the categories database and get the attribute code. store
+ * attribute_code=> value (values) in an array to be sent to magento
+ */
 function es_webform_webform_submission_presave($node, &$submission) {
-  // Update some component's value before it is saved.
-  echo "<pre>" . print_r($submission,true) . "</pre>";
-  die;
+  // Update some component's value before it is saved..
+  //isset($node->field_attribute_set_id['und'][0]['value']) ? print "r" : print "x";
+  $default_magento_attributes = array('categories','websites','name','description','short_description','weight','status','url_key','url_path'
+    ,'visibility','category_ids','website_ids','has_options','gift_message_available','price','special_price','special_price','special_from_date'
+    ,'special_to_date','tax_class_id','meta_title','meta_keyword','meta_description','custom_design','custom_layout_update','options_container'
+    );
+  $default_magento_stock_attributes = array('qty','is_in_stock','manage_stock','use_config_manage_stock','min_qty','use_config_manage_stock'
+    ,'min_qty','use_config_min_qty','min_sale_qty','use_config_min_sale_qty',' max_sale_qty',' use_config_max_sale_qty','');
+  $magento_product_attributes = new magento_product_attributes();
+  if($submission->is_draft == 0) {
+  	$magento_product_data = array();
+  	foreach($submission->data as $item=>$value) {
+  		if(isset($node->webform['components'][$item]['extra']['magento_attribute_code']) && $item != 21) {
+			$mage_id = $node->webform['components'][$item]['extra']['magento_attribute_code'];
+			//if it is a standard catalog attribute
+	  		if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($mage_id)) {
+				$attribute = unserialize($attribute_data->data);
+				//echo "<pre>" . print_r($attribute_data,true) . "</pre>";
+	  			if(isset($value['value']['text']['textarea']['value'])) {
+	  				
+	  				//echo "<pre>" . print_r($value['value']['text']['textarea']['value'],true) . "</pre>";
+	  				//echo "id: " . $item . " " . $attribute->attribute_code . " => " . $value['value']['text']['textarea']['value'] . "<br />";
+	  				$magento_product_data[$attribute->attribute_code] = $value['value']['text']['textarea']['value'];
+				} else {
+	  				//echo "<pre>" . print_r($attribute,true) . "</pre>";
+		  				if($attribute->frontend_input != "multiselect") {
+		  					$magento_product_data[$attribute->attribute_code] =	$value['value'][0];
+		  					//echo "id: " . $item . " " . $attribute->attribute_code . " => " . $value['value'][0] . "<br />";
+						} else {
+							$selections = array();
+							foreach($value['value'] as $select_key=>$select_value) {
+									$selections[] = $select_value;
+							}	
+							//echo "id: " . $item . " " . $attribute->attribute_code . " => " . implode(",",$value['value']) . "<br />";
+							$magento_product_data[$attribute->attribute_code] =	$selections;
+						}
+					}
+	  			//echo "<pre>reg ATtr" . print_r($value,true) . "</pre>";
+			}
+		//all other attributes must be exlplicitely referenced
+		} elseif(isset($value['value']['categories'])) {
+			
+			$categories = array();
+			foreach($value['value']['categories'] as $cat_key=>$cat_value) {
+				if($cat_value == 1) {
+					$categories[] = $cat_key;
+				}
+			}
+			$magento_product_data['categories'] = $categories;
+		} 
+  	} 
+	$magento = new magento();
+	$magento_product_data['websites'] = array(1);
+	$magento_product_data['status'] = 1;
+	$magento_product_data['url_key'] = $magento_product_data['name'];
+	$magento_product_data['url_path'] = $magento_product_data['name'];
+	$magento_product_data['visibility'] = 4;
+	$magento_product_data['price'] = 0;
+  $magento_product_data['additional_attributes']['tickettype'] = $node->field_tickettype['und'][0]['value'];
+  $result = $magento->create_product($magento->decryptText(variable_get('session_id')), 'virtual', $node->field_attribute_set_id['und'][0]['value'], substr(md5($magento_product_data['name']. time()),0,6), $magento_product_data);
+  }
+}
+  /*if(is_array($node)) {
+  	echo "Array";
+  if(isset($node['field_attribute_set_id']['und'][0]['value'])) {
+    echo $node['field_attribute_set_id']['und'][0]['value'] . "<br />";
+    
+  } 
+  } else {
+  	echo "object";
+  	echo "<pre>" . print_r($node,true) . "</pre>";
+    echo "<pre>" . print_r($submission,true) . "</pre>";
+	die;
+  }*/
+  /* on submit 
+   * stdClass Object
+(
+    [sid] => 14
+    [nid] => 2
+    [submitted] => 1362337938
+    [remote_addr] => 216.53.139.131
+    [uid] => 1
+    [name] => ambaum2
+    [is_draft] => 0
+    [data] => Array
+   * 
+
+
+    //	echo "<pre>" . print_r($node,true) . "</pre>";
+    //echo "<pre>" . print_r($submission,true) . "</pre>";
+	//die;
 }
 
-function es_webform_webform_submission_update($node, $submission) {
-  // Update a record in a 3rd-party module table when a submission is updated.
-  echo "<pre>" . print_r($submission,true) . "</pre>";
-  die;
-}
 /*
  * hook webform_component_presave
  * mofdify component before submitted
@@ -141,6 +237,7 @@ function es_webform_webform_component_presave(&$component) {
     }
   }
 }
+
 
 /**
  * Implements _webform_submit_[component]().

@@ -23,7 +23,7 @@ class magento_product_category extends magento {
    * TODO must fix by adding a query to recursively
    * search and get children for a parent that has children
    */
-  public function create_category_checkboxes($categories, &$form, $component, $frontend = false) {
+  public function create_category_checkboxes($categories, &$form, $component, $frontend = false, $selected_values = array()) {
 	  $form['categories'] =array(
       "#type" => "checkboxes",
       "#title" => "select categories to display",
@@ -34,9 +34,9 @@ class magento_product_category extends magento {
     foreach($categories as $item) {
       $current_level = ($item->level)-1;
       if($item->children_count == 0) {
-        $this->category_level_create($form, $item, "child", $component, $frontend);          
+        $this->category_level_create($form, $item, "child", $component, $frontend, $selected_values);          
       } else {
-        $this->category_level_create($form, $item, "parent", $component, $frontend);
+        $this->category_level_create($form, $item, "parent", $component, $frontend, $selected_values);
       }
     }
   //  asort($form['categories'][2][2]);
@@ -48,7 +48,7 @@ class magento_product_category extends magento {
    * level (array[x][x+1]...[x+(n-1)][x+n])
    * $item->level, $item->parent_id, $item->id
    */
-  private function category_level_create(&$form, $item, $type, $component, $frontend = false) {
+  private function category_level_create(&$form, $item, $type, $component, $frontend = false, $selected_values) {
     $parents = array();
     $parents[] = $item->id;
     $this->get_all_parents($item->id, $parents);//get tree of parents plus this id
@@ -66,6 +66,15 @@ class magento_product_category extends magento {
       $checkboxes_array_string .= '['. $parents[$i] . ']';
     }
     if($frontend) {
+      //set default value
+      //TODO: check if user is editing a product and if so get that value from database
+      //will store edited products in database
+      $default_value = 0;
+      if(array_key_exists($item->id, $selected_values)) {
+        if($selected_values[$item->id]==1) {
+          $default_value = 1;
+        }
+      } 
       if($type == "parent") {
         $form['categories'][$item->id] =array(
           "#type" => "checkbox",
@@ -73,16 +82,12 @@ class magento_product_category extends magento {
           "#prefix" => "<div class='category_select_"
             . $item->id . " parent_category_" . $item->parent_id 
             . "' style='margin-left:" . (($item->level)*10) . "px;'>",
-          "#parents" => array("submitted","profile_information_header", "venue_sweets_categories",$item->id),
+          "#parents" => array("submitted","profile_information_header", "venue_sweets_categories","categories",$item->id),
           "#suffix" => "</div>",
-          "#field_prefix" => "<a class='child_category_select'></a>");    //<img src='http://aaortho.net/js/spacer.gif' />
-        /*$form['categories']['i' . $item->id] =array(
-          "#type" => "checkboxes",
-          "#prefix" => "<div class='category_container_"
-            . $item->id . " parent_category_" . $item->parent_id . " category_level_" . $item->level
-            . "' style='margin-left:" . (($item->level)*25) . "px;'>",
-          "#suffix" => "</div>",
-          "#options" => null);*/
+          "#default_value" => $default_value,
+          '#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
+          );    //"#field_prefix" => "<a class='child_category_select'></a>"<img src='http://aaortho.net/js/spacer.gif' />
+
       } elseif($type=="child") {
         $form['categories'][$item->id] =array(
           "#type" => "checkbox",
@@ -91,10 +96,12 @@ class magento_product_category extends magento {
             . $item->id . " parent_category_" . $item->parent_id 
             . "' style='margin-left:" . (($item->level)*25) . "px;'>",
           "#suffix" => "</div>",
-          "#parents" => array("submitted","profile_information_header", "venue_sweets_categories", $item->id),
-          "#field_prefix" => "<a class='child_category_select'><img src='http://aaortho.net/js/spacer.gif' /></a>");    
+          "#default_value" => $default_value,
+          '#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
+          "#parents" => array("submitted","profile_information_header", "venue_sweets_categories","categories", $item->id),
+          );    //"#field_prefix" => "<a class='child_category_select'><img src='http://aaortho.net/js/spacer.gif' /></a>"
       }
-    } else {
+    } else { //backend display
       if($type == "parent") {
         eval('$form' . $checkbox_array_string . '=array(
           "#type" => "checkbox",

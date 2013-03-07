@@ -39,7 +39,6 @@ function es_category_webform_component_info() {
  * so webform_client_form_2
  */
 function es_category_form_alter(&$form, $form_state, $form_id){
-  echo $form_id . "<br />";
   if($form_id == 'es_category') {
     $form['#attached'] = array(
       'js' => array(drupal_get_path('module', 'es_category') . '/js/toggle_category.js'),

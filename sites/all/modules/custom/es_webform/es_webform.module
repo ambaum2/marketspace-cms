@@ -1,8 +1,35 @@
 <?php
+/* 
+ * hook_menu
+ */
+   function es_webform_menu() {
+   	
+	$items = array();
+    $items['get_attribute_info'] = array(
+      'page callback' => 'get_attribute_info_2',
+ 
+      'type' => MENU_CALLBACK,
+      	  'access callback' => 'user_access',
+	  'access arguments' => array('access content'),
+    );
+    return $items;
+  }
+   
+   function get_attribute_info_2() {
+  $magento = new magento();
+  $attribute = $magento->get_attribute_information($magento->decryptText(variable_get('session_id')), 206);
+  ($attribute->is_required == 1 ? $required = 'Yes' : $required = 'No');
+  $content = '<p id="edit-extra-attribute-info"><span>Frontend Name: ' . $attribute->frontend_label[0]->label 
+    . '</span><br /><span>Form Type: ' . $attribute->frontend_input . '</span><br /><span>Required: ' 
+    . $required . '</p>'; //$attribute->frontend_label[0]->label
+  //echo "<pre>" . print_r($attribute,true) . "</pre>";
+  //die;
+  return $content;
+}
 /**
  * Implements hook_webform_select_options_info().
  */
-function es_webform_webform_select_options_info() {
+/*function es_webform_webform_select_options_info() {
   $options['payment_method'] = array(
     'title' => t('Payment methods'),
     'options callback' => 'payment_method_options',
@@ -13,7 +40,7 @@ function es_webform_webform_select_options_info() {
   );
 
   return $options;
-}
+}*/
 
 /**
  * Implements hook_webform_component_info().
@@ -38,15 +65,20 @@ function es_webform_webform_component_info() {
  * so webform_client_form_2
  */
 function es_webform_form_alter(&$form, $form_state, $form_id){
+  if($form_id == "webform_component_edit_form") {
+    //$form['validation']['#disabled'] = TRUE;
+    //$form['validation']['#collapsed'] = TRUE;
+  }
   if($form_id == "webform_client_form_2") {
-    /*$form['#attached'] = array(
+    $form['#attached'] = array(
      'js' => array(drupal_get_path('module', 'es_category') . '/js/toggle_category.js'),
-      'css' => array(drupal_get_path('module', 'es_category') . '/css/custom_components.css'),
-    );*/
-    echo "<pre>" . print_r($form_state['input'],true) . "</pre>";
-    echo "<p>formstate values submitted array</p>";
-    unset($form_state['values']['submitted'][21]['categories']);
-      echo "<pre>" . print_r($form_state['values']['submitted'],true) . "</pre>";
+     'css' => array(drupal_get_path('module', 'es_category') . '/css/custom_components.css'),
+      
+    );
+
+    if(isset($form_state['values']['submitted'])) {
+
+    }
 
    }
 }

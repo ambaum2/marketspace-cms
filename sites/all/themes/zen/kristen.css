@@ -1,15 +1,14 @@
-@import url(http://fonts.googleapis.com/css?family=Skranji);
-p {color:red;}
+@import url(http://fonts.googleapis.com/css?family=Sintony);
 #navigation {background:url(images/menu_background.gif) no-repeat;}
 #navigation #main-menu .links li a {
     color: white;
-    font-family: 'Skranji',cursive;
+    font-family: 'Sintony',cursive;
     text-decoration: none;
-    font-size:20px;
+    font-size:15px;
 }
 
 #header #logo {
-	width:200px;
-	height:100px;
+	width:300px;
+	height:200px;
 }
 #navigation #main-menu .links li {margin-top:10px;}
