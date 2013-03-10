@@ -10,9 +10,9 @@
 function _webform_defaults_es_category() {
   return array(
     'extra' => array(
-      'payment_currency_code' => 'XXX',
-      'payment_description' => '',
-      'payment_line_items' => array(),
+      //'payment_currency_code' => 'XXX',
+      //'payment_description' => '',
+      //'payment_line_items' => array(),
       'private' => FALSE,
     ),
   );
@@ -45,8 +45,6 @@ function _webform_edit_es_category($component) {
       '#markup' => "<p style='color:red;font-weight:900;'>You must set an attribute set id before you can choose categories</p>",
     );
   }
-
-dsm($webform);
   return $form;
 }
     /**
@@ -90,22 +88,23 @@ function _webform_render_es_category($component, $value = NULL, $filter = TRUE, 
   $product = new product();
   $category = new magento_product_category();
   $path2 = "";
-  
-  if(isset($form_state['values']['submitted'])) {
-    //echo "<pre>" . print_r($form_state['values']['submitted'],true) . "</pre>";
-    $selected_values = $form_state['values']['submitted'][$component['cid']]['categories'];
-  } else {
-    $selected_values = array();
-  }
-  $the_path = array_searchRecursive( "Array", $component, $strict=false, $path=array(), $path2);
-  $checked_categories = explode(",",$path2);
-  $categories = $category->get_categories($checked_categories,$excluded_categories = array(2));
-  
-  //render category checkboxes
-  isset($_POST['form_build_id']) ? $form_build_id = $_POST['form_build_id'] : $form_build_id = "";
-  //echo $form_build_id;
-  $category->create_category_checkboxes($categories, $category_select_element, $component, true, $selected_values);
-  return $category_select_element;
+  //if(in_array('authenticated_user',$user->roles)) {
+    if(isset($form_state['values']['submitted'])) {
+      //echo "<pre>" . print_r($form_state['values']['submitted'],true) . "</pre>";
+      $selected_values = $form_state['values']['submitted'][$component['cid']]['categories'];
+    } else {
+      $selected_values = array();
+    }
+    $the_path = array_searchRecursive( "Array", $component, $strict=false, $path=array(), $path2);
+    $checked_categories = explode(",",$path2);
+    $categories = $category->get_categories($checked_categories,$excluded_categories = array(2));
+    
+    //render category checkboxes
+    isset($_POST['form_build_id']) ? $form_build_id = $_POST['form_build_id'] : $form_build_id = "";
+    //echo $form_build_id;
+    $category->create_category_checkboxes($categories, $category_select_element, $component, true, $selected_values);
+    return $category_select_element;
+  //}
 }
 
 function _webform_display_es_category($component, $value, $format = 'html') {

@@ -2,6 +2,7 @@ name = Escape Locally Magento Webform Attributes
 description = displays data from magento product attributes in webforms
 files[] = includes/magento.inc
 files[] = includes/magento_product_attributes.inc
+files[] = includes/magento_media.inc
 files[] = includes/magento_product_category.inc
 files[] = includes/magento_product_create.inc
 files[] = includes/product.inc

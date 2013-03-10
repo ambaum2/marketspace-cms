@@ -8,14 +8,14 @@
  * Implements _webform_defaults_[component]().
  */
 function _webform_defaults_es_webform() {
-  //return array(
-    //'extra' => array(
+  return array(
+    'extra' => array(
       //'payment_currency_code' => 'XXX',
       //'payment_description' => '',
       //'payment_line_items' => array(),
-      //'private' => FALSE,
-   // ),
- // );
+      'private' => FALSE,
+    ),
+  );
 }
 
 /**
@@ -127,88 +127,79 @@ function es_webform_webform_submission_presave($node, &$submission) {
   $default_magento_stock_attributes = array('qty','is_in_stock','manage_stock','use_config_manage_stock','min_qty','use_config_manage_stock'
     ,'min_qty','use_config_min_qty','min_sale_qty','use_config_min_sale_qty',' max_sale_qty',' use_config_max_sale_qty','');
   $magento_product_attributes = new magento_product_attributes();
+  $magento_additional_attributes = array();
   if($submission->is_draft == 0) {
   	$magento_product_data = array();
-  	foreach($submission->data as $item=>$value) {
-  		if(isset($node->webform['components'][$item]['extra']['magento_attribute_code']) && $item != 21) {
-			$mage_id = $node->webform['components'][$item]['extra']['magento_attribute_code'];
-			//if it is a standard catalog attribute
-	  		if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($mage_id)) {
-				$attribute = unserialize($attribute_data->data);
-				//echo "<pre>" . print_r($attribute_data,true) . "</pre>";
-	  			if(isset($value['value']['text']['textarea']['value'])) {
-	  				
-	  				//echo "<pre>" . print_r($value['value']['text']['textarea']['value'],true) . "</pre>";
-	  				//echo "id: " . $item . " " . $attribute->attribute_code . " => " . $value['value']['text']['textarea']['value'] . "<br />";
-	  				$magento_product_data[$attribute->attribute_code] = $value['value']['text']['textarea']['value'];
-				} else {
-	  				//echo "<pre>" . print_r($attribute,true) . "</pre>";
-		  				if($attribute->frontend_input != "multiselect") {
-		  					$magento_product_data[$attribute->attribute_code] =	$value['value'][0];
-		  					//echo "id: " . $item . " " . $attribute->attribute_code . " => " . $value['value'][0] . "<br />";
-						} else {
-							$selections = array();
-							foreach($value['value'] as $select_key=>$select_value) {
-									$selections[] = $select_value;
-							}	
-							//echo "id: " . $item . " " . $attribute->attribute_code . " => " . implode(",",$value['value']) . "<br />";
-							$magento_product_data[$attribute->attribute_code] =	$selections;
-						}
-					}
-	  			//echo "<pre>reg ATtr" . print_r($value,true) . "</pre>";
-			}
-		//all other attributes must be exlplicitely referenced
-		} elseif(isset($value['value']['categories'])) {
-			
-			$categories = array();
-			foreach($value['value']['categories'] as $cat_key=>$cat_value) {
-				if($cat_value == 1) {
-					$categories[] = $cat_key;
-				}
-			}
-			$magento_product_data['categories'] = $categories;
-		} 
-  	} 
-	$magento = new magento();
-	$magento_product_data['websites'] = array(1);
-	$magento_product_data['status'] = 1;
-	$magento_product_data['url_key'] = $magento_product_data['name'];
-	$magento_product_data['url_path'] = $magento_product_data['name'];
-	$magento_product_data['visibility'] = 4;
-	$magento_product_data['price'] = 0;
-  $magento_product_data['additional_attributes']['tickettype'] = $node->field_tickettype['und'][0]['value'];
-  $result = $magento->create_product($magento->decryptText(variable_get('session_id')), 'virtual', $node->field_attribute_set_id['und'][0]['value'], substr(md5($magento_product_data['name']. time()),0,6), $magento_product_data);
-  }
-}
-  /*if(is_array($node)) {
-  	echo "Array";
-  if(isset($node['field_attribute_set_id']['und'][0]['value'])) {
-    echo $node['field_attribute_set_id']['und'][0]['value'] . "<br />";
+	   foreach($submission->data as $item=>$value) {
+    		if(isset($node->webform['components'][$item]['extra']['magento_attribute_code'])) {
+  			$mage_id = $node->webform['components'][$item]['extra']['magento_attribute_code'];
+  			  //if it is a standard catalog attribute
+  	  		if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($mage_id)) {
+  				$attribute = unserialize($attribute_data->data);
+    	  		if(isset($value['value']['text']['textarea']['value'])) {
+    	  		  if(in_array($attribute->attribute_code,$default_magento_attributes)) {
+    	  		      $magento_product_data[$attribute->attribute_code] = $value['value']['text']['textarea']['value'];
+  	  				} else {
+    				      $magento_additional_attributes['single_data'][] = array('key'=>$attribute->attribute_code, 'value'=>$value['value']['text']['textarea']['value']);
+  	  				}
+    				} else {
+    		  				if($attribute->frontend_input == "multiselect") {
+      		  				  $selections = array();
+                      foreach($value['value'] as $select_key=>$select_value) {
+                        $selections[] = $select_value;
+                      } 
+      		  				  if(in_array($attribute->attribute_code,$default_magento_attributes)) {
+        		  					$magento_product_data[$attribute->attribute_code] =	$selections;
+                      } else {
+                        $magento_additional_attributes['multi_data'][] = array('key'=>$attribute->attribute_code, 'value'=>$selections);
+                      }
+      						} else {
+                      if(in_array($attribute->attribute_code,$default_magento_attributes)) {
+        							    $magento_product_data[$attribute->attribute_code] =	$value['value'][0];
+                      } else {
+                          $magento_additional_attributes['single_data'][] = array('key'=>$attribute->attribute_code, 'value' => $value['value'][0]);
+                      }
+                  }
+    				}
+  		//all other attributes must be exlplicitely referenced
+  		} //if not then not valid attribute
+  	} elseif($item == 23) {
+       $file_fid = file_load($value['value'][0]);
+       $file = file_create_url($file_fid->uri);
+    } elseif(isset($value['value']['categories'])) {      
+        $categories = array();
+        foreach($value['value']['categories'] as $cat_key=>$cat_value) {
+          if($cat_value == 1) {
+            $categories[] = $cat_key;
+          }
+        }
+        $magento_product_data['categories'] = $categories;
+    }
+	}
+  	$magento = new magento();
+    $magento_media = new magento_media();
+  	$magento_product_data['websites'] = array(1);
+  	$magento_product_data['status'] = 1;
+  	$magento_product_data['url_key'] = $magento_product_data['name'];
+  	$magento_product_data['url_path'] = $magento_product_data['name'];
+  	$magento_product_data['visibility'] = 4;
+  	$magento_product_data['price'] = 0;
+    $magento_additional_attributes['single_data'][] = array('key' => 'tickettype', 'value' => 34);//$node->field_tickettype['und'][0]['value'];
+    $magento_product_data['additional_attributes'] = $magento_additional_attributes;
+    $sku = substr(md5($magento_product_data['name']. time()),0,32);
+    //echo "<pre>" . print_r($magento_product_data,true) . "</pre>";
+    $product_id = $magento->create_product($magento->decryptText(variable_get('session_id')), 'virtual', $node->field_attribute_set_id['und'][0]['value'], $sku, $magento_product_data);
+    $file_output = $magento_media->create_media($magento->decryptText(variable_get('session_id')), $product_id, $magento_product_data, $file, $sku, array('thumbnail','image','small_image'));  
     
-  } 
-  } else {
-  	echo "object";
-  	echo "<pre>" . print_r($node,true) . "</pre>";
-    echo "<pre>" . print_r($submission,true) . "</pre>";
-	die;
-  }*/
-  /* on submit 
-   * stdClass Object
-(
-    [sid] => 14
-    [nid] => 2
-    [submitted] => 1362337938
-    [remote_addr] => 216.53.139.131
-    [uid] => 1
-    [name] => ambaum2
-    [is_draft] => 0
-    [data] => Array
-   * 
+  }
 
 
-    //	echo "<pre>" . print_r($node,true) . "</pre>";
-    //echo "<pre>" . print_r($submission,true) . "</pre>";
-	//die;
+
+//dpm($node);
+//$mage_att = new magento_product_attributes();
+//$attribute_data = $mage_att->get_stored_magento_attribute_data(198);
+// $attribute = unserialize($attribute_data->data);
+//dpm($attribute);
 }
 
 /*

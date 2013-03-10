@@ -1629,9 +1629,11 @@ function drupal_move_uploaded_file($filename, $uri) {
 function file_validate(stdClass &$file, $validators = array()) {
   // Call the validation functions specified by this function's caller.
   $errors = array();
+   watchdog('imce', t("error validators or file<pre> %file_info</pre><pre>%validators</pre>"), array('%file_info'=>print_r($file,true),'%validators'=>print_r($validators,true)), WATCHDOG_NOTICE);
   foreach ($validators as $function => $args) {
     if (function_exists($function)) {
       array_unshift($args, $file);
+       watchdog('imce', t("function error: <pre> %function</pre>args error:<pre>%args</pre>"), array('%function'=>print_r($function,true),'%args'=>print_r($args,true)), WATCHDOG_NOTICE);
       $errors = array_merge($errors, call_user_func_array($function, $args));
     }
   }
