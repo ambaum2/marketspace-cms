@@ -163,7 +163,7 @@ function es_webform_webform_submission_presave($node, &$submission) {
     				}
   		//all other attributes must be exlplicitely referenced
   		} //if not then not valid attribute
-  	} elseif($item == 23) {
+  	} elseif($item == 23) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
        $file_fid = file_load($value['value'][0]);
        $file = file_create_url($file_fid->uri);
     } elseif(isset($value['value']['categories'])) {      
