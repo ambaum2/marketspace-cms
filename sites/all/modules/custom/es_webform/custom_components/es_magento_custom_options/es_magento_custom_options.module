@@ -1,4 +1,20 @@
 <?php
+
+/**
+ * Implements hook_webform_select_options_info().
+ */
+function es_magento_custom_options_webform_select_options_info() {
+  /*$options['payment_method'] = array(
+    'title' => t('Payment methods'),
+    'options callback' => 'payment_method_options',
+  );
+  $options['payment_status'] = array(
+    'title' => t('Payment statuses'),
+    'options callback' => 'payment_status_options',
+  );*/
+
+  return $options;
+}
 function es_magento_custom_options_webform_component_info() {
   $components['es_magento_custom_options'] = array(
     'label' => t('Magento Custom Options'),

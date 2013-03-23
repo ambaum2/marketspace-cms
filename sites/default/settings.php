@@ -216,8 +216,8 @@ $databases = array (
     'default' => 
     array (
       'database' => 'wizard',
-      'username' => 'abaum',
-      'password' => 'baum55',
+      'username' => 'escape_locally',
+      'password' => '3131008RU$',
       'host' => 'localhost',
       'port' => '',
       'driver' => 'mysql',
