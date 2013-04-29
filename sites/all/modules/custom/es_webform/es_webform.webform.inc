@@ -100,7 +100,6 @@ function _webform_render_es_webform($component, $value = NULL, $filter = TRUE, $
 }
 
 function _webform_display_es_webform($component, $value, $format = 'html') {
-
   return array(
     '#title' => $component['name'],
     '#weight' => $component['weight'],
@@ -119,16 +118,16 @@ function _webform_display_es_webform($component, $value, $format = 'html') {
  */
 function es_webform_webform_submission_presave($node, &$submission) {
   // Update some component's value before it is saved..
-  //isset($node->field_attribute_set_id['und'][0]['value']) ? print "r" : print "x";
-  $default_magento_attributes = array('categories','websites','name','description','short_description','weight','status','url_key','url_path'
-    ,'visibility','category_ids','website_ids','has_options','gift_message_available','price','special_price','special_price','special_from_date'
-    ,'special_to_date','tax_class_id','meta_title','meta_keyword','meta_description','custom_design','custom_layout_update','options_container'
-    );
-  $default_magento_stock_attributes = array('qty','is_in_stock','manage_stock','use_config_manage_stock','min_qty','use_config_manage_stock'
-    ,'min_qty','use_config_min_qty','min_sale_qty','use_config_min_sale_qty',' max_sale_qty',' use_config_max_sale_qty','');
+  global $user;
+  if($submission->is_draft == 0) {
+	  $default_magento_attributes = array('categories','websites','name','description','short_description','weight','status','url_key','url_path'
+	    ,'visibility','category_ids','website_ids','has_options','gift_message_available','price','special_price','special_price','special_from_date'
+	    ,'special_to_date','tax_class_id','meta_title','meta_keyword','meta_description','custom_design','custom_layout_update','options_container'
+	    );
+	  $default_magento_stock_attributes = array('qty','is_in_stock','manage_stock','use_config_manage_stock','min_qty','use_config_manage_stock'
+	    ,'min_qty','use_config_min_qty','min_sale_qty','use_config_min_sale_qty',' max_sale_qty',' use_config_max_sale_qty','');
   $magento_product_attributes = new magento_product_attributes();
   $magento_additional_attributes = array();
-  if($submission->is_draft == 0) {
   	$magento_product_data = array();
 	   foreach($submission->data as $item=>$value) {
     		if(isset($node->webform['components'][$item]['extra']['magento_attribute_code'])) {
@@ -184,7 +183,9 @@ function es_webform_webform_submission_presave($node, &$submission) {
   	$magento_product_data['url_path'] = $magento_product_data['name'];
   	$magento_product_data['visibility'] = 4;
   	$magento_product_data['price'] = 0;
+		//TODO: obviously these need to be dynamic 
     $magento_additional_attributes['single_data'][] = array('key' => 'tickettype', 'value' => 34);//$node->field_tickettype['und'][0]['value'];
+    $magento_additional_attributes['single_data'][] = array('key' => 'marketspace_owner', 'value' => $user->uid);
     $magento_product_data['additional_attributes'] = $magento_additional_attributes;
     $sku = substr(md5($magento_product_data['name']. time()),0,32);
     //echo "<pre>" . print_r($magento_product_data,true) . "</pre>";

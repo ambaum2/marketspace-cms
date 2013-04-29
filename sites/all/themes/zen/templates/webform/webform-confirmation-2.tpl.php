@@ -25,13 +25,12 @@
       module_load_include("inc","webform", "includes/webform.submissions");
       $cid = webform_get_cid($node, 'profile_name', 15); //15 is parent id
      $submission = webform_get_submission($node->nid, $sid);
-     dpm($submission);
+     //dpm($submission);
      $url = preg_replace("![^a-z0-9]+!i", "-", $submission->data[$cid]['value'][0]);
-      //echo "<pre>" . print_r($submission,true) . "</pre>";
-      //echo  ;
+
     ?>
     <p><?php print t('Thank you, your Venue has been created.'); ?></p>
-    <a href=<?php print "'http://aaortho.net/index.php/" . $url . ".html'" ?>>View Your Product on Escape Locally</a>
+    <a href=<?php print "'http://aaortho.net/index.php/" .  strtolower($url) . ".html'" ?>>View Your Product on Escape Locally</a>
   <?php endif; ?>
 </div>
 

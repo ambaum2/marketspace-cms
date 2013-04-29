@@ -5,26 +5,177 @@
    function es_webform_menu() {
    	
 	$items = array();
-    $items['get_attribute_info'] = array(
-      'page callback' => 'get_attribute_info_2',
- 
+  $items['dashboard'] = array(
+      'page callback' => 'getDashboard',
       'type' => MENU_CALLBACK,
-      	  'access callback' => 'user_access',
-	  'access arguments' => array('access content'),
-    );
+      //'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+  );
+  $items['product_edit'] = array(
+      'page callback' => 'getProductEdit',
+      'type' => MENU_CALLBACK,
+      //'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+  );    
     return $items;
   }
-   
-   function get_attribute_info_2() {
+
+	/*
+	 * render dashboard
+	 */
+	function getDashboard() {
+		$dashboard = new marketSpaceDashboard;
+		$magento = new magento;
+		$products = $dashboard->renderProductGrid();
+		$output = "<ul class = 'marketspace_dashboard_grid'>";
+    
+		foreach($products as $product) {
+			//echo "<br />" . $product->product_id . " " . $product->set;
+		  //$product_info = $magento->encryptText($product->product_id . ", " . $product->set);
+		  $product_info = $product->product_id . ", " . $product->set;
+			$output .= "<li><a href='product_edit?info=" . urlencode($product_info)
+				. "'>" . $product->name . "</a></li>";
+		}
+		$output = $output . "</ul>";
+		return $output;
+	}   
+
+  /*
+   * render product edit
+   */
+  function getProductEdit() {
+    return drupal_get_form('product_edit_form');
+    
+  }  
+
+function product_edit_form($form_state) {
+    /*
+     * get url params (encrypted) and
+     * get webform that corresponds to the products
+     * attribute set
+     */
+    $product = new magento_product;
+    $product_edit = new product_edit;
+    $magento = new magento;
+    $magento_product_attributes = new magento_product_attributes;
+    //$product_string = $magento->decryptText(urldecode($_GET["info"]));
+    $product_string = urldecode($_GET["info"]);
+    $product_data = explode(",", $product_string);
+		//get webform nid by attribute set attribute
+		$node_webform_id = $product->getWebformIdByAttributeSet($product_data[1]);
+		if(count($node_webform_id) == 1) { //make sure just one webform	TODO:- may want to have multiple
+			$node = node_load($node_webform_id[0]->entity_id);
+			$webform = $node->webform["components"];
+			//get all additional attribute codes that need to be called in api
+			$additional_attributes = array();
+			foreach($webform as $component) {
+				if(isset($component['extra']['magento_attribute_code']))	{
+					if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($component['extra']['magento_attribute_code'])) {
+						$attribute = unserialize($attribute_data->data);
+						if(!($product->isCoreMagentoAttribute($attribute->attribute_code)))	{
+							$additional_attributes['additional_attributes'][] = $attribute->attribute_code;
+						}
+					}
+				}
+			}
+			//get this products data from magento
+    	$product_obj = $product->getProductById($product_data[0], $additional_attributes);
+			//put additional attributes on same level as core magento attributes. So easier to work with
+			//don't worry about multi select yet
+			foreach($product_obj->additional_attributes as $attr) {
+				$product_obj->{$attr->key} = $attr->value;
+			}
+			 
+      $form['product-edit-form'] = array(
+        '#markup' => '<div>' . t('Product Edit Form')
+        . '</div>',
+      );
+			$form['product-edit-form'] = array(
+				'#markup' => t('<p><a href="@link" target="_blank">View Product</a></p>', array('@link' => $product->base_url . $product_obj->url_path)),
+			);
+			//set product id and edit node id - for processing the form for magento
+			$form['product_id'] = array('#type'=>'hidden', '#value' => $product_data[0]);
+			$form['product_edit_node_id'] = array('#type'=>'hidden', '#value' => $node_webform_id[0]->entity_id);
+      $custom_magento_components = array("categories", "custom_options", "images");
+      //display the form components accordion
+      $current_fieldset = ""; //all components must be in a fieldset   
+      foreach($webform as $component) {
+        if(isset($component['extra']['magento_attribute_code'])) {
+          if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($component['extra']['magento_attribute_code'])) {
+            $attribute = unserialize($attribute_data->data);
+            //add element to form with data prepopultated
+            $form[$current_fieldset][$attribute->attribute_code] = $product_edit->create_attribute_input($attribute, $form_state, $component, $product_obj);
+          }
+				} elseif(isset($component['extra']['magento_attribute_code_name'])) {
+					if($component['extra']['magento_attribute_code_name'] == 'categories') {
+						$category = new magento_product_category;
+						$value_path = "";
+				    $the_path = array_searchRecursive("Array", $component, $strict=false, $path=array(), $value_path);
+				    $checked_categories = explode(",",$value_path);
+						$selected_categories = array();
+						foreach($product_obj->{$component['extra']['magento_attribute_code_name']} as $key=>$cat) {
+							$selected_categories[$cat] = 1;
+						}
+						//TODO use a different more abstract function for category rendering - this is messy
+						//categories in input formstate are at: submitted[profile_information_header][venue_sweets_categories][categories]
+				    $categories = $category->get_categories($checked_categories, $excluded_categories = array(2));
+						$category->create_category_checkboxes($categories, $form, $component, true, $selected_categories);
+						$form[$current_fieldset]['categories'] = $form['categories']; //should probably clean this up so we can avoid the unset and this
+						unset($form['categories']);
+					}
+        } else { //not a regular attribute could be categories, custom attributes, images etc
+        	if($component['type'] != 'pagebreak') {
+						if($component['type'] == 'markup') {
+							$form[$current_fieldset][$component['form_key']] = array(
+								'#markup' => t('!value', array('!value'=>$component['value'])), //$component['form_key']['value'];
+								'#type' => $component['type'],
+							);
+						} elseif($component['type'] == 'fieldset') {
+							//echo "fieldset: " . $component['form_key'] . "<br />";
+		          $form[$component['form_key']] = array(
+		          	'#type' => $component['type'],
+	            	'#title' => $component['name'],
+	            	'#collapsible' => ($component['extra']['collapsible'] == 1) ? 1 : 0,
+	            	'#collapsed' => ($component['extra']['collapsed'] == 1) ? 1 : 0,
+	          	);
+							$current_fieldset = $component['form_key'];
+						}
+					}
+        }
+      }
+      $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Submit'),
+      );
+    	return $form;
+    } elseif(count($node_webform_id) > 1) {
+    	drupal_set_message(t('Too many forms matching this product Error: more than one attribute set'), 'error');
+    } else {
+    	drupal_set_message(t('No forms matching this product Error: incorrect or non existent attribute set'), 'error');
+    }
+}
+  function get_attribute_info_2() {
   $magento = new magento();
   $attribute = $magento->get_attribute_information($magento->decryptText(variable_get('session_id')), 206);
   ($attribute->is_required == 1 ? $required = 'Yes' : $required = 'No');
   $content = '<p id="edit-extra-attribute-info"><span>Frontend Name: ' . $attribute->frontend_label[0]->label 
     . '</span><br /><span>Form Type: ' . $attribute->frontend_input . '</span><br /><span>Required: ' 
     . $required . '</p>'; //$attribute->frontend_label[0]->label
-  //echo "<pre>" . print_r($attribute,true) . "</pre>";
-  //die;
   return $content;
+}
+
+function product_edit_form_submit(&$form, &$form_state) {
+	$product = new magento_product;
+	$data = $product->getProductDataArray($form_state);
+	$result = $product->updateProduct($form_state['input']['product_id'], $data);
+	if($result) {
+		drupal_set_message(t("Product has been updated."), 'notice');
+	} else {
+		drupal_set_message(t("Product update failed."), 'error');
+	}
+ 	//echo "<pre>" . print_r($data,true) . "</pre>";
+	//die;
+  //$form_state['redirect'] = 'user';
 }
 /**
  * Implements hook_webform_select_options_info().
@@ -58,6 +209,7 @@ function es_webform_webform_component_info() {
 
   return $components;
 }
+
 /* add js and css 
  * see webform.module line 1857 webform_client_form
  * function for a good example
@@ -73,12 +225,6 @@ function es_webform_form_alter(&$form, $form_state, $form_id){
     $form['#attached'] = array(
      'js' => array(drupal_get_path('module', 'es_category') . '/js/toggle_category.js'),
      'css' => array(drupal_get_path('module', 'es_category') . '/css/custom_components.css'),
-      
     );
-
-    if(isset($form_state['values']['submitted'])) {
-
-    }
-
    }
 }

@@ -39,7 +39,6 @@ class magento_product_category extends magento {
         $this->category_level_create($form, $item, "parent", $component, $frontend, $selected_values);
       }
     }
-  //  asort($form['categories'][2][2]);
     return $form;
   } 
 
@@ -70,7 +69,7 @@ class magento_product_category extends magento {
       //TODO: check if user is editing a product and if so get that value from database
       //will store edited products in database
       $default_value = 0;
-      if(array_key_exists($item->id, $selected_values)) {
+      if(array_key_exists($item->id, $selected_values) || array_search($item->id, $selected_values)) {
         if($selected_values[$item->id]==1) {
           $default_value = 1;
         }

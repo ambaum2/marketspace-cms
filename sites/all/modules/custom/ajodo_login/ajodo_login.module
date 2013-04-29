@@ -13,9 +13,32 @@ function ajodo_login_menu() {
 	  'access arguments' => array('access content'),
 	  //'file' => 'includes/library_sync_netforum.inc',
 	);
-	
+  $items['node/%webform_menu/webform-results/submissions22'] = array(
+    'title' => 'Submissions22',
+    'page callback' => 'seeSubs',
+    //'page arguments' => array(1, FALSE, '50'),
+    'access callback' => 'webform_results_access',
+    'access arguments' => array(1),
+    'file' => 'admin_menu.inc',
+    'weight' => 16,
+    'type' => MENU_LOCAL_TASK,
+  );	
 	return $items;
 }
+
+
+
+function seeSubs() {
+  
+  $content['raw_markup'] = array(
+    '#type' => 'markup',
+    '#markup' => '<p>username'. $username . '</p><p>password' . $password . "</P>" . $output,
+  );
+  return $content;  
+}
+
+
+
 function ajodo_login_test() {
  /* $to      = 'abaum@aaortho.org';
 $subject = 'the subject';
@@ -48,7 +71,8 @@ mail($to, $subject, $message, $headers);*/
  //echo "shoot";
 //$mail->get(1);
 $output = "<pre>" . print_r($mail->get(1),true) . "</pre>";
-$mail->send_mail("abaum@aaortho.org", "hello", "this is a test message");
+//
+//$mail->send_mail("abaum@aaortho.org", "hello", "this is a test message");
 $mail->close();
   $content['raw_markup'] = array(
     '#type' => 'markup',
