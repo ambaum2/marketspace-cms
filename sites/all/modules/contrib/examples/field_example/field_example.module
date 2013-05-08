@@ -100,7 +100,7 @@ function field_example_field_validate($entity_type, $entity, $field, $instance, 
  * Return TRUE if it does not contain data, FALSE if it does. This lets
  * the form API flag an error when required fields are empty.
  */
-function field_example_field_is_empty($item, $field) {
+function field_example_field_is_empty($item, $field) {  
   return empty($item['rgb']);
 }
 
@@ -236,7 +236,9 @@ function field_example_field_widget_info() {
  */
 function field_example_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $value = isset($items[$delta]['rgb']) ? $items[$delta]['rgb'] : '';
-
+  $value2 = isset($items[$delta]['label']) ? $items[$delta]['label'] : '';
+  $attribute_code = isset($items[$delta]['type_code']) ? $items[$delta]['type_code'] : '';
+  //drupal_set_message("<pre>" . print_r($field,true) . "</pre>" . "Hello", 'notice');
   $widget = $element;
   $widget['#delta'] = $delta;
 
@@ -312,6 +314,20 @@ function field_example_field_widget_form(&$form, &$form_state, $field, $instance
   }
 
   $element['rgb'] = $widget;
+  $element['label'] = array(          
+          '#type' => 'textfield',
+          '#title' => "label value for field",
+          '#size' => 2,
+          '#default_value' => $value2,
+          '#attributes' => array('class' => array('rgb-entry')),
+        );
+  $element['type_code'] = array(          
+          '#type' => 'textfield',
+          '#title' => "attribute code for mage",
+          '#size' => 2,
+          '#default_value' => $attribute_code,
+          '#attributes' => array('class' => array('rgb-entry')),
+        );
   return $element;
 }
 

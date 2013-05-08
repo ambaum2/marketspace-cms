@@ -30,9 +30,7 @@
 		$output = "<ul class = 'marketspace_dashboard_grid'>";
     
 		foreach($products as $product) {
-			//echo "<br />" . $product->product_id . " " . $product->set;
-		  //$product_info = $magento->encryptText($product->product_id . ", " . $product->set);
-		  $product_info = $product->product_id . ", " . $product->set;
+		  $product_info = $product->product_id . "," . $product->set . "," . $product->type;
 			$output .= "<li><a href='product_edit?info=" . urlencode($product_info)
 				. "'>" . $product->name . "</a></li>";
 		}
@@ -62,7 +60,7 @@ function product_edit_form($form_state) {
     $product_string = urldecode($_GET["info"]);
     $product_data = explode(",", $product_string);
 		//get webform nid by attribute set attribute
-		$node_webform_id = $product->getWebformIdByAttributeSet($product_data[1]);
+		$node_webform_id = $product->getWebformIdByAttributeSetAndType($product_data[1], $product_data[2]);
 		if(count($node_webform_id) == 1) { //make sure just one webform	TODO:- may want to have multiple
 			$node = node_load($node_webform_id[0]->entity_id);
 			$webform = $node->webform["components"];
@@ -88,9 +86,13 @@ function product_edit_form($form_state) {
 			 
       $form['product-edit-form'] = array(
         '#markup' => '<div>' . t('Product Edit Form')
-        . '</div>',
+          . '</div>',
+        '#attached' => array(
+          'js' => array(drupal_get_path('module', 'es_webform') . '/js/accordion_tabs.js'),
+          'css' => array(drupal_get_path('module', 'es_webform') . '/css/es_webform.css'),
+        ),
       );
-			$form['product-edit-form'] = array(
+			$form['view-product'] = array(
 				'#markup' => t('<p><a href="@link" target="_blank">View Product</a></p>', array('@link' => $product->base_url . $product_obj->url_path)),
 			);
 			//set product id and edit node id - for processing the form for magento
@@ -131,12 +133,13 @@ function product_edit_form($form_state) {
 								'#type' => $component['type'],
 							);
 						} elseif($component['type'] == 'fieldset') {
-							//echo "fieldset: " . $component['form_key'] . "<br />";
 		          $form[$component['form_key']] = array(
 		          	'#type' => $component['type'],
-	            	'#title' => $component['name'],
-	            	'#collapsible' => ($component['extra']['collapsible'] == 1) ? 1 : 0,
-	            	'#collapsed' => ($component['extra']['collapsed'] == 1) ? 1 : 0,
+	            	'#title' => '',
+	            	'#prefix' => "<h2 class='product-edit-group-marketspace-tab'>" . $component['name'] . "</h2><div class='product-edit-group-marketspace'>",
+	            	'#suffix' => "</div>",
+	            	'#collapsible' => ($component['extra']['collapsible'] == 1) ? 0 : 0,
+	            	'#collapsed' => ($component['extra']['collapsed'] == 1) ? 0 : 0,
 	          	);
 							$current_fieldset = $component['form_key'];
 						}

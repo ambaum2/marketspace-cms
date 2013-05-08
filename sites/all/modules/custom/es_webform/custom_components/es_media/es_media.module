@@ -1,0 +1,66 @@
+<?php
+
+
+/**
+ * Implements hook_webform_select_options_info().
+ */
+ /*
+function es_media_webform_select_options_info() {
+  /*$options['payment_method'] = array(
+    'title' => t('Payment methods'),
+    'options callback' => 'payment_method_options',
+  );
+  return $options; 
+}*/
+function es_media_webform_component_info() {
+  $components['es_media'] = array(
+    'label' => t('Magento Media Upload'),
+    'description' => t('Lets users create custom options for their products.'),
+    'features' => array(
+      'default_value' => FALSE,
+      'required' => TRUE,
+    ),
+    'file' => 'es_media.webform.inc',
+  );
+
+  return $components;
+}
+
+/* add js and css 
+ * see webform.module line 1857 webform_client_form
+ * function for a good example
+ * any webform will be webform_client_form_(nid)
+ * so webform_client_form_2
+ */
+
+function es_media_form_alter(&$form, $form_state, $form_id){
+  //watchdog('es_magento_custom_options', 'The form id %formid', array('%formid' => $form_id), WATCHDOG_NOTICE, $link = NULL);
+  global $user;
+  if($form_id == 'webform_client_form_6' && $user->uid = 1) { //webform_client_form_6
+  //echo "<pre>" . print_r($form_state,true) . "</pre>";
+		//$form['upload_button']['#ajax']['callback'] = 'es_media_upload';
+    $form['#attached'] = array(
+      //'js' => array(drupal_get_path('module', 'es_magento_custom_options') . '/js/toggle_category.js'),
+      //'css' => array(drupal_get_path('module', 'es_magento_custom_options') . '/css/es-custom-option-forms.css'),
+    );
+   }
+}
+
+//function file_managed_file_submit() {
+//	die;
+//}
+/*
+ * permanently save upload. 
+ * TODO:- allow for image cropping, scaling etc
+ */
+function es_media_upload($form, $form_state) {
+ // Load the file via file.fid.
+  watchdog("es_media", "form state %form_state", array('%form_state'=>print_r($form_state,true)),WATCHDOG_NOTICE);
+  $file = file_load($form_state['values']['product-image']);
+  // Change status to permanent.
+  $file->status = FILE_STATUS_PERMANENT;
+  // Save.
+  file_save($file);
+  // Record that the module (in this example, user module) is using the file. 
+  file_usage_add($file, 'user', 'user', $account->uid);  	
+}

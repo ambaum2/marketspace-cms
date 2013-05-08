@@ -1,0 +1,9 @@
+name = Escape Locally Magento Webform Selection
+description = displays data from magento product attributes in webforms
+files[] = es_user_form_select.module
+
+core = 7.x
+dependencies[] = es_webform
+; Information added by drupal.org packaging script on 2012-11-18
+version = "7.x-1.x-dev"
+core = "7.x"

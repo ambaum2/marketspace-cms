@@ -538,3 +538,10 @@ ul.primary, ul.tabs { clear:both; margin:10px 0 35px 0; white-space: normal }
 ul.primary li, ul.tabs li { padding:10px 0; line-height:130%; }
 
 ul.primary li a, ul.tabs li a { margin:0; padding: 4px 1em; display: inline-block; }
+
+/*
+ * alan styles
+ */
+
+#header-inside {padding:16px 0;}
+#header-inside-left img {width:400px;height:100px;}

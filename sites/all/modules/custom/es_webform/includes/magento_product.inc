@@ -6,6 +6,11 @@ class magento_product extends magento {
 		$this->session_id = parent::decryptText(variable_get('session_id'));
 	}
 	
+	/*
+	 * get all products list using filter
+	 * TODO this is limited you should consider creating your own
+	 * webservice method
+	 */
 	public function getAllUsersProducts($complex_filter = null) {		
 		$proxy = new SoapClient(magento::primary_host);
 			try {
@@ -27,7 +32,30 @@ class magento_product extends magento {
         throw $e;
       }
     }
-  
+	/*
+	 * get all products attribute sets
+	 */
+	public function getAllAttributeSets() {		
+		$proxy = new SoapClient(magento::primary_host);
+			try {
+				$result = $proxy->catalogProductAttributeSetList($this->session_id);
+				return $result;
+			} catch(exception $e) {
+				throw $e;
+			}
+		}  
+	/*
+	 * get all products types
+	 */
+	public function getAllProductTypes() {		
+		$proxy = new SoapClient(magento::primary_host);
+			try {
+				$result = $proxy->catalogProductTypeList($this->session_id);
+				return $result;
+			} catch(exception $e) {
+				throw $e;
+			}
+		}  
   /*
    * update a product product
    */
@@ -41,12 +69,14 @@ class magento_product extends magento {
      }
   }
 	/*
-	 * get webform nid by product attribute set id
+	 * get nid by product attribute set id
 	 */
-	public function getWebformIdByAttributeSet($attribute_set_id) {
-    $query = db_select('field_data_field_attribute_set_id', 'a')
-      ->fields('a',array('entity_id', 'field_attribute_set_id_value'))
-      ->condition('field_attribute_set_id_value', (int)$attribute_set_id);
+	public function getWebformIdByAttributeSetAndType($attribute_set_id,$product_type) {
+
+    $query = db_select('field_data_field_market_space_setup', 'a')
+      ->fields('a',array('entity_id', 'field_market_space_setup_attribute_set_id', 'field_market_space_setup_type_code'))
+      ->condition('field_market_space_setup_attribute_set_id', (int)$attribute_set_id)
+			->condition('field_market_space_setup_type_code', $product_type);
     $query->join('field_data_field_tickettype', 't', 't.entity_id = a.entity_id');
     $query->fields('t',array('field_tickettype_value'));
     $node_webform = $query->execute()->fetchAll();
@@ -120,12 +150,11 @@ class magento_product extends magento {
 	        }
 	      //all other attributes must be exlplicitely referenced
       } //if not then not valid attribute
-    } elseif($item == 23) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
+    //} elseif($item == 23) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
       // $file_fid = file_load($value['value'][0]);
       // $file = file_create_url($file_fid->uri);
     } elseif(isset($webform[$item]['extra']['magento_categories'])) {      
 	      $categories = array();
-				//echo "<pre>" . print_r($input,true) . "</pre>";
 	      foreach($input['submitted']['profile_information_header']['venue_sweets_categories']['categories'] as $cat_key=>$cat_value) {
 	        if($cat_value == 1) {
 	          $categories[] = $cat_key;

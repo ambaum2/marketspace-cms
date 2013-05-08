@@ -212,14 +212,14 @@
             
 			<?php print render($title_prefix); ?>
             <?php if ($title): ?>
-            <h1><?php print $title ?></h1>
+            <h1><?php //print $title ?></h1>
             <?php endif; ?>
             <?php print render($title_suffix); ?>
             
             <?php if ($tabs): ?><?php print render($tabs); ?><?php endif; ?>
-            
-            <?php print render($page['content']); ?>
-            
+            <?php //echo "<pre>" . print_r($page,true) . "</pre>" ?>
+            <?php print render($page['marketspace_product_management']); //content ?>
+            <?php print render($page['content']); //content ?>
             <?php print $feed_icons; ?>
             
         </div><!-- EOF: #main -->
@@ -281,7 +281,7 @@
     <!-- #credits -->   
     <div id="credits" class="container_12 clearfix">
         <div class="grid_12">
-        <p>Ported to Drupal by <a href="http://www.drupalizing.com">Drupalizing</a>, a Project of <a href="http://www.morethanthemes.com">More than (just) Themes</a>. Designed by <a href="http://www.kaolti.com/">Zsolt Kacso</a></p>
+        <p><a href="http://www.thedotworldgroup.com">The Dot World Group</a></p>
         </div>
     </div>
     <!-- EOF: #credits -->

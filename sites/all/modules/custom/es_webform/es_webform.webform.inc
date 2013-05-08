@@ -26,7 +26,7 @@ function _webform_edit_es_webform($component) {
   $product = new product();
   $webform = node_load($component['nid']);
   if(isset($webform->field_attribute_set_id['und'][0]['value'])) {
-    $attribute_set_id = $webform->field_attribute_set_id['und'][0]['value'];
+    $attribute_set_id = $webform->field_market_space_setup['und'][0]['attribute_set_id'];
     $attributes = $magento->get_all_attributes($attribute_set_id, $magento->decryptText(variable_get('session_id')));
     
     $form['extra']['magento_attribute_code'] = array(
@@ -71,9 +71,6 @@ function get_attribute_info($form, $form_state) {
   $attribute = $magento->get_attribute_information($magento->decryptText(variable_get('session_id')), $form['extra']['magento_attribute_code']['#value']);
   ($attribute->is_required == 1 ? $required = 'Yes' : $required = 'No');
   $attribute_code_name = $attribute->code;
-  
-  //$form['extra']['attribute_info'] = array('#type'=>'item',
-  //  '#markup'=>'
   $attribute_info ='<div id="edit-extra-attribute-info"><span>Frontend Name: ' . $attribute->frontend_label[0]->label 
     . '</span><br /><span>Form Type: ' . $attribute->frontend_input . '</span><br /><span>Required: ' 
     . $required . '</div>'; //$attribute->frontend_label[0]->label
@@ -82,7 +79,6 @@ function get_attribute_info($form, $form_state) {
   $commands[] = ajax_command_replace("#attribute_code_name", '<div id="attribute_code_name"><input type="hidden" value="' . $attribute->attribute_code . '" name="extra[magento_attribute_code_name]"></div>');
   $commands[] = ajax_command_replace("#edit-extra-attribute-info", $attribute_info);
   return array('#type' => 'ajax', '#commands' => $commands);
-  //return $form;
 }
 
 /**
@@ -119,7 +115,8 @@ function _webform_display_es_webform($component, $value, $format = 'html') {
 function es_webform_webform_submission_presave($node, &$submission) {
   // Update some component's value before it is saved..
   global $user;
-  if($submission->is_draft == 0) {
+	//drupal_set_message($node->field_tickettype['und'][0]['value'] . "ticket and attributeset" . $node->field_market_space_setup['und'][0]['attribute_set_id'], 'notice');
+  if($submission->is_draft == 7) {
 	  $default_magento_attributes = array('categories','websites','name','description','short_description','weight','status','url_key','url_path'
 	    ,'visibility','category_ids','website_ids','has_options','gift_message_available','price','special_price','special_price','special_from_date'
 	    ,'special_to_date','tax_class_id','meta_title','meta_keyword','meta_description','custom_design','custom_layout_update','options_container'
@@ -162,7 +159,10 @@ function es_webform_webform_submission_presave($node, &$submission) {
     				}
   		//all other attributes must be exlplicitely referenced
   		} //if not then not valid attribute
-  	} elseif($item == 23) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
+  	} elseif($item == 23 || isset($value['value']['categories'])) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
+       $magento_media = new magento_media;
+			 //process a file through the function
+			 //$magento_media->process_managed_file($form_state)
        $file_fid = file_load($value['value'][0]);
        $file = file_create_url($file_fid->uri);
     } elseif(isset($value['value']['categories'])) {      
@@ -184,12 +184,12 @@ function es_webform_webform_submission_presave($node, &$submission) {
   	$magento_product_data['visibility'] = 4;
   	$magento_product_data['price'] = 0;
 		//TODO: obviously these need to be dynamic 
-    $magento_additional_attributes['single_data'][] = array('key' => 'tickettype', 'value' => 34);//$node->field_tickettype['und'][0]['value'];
+    $magento_additional_attributes['single_data'][] = array('key' => 'tickettype', 'value' => $node->field_tickettype['und'][0]['value']);//;
     $magento_additional_attributes['single_data'][] = array('key' => 'marketspace_owner', 'value' => $user->uid);
     $magento_product_data['additional_attributes'] = $magento_additional_attributes;
     $sku = substr(md5($magento_product_data['name']. time()),0,32);
-    //echo "<pre>" . print_r($magento_product_data,true) . "</pre>";
-    $product_id = $magento->create_product($magento->decryptText(variable_get('session_id')), 'virtual', $node->field_attribute_set_id['und'][0]['value'], $sku, $magento_product_data);
+    $product_id = $magento->create_product($magento->decryptText(variable_get('session_id')), $node->field_market_space_setup['und'][0]['type_code'],
+    	$node->field_market_space_setup['und'][0]['attribute_set_id'], $sku, $magento_product_data);
     $file_output = $magento_media->create_media($magento->decryptText(variable_get('session_id')), $product_id, $magento_product_data, $file, $sku, array('thumbnail','image','small_image'));  
     
   }

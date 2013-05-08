@@ -1,1 +1,85 @@
+/* html page */
+html .cke_editable_themed {background:white;color:black;}
+/* product dashboard */
+#edit-promote { visibility: hidden; }
+.marketspace-image-thumbnail-container {
+	background:#ddd;
+	width:120px;
+	padding:9px;
+	text-align:center;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  border: 1px solid #e1e3e4;
+  background: #05a3dc;
+  background: -moz-linear-gradient(top, #eeeeee 0%, #ffffff 100%);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #eeeeee), color-stop(100%, #ffffff));
+  background: -webkit-linear-gradient(top, #eeeeee 0%, #ffffff 100%);
+  background: -o-linear-gradient(top, #eeeeee 0%, #ffffff 100%);
+  background: -ms-linear-gradient(top, #eeeeee 0%, #ffffff 100%);
+  background: linear-gradient(to bottom, #eeeeee 0%, #ffffff 100%);
+}
+.marketspace-image-thumbnail-container:hover {
+  background: -moz-linear-gradient(top, #fff 0%, #ffffff 100%);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #fff), color-stop(100%, #ffffff));
+  background: -webkit-linear-gradient(top, #fff 0%, #ffffff 100%);
+  background: -o-linear-gradient(top, #fff 0%, #ffffff 100%);
+  background: -ms-linear-gradient(top, #fff 0%, #ffffff 100%);
+	background: linear-gradient(to bottom, #fff 0%, #FFFFFF 100%) repeat scroll 0 0 transparent
+}
+.market-space-tab-image {
+	width:50px;
+	height:auto;
+	padding-right:15px;
+}
+.marketspace-dashboard-tab {
+	font-size: 24px;
+}
+/*product edit form*/
+.product-edit-group-marketspace-tab {
+  cursor:pointer;
+  background: #f7f9fa;
+  color: #005696;
+  display: block;
+  position: relative;
+  padding: 8px 15px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  border: 1px solid #e1e3e4;
+  margin-bottom:0px;
+}
+.product-edit-group-marketspace-tab:hover {
+  background: #05a3dc;
+  background: -moz-linear-gradient(top, #09b4e4 0%, #05a3dc 100%);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #09b4e4), color-stop(100%, #05a3dc));
+  background: -webkit-linear-gradient(top, #09b4e4 0%, #05a3dc 100%);
+  background: -o-linear-gradient(top, #09b4e4 0%, #05a3dc 100%);
+  background: -ms-linear-gradient(top, #09b4e4 0%, #05a3dc 100%);
+  background: linear-gradient(to bottom, #09b4e4 0%, #05a3dc 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr='#09b4e4', endColorstr='#05a3dc');
+  color: #ffffff;	
+}
+.product-edit-group-marketspace-tab-active {
+	background: #05a3dc;
+	color: #ffffff;	
+}
+.product-edit-group-marketspace {
+  background:#cccccc;  
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  -webkit-box-shadow: -9px 10px 10px -4px rgba(0, 0, 0, 0.3); /*original 0px 5px 10px -4px rgba(0, 0, 0, 0.3) */
+  -moz-box-shadow: -9px 10px 10px -4px rgba(0, 0, 0, 0.3);/*original 0px 5px 10px -4px rgba(0, 0, 0, 0.3) */
+  box-shadow: -9px 10px 10px -4px rgba(0, 0, 0, 0.3);
+  padding: 10px 20px 30px;
+  
+}
 
+.product-edit-group-marketspace fieldset {
+	border:none;	
+}
+
+.cke_editable {
+	background:#ffffff;
+}

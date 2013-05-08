@@ -13,6 +13,7 @@ regions[navigation] = Navigation
 regions[search_area] = Search area
 regions[highlighted] = Highlighted
 regions[content] = Content
+regions[marketspace_product_management] = Marketspace Product Management
 regions[sidebar_first] = First sidebar
 regions[sidebar_second] = Second sidebar
 regions[banner] = Banner

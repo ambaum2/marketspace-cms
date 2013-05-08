@@ -1,0 +1,84 @@
+<?php
+/* hook_block_info
+ * define our menu
+ */
+function es_user_form_select_block_info() {
+  $blocks['marketspace_form_selection'] = array(
+    'info' => t('Marketspace Add Form Selector'),
+  );
+  return $blocks;
+}
+
+/* hook_block_view
+ * control how the menu is output
+ */
+function es_user_form_select_block_view($delta = '') {
+  $block = array();
+  if ($delta == "marketspace_form_selection") {
+    //get tree
+    $marketspace_forms = 'form_types';
+    $taxonomy = taxonomy_vocabulary_machine_name_load($marketspace_forms);
+    $terms = taxonomy_get_tree($taxonomy->vid);
+  	//foreach tree query webform nodes
+  	$output = "<h1>Choose a Product To Add</h1>";
+  	foreach($terms as $key=>$term) {
+      $item = taxonomy_term_load($term->tid);      
+      //get webforms by tid
+      $interface = new marketSpaceDashboard;
+      $webform_ids = $interface->getWebformsByTidAndFormCategory($item->tid);
+      if($webform_ids) {
+        $output .= "<h2 class='product-edit-group-marketspace-tab marketspace-dashboard-tab'><img class='market-space-tab-image' src='"
+          . file_create_url(file_build_uri($item->field_thumbnail['und'][0]['filename'])) 
+          . "' />" . $item->name . "</h2>";
+        $output .= "<div class='product-edit-group-marketspace'>";
+        foreach($webform_ids as $key=>$webform) {
+          $node = node_load($webform->entity_id);
+          $output .= "<div class='marketspace-image-thumbnail-container'><a href='node/" . $node->nid . "'><img src='" 
+            . file_create_url(file_build_uri($node->field_thumbnail['und'][0]['filename'])) 
+            . "' />";
+          $output .= "<h4>" . $node->title . "</h4></a></div>";
+        }
+        $output .= "</div>";
+      }
+  	}
+    $block['content'] = array(
+      '#markup' => $output,
+      '#attached' => array(
+        'js' => array(drupal_get_path('module', 'es_webform') . '/js/accordion_tabs.js'),
+        'css' => array(drupal_get_path('module', 'es_webform') . '/css/es_webform.css'),
+      ),
+    );
+  	//output webform node name with link to add form
+  	
+  	//cache results
+	  
+	  return $block;
+  } 
+}
+/*
+ * example of theme function
+ *
+ * to use put this in hook_block_view
+ *       $block['content'][] = array(
+        '#type' => 'markup',
+        '#markup' => theme('es_user_form_select_render',$node->field_additional_info['und'][0]),
+      );
+ */
+
+ /*
+function theme_es_user_form_select_render($variables) {
+  $output = "<img style='width:". $variables['width'] . "px;height:" . $variables['height'] . "px;'"
+            . "src='".file_create_url(file_build_uri($variables['filename']))."' />";
+  return $output;  
+}
+*/
+/* dwg content theming 
+ * implements hook_theme()
+ */
+/* function es_user_form_select_theme() {
+  return array(
+    'dwg_content_blocks_image_render' => array(
+        'variables' => array('node' => NULL),
+    ),
+  );
+ }*/

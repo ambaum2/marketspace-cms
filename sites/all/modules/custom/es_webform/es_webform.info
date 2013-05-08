@@ -8,6 +8,7 @@ files[] = includes/magento_product_category.inc
 files[] = includes/magento_product_create.inc
 files[] = includes/magento_product_rest.inc
 files[] = includes/magento_product.inc
+files[] = includes/magento_product_types_sets.inc
 files[] = includes/product.inc
 files[] = includes/product_edit.inc
 files[] = includes/product_custom_options.inc

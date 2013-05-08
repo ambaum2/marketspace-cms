@@ -1,0 +1,300 @@
+<?php
+/**
+ * @file
+ * An example field using the Field Types API.
+ */
+
+/**
+ * @defgroup field_example Example: Field Types API
+ * @ingroup examples
+ * @{
+ * Examples using Field Types API.
+ *
+ * This is updated from Barry Jaspan's presentation at Drupalcon Paris,
+ * @link http://acquia.com/community/resources/acquia-tv/intro-field-api-module-developers Video Presentation @endlink
+ *
+ * Providing a field requires:
+ * - Defining a field:
+ *   - hook_field_info()
+ *   - hook_field_schema()
+ *   - hook_field_validate()
+ *   - hook_field_is_empty()
+ *
+ * - Defining a formatter for the field (the portion that outputs the field for
+ *   display):
+ *   - hook_field_formatter_info()
+ *   - hook_field_formatter_view()
+ *
+ * - Defining a widget for the edit form:
+ *   - hook_field_widget_info()
+ *   - hook_field_widget_form()
+ *
+ * Our module defines the field in es_webform_fields_info(),
+ * es_webform_fields_validate() and es_webform_fields_is_empty().
+ * es_webform_fields_schema() is implemented in field_example.install.
+ *
+ * Our module sets up a formatter in es_webform_fields_formatter_info() and
+ * es_webform_fields_formatter_view(). These are the API hooks that present
+ * formatted and themed output to the user.
+
+ * And finally, our module defines the widet in
+ * es_webform_fields_widget_info() and es_webform_fields_widget_form().
+ * The widget is the form element used to receive input from the user
+ * when the field is being populated.
+ *
+ * @see field_types
+ * @see field
+ */
+
+/***************************************************************
+ * Field Type API hooks
+ ***************************************************************/
+
+/**
+ * Implements hook_field_info().
+ *
+ * Provides the description of the field.
+ */
+function es_webform_fields_field_info() {
+  return array(
+    // We name our field as the associative name of the array.
+    'es_webform_mage_webform_setup' => array(
+      'label' => t('Magento Product Type Select'),
+      'description' => t('Select the product type (virtual, simple, bundle, etc), attribute set, and other pre determined fields'),
+      'default_widget' => 'es_webform_mage_product_type_select',
+      'default_formatter' => 'es_webform_mage_product_type_select_display',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_validate().
+ *
+ * This hook gives us a chance to validate content that's in our
+ * field. We're really only interested in the $items parameter, since
+ * it holds arrays representing content in the field we've defined.
+ * We want to verify that the items only contain RGB hex values like
+ * this: #RRGGBB. If the item validates, we do nothing. If it doesn't
+ * validate, we add our own error notification to the $errors parameter.
+ *
+ * @see es_webform_fields_widget_error()
+ */
+/*function es_webform_fields_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  foreach ($items as $delta => $item) {
+    if (!empty($item['type_code'])) {
+      if (! preg_match('@^#[0-9a-f]{6}$@', $item['rgb'])) {
+        $errors[$field['field_name']][$langcode][$delta][] = array(
+          'error' => 'field_example_invalid',
+          'message' => t('Color must be in the HTML format #abcdef.'),
+        );
+      }
+    }
+  }
+}*/
+
+
+/**
+ * Implements hook_field_is_empty().
+ *
+ * hook_field_is_emtpy() is where Drupal asks us if this field is empty.
+ * Return TRUE if it does not contain data, FALSE if it does. This lets
+ * the form API flag an error when required fields are empty.
+ */
+function es_webform_fields_field_is_empty($item, $field) {  
+  return empty($item['type_code']);
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ *
+ * We need to tell Drupal that we have two different types of formatters
+ * for this field. One will change the text color, and the other will
+ * change the background color.
+ *
+ * @see es_webform_fields_formatter_view()
+ */
+function es_webform_fields_field_formatter_info() {
+  return array(
+    // This formatter just displays the hex value in the color indicated.
+    'es_webform_mage_product_type_select_display' => array(
+      'label' => t('Display Data to end user'),
+      'field types' => array('es_webform_mage_webform_setup'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ *
+ * Two formatters are implemented.
+ * - field_example_simple_text just outputs markup indicating the color that
+ *   was entered and uses an inline style to set the text color to that value.
+ * - field_example_color_background does the same but also changes the
+ *   background color of div.region-content.
+ *
+ * @see es_webform_fields_formatter_info()
+ */
+function es_webform_fields_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  switch ($display['type']) {
+    // This formatter simply outputs the field as text and with a color.
+    // This formatter adds css to the page changing the '.region-content' area's
+    // background color. If there are many fields, the last one will win.
+    case 'es_webform_mage_product_type_select_display':
+      foreach ($items as $delta => $item) {
+        $element[$delta] = array(
+          '#type' => 'html_tag',
+          '#tag' => 'p',
+          '#value' => t('The content area color has been changed to @code', array('@code' => $item['type_code'])),
+          '#attached' => array(
+            'css' => array(
+              array(
+                'data' => 'div.region-content { background-color:' . $item['type_code'] . ';}',
+                'type' => 'inline',
+              ),
+            ),
+          ),
+        );
+      }
+      break;
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_widget_info().
+ *
+ * Three widgets are provided.
+ * - A simple text-only widget where the user enters the '#ffffff'.
+ * - A 3-textfield widget that gathers the red, green, and blue values
+ *   separately.
+ * - A farbtastic colorpicker widget that chooses the value graphically.
+ *
+ * These widget types will eventually show up in hook_field_widget_form,
+ * where we will have to flesh them out.
+ *
+ * @see es_webform_fields_widget_form()
+ */
+function es_webform_fields_field_widget_info() {
+  return array(
+    'es_webform_mage_product_type_select' => array(
+      'label' => t('Controls for setting up magento form'),
+      'field types' => array('es_webform_mage_webform_setup'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ *
+ * hook_widget_form() is where Drupal tells us to create form elements for
+ * our field's widget.
+ *
+ * We provide one of three different forms, depending on the widget type of
+ * the Form API item provided.
+ *
+ * The 'field_example_colorpicker' and 'field_example_text' are essentially
+ * the same, but field_example_colorpicker adds a javascript colorpicker
+ * helper.
+ *
+ * field_example_3text displays three text fields, one each for red, green,
+ * and blue. However, the field type defines a single text column,
+ * rgb, which needs an HTML color spec. Define an element validate
+ * handler that converts our r, g, and b fields into a simulated single
+ * 'rgb' form element.
+ */
+function es_webform_fields_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+	$magento = new magento_product_types_sets;
+  $attribute_set = isset($items[$delta]['attribute_set_id']) ? $items[$delta]['attribute_set_id'] : '';
+  $type_code = isset($items[$delta]['type_code']) ? $items[$delta]['type_code'] : '';
+  //drupal_set_message("<pre>" . print_r($field,true) . "</pre>" . "Hello", 'notice');
+  $element['type_code'] = array(          
+    '#type' => 'select',
+    '#title' => "Select Product Type",
+    '#default_value' => $type_code,
+    '#description' => t('Select one attribute set that this form will pull its attributes from'),
+    '#options' => $magento->convertTypesToOptionsArray($magento->getAllProductTypes()),
+  );
+  $element['attribute_set_id'] = array(          
+    '#type' => 'select',
+    '#title' => "Select Attribute Set",
+    '#default_value' => $attribute_set,
+    '#description' => t('Select one attribute set that this form will pull its attributes from'),
+    '#options' => $magento->convertProductAttributesToOptionsArray($magento->getAllAttributeSets()),
+  );
+  return $element;
+}
+
+
+/**
+ * Validate the individual fields and then convert them into a single HTML RGB
+ * value as text.
+ */
+/*function field_example_3text_validate($element, &$form_state) {
+  $delta = $element['#delta']; // TODO: Isn't there a better way to find out which element?
+  $field = $form_state['field'][$element['#field_name']][$element['#language']]['field'];
+  $field_name = $field['field_name'];
+  if (isset($form_state['values'][$field_name][$element['#language']][$delta]['rgb'])) {
+    $values = $form_state['values'][$field_name][$element['#language']][$delta]['rgb'];
+    foreach (array('r', 'g', 'b') as $colorfield) {
+      $colorfield_value = hexdec($values[$colorfield]);
+      // If they left any empty, we'll set the value empty and quit.
+      if (strlen($values[$colorfield]) == 0) {
+        form_set_value($element, '', $form_state);
+        return;
+      }
+      // If they gave us anything that's not hex, reject it.
+      if ( (strlen($values[$colorfield]) != 2) || $colorfield_value < 0 || $colorfield_value > 255) {
+        form_error($element[$colorfield], t("Saturation value must be a 2-digit hexadecimal value between 00 and ff."));
+      }
+    }
+
+    $value = sprintf('#%02s%02s%02s', $values['r'], $values['g'], $values['b']);
+    form_set_value($element, $value, $form_state);
+  }
+}*/
+
+/**
+ * Implements hook_field_widget_error().
+ *
+ * hook_field_widget_error() lets us figure out what to do with errors
+ * we might have generated in hook_field_validate(). Generally, we'll just
+ * call form_error().
+ *
+ * @see es_webform_fields_validate()
+ * @see form_error()
+ */
+function es_webform_fields_field_widget_error($element, $error, $form, &$form_state) {
+  switch ($error['error']) {
+    case 'field_example_invalid':
+      form_error($element, $error['message']);
+      break;
+  }
+}
+
+
+/**
+ * Implements hook_menu().
+ *
+ * Provides a simple user interface that tells the developer where to go.
+ */
+function es_webform_fields_menu() {
+  $items['es_webform/fields'] = array(
+    'title' => 'Field Example',
+    'page callback' => '_es_webform_fields_page',
+    'access callback' => TRUE,
+  );
+  return $items;
+}
+
+/**
+ * A simple page to explain to the developer what to do.
+ */
+function _es_webform_fields_page() {
+  return t("The Field Example provides a field composed of an HTML RGB value, like #ff00ff. To use it, add the field to a content type.");
+}
+/**
+ * @} End of "defgroup field_example".
+ */

@@ -24,6 +24,8 @@
 function field_example_field_schema($field) {
   $columns = array(
     'rgb' => array('type' => 'varchar', 'length' => 7, 'not null' => FALSE),
+    'label' => array('type'=>'varchar', 'length' => 32, 'not null' => TRUE),
+    'type_code' => array('type'=>'varchar', 'length'=>32, 'not null' => TRUE),
   );
   $indexes = array(
     'rgb' => array('rgb'),

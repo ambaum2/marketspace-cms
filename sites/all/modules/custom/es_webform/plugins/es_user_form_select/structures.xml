@@ -1,0 +1,110 @@
+<tree>
+	<item type='object'>
+		    <tid>int</tid>
+            <vid>int</vid>
+            <name>string</name>
+            <description>string</description>
+            <format>string</format>
+            <weight>int</weight>
+            <depth>int</depth>
+            <parents>Array</parents>
+	</item>
+</tree>
+
+<taxonomy>
+	<item type='object'>
+		<tid> => 2
+	    <vid> => 3
+	    <name> => Market Place
+	    <description> => 
+	    <format> => content_admin
+	    <weight> => 0
+	    <vocabulary_machine_name> => form_types
+	    <rdf_mapping> => Array
+	        (
+	            <rdftype>Array</rdftype>
+	
+	            <name>
+	                    <predicates>
+	                            <0>rdfs:label</0>
+	                            <1>skos:prefLabel</1>
+	                    </predicates>
+	            </name>
+	            <description>
+	                    <predicates>
+	                            <0>skos:definition</0>
+	                    </predicates>
+                </description>
+	            <vid>
+               			<predicates>
+	                            <0> => skos:inScheme
+                <type> => rel
+	                )
+	
+	            <parent> => Array
+	                (
+	                    <predicates> => Array
+	                        (
+	                            <0> => skos:broader
+	                        )
+	
+	                    <type> => rel
+		
+	</item>
+</taxonomy>
+    [tid] => 2
+    [vid] => 3
+    [name] => Market Place
+    [description] => 
+    [format] => content_admin
+    [weight] => 0
+    [vocabulary_machine_name] => form_types
+    [rdf_mapping] => Array
+        (
+            [rdftype] => Array
+                (
+                    [0] => skos:Concept
+                )
+
+            [name] => Array
+                (
+                    [predicates] => Array
+                        (
+                            [0] => rdfs:label
+                            [1] => skos:prefLabel
+                        )
+
+                )
+
+            [description] => Array
+                (
+                    [predicates] => Array
+                        (
+                            [0] => skos:definition
+                        )
+
+                )
+
+            [vid] => Array
+                (
+                    [predicates] => Array
+                        (
+                            [0] => skos:inScheme
+                        )
+
+                    [type] => rel
+                )
+
+            [parent] => Array
+                (
+                    [predicates] => Array
+                        (
+                            [0] => skos:broader
+                        )
+
+                    [type] => rel
+                )
+
+        )
+
+)
