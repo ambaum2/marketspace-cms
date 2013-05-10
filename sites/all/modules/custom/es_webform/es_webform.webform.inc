@@ -116,13 +116,14 @@ function es_webform_webform_submission_presave($node, &$submission) {
   // Update some component's value before it is saved..
   global $user;
 	//drupal_set_message($node->field_tickettype['und'][0]['value'] . "ticket and attributeset" . $node->field_market_space_setup['und'][0]['attribute_set_id'], 'notice');
-  if($submission->is_draft == 7) {
+  if($submission->is_draft == 0 && isset($node->field_market_space_setup['und'][0])) {
 	  $default_magento_attributes = array('categories','websites','name','description','short_description','weight','status','url_key','url_path'
 	    ,'visibility','category_ids','website_ids','has_options','gift_message_available','price','special_price','special_price','special_from_date'
 	    ,'special_to_date','tax_class_id','meta_title','meta_keyword','meta_description','custom_design','custom_layout_update','options_container'
 	    );
 	  $default_magento_stock_attributes = array('qty','is_in_stock','manage_stock','use_config_manage_stock','min_qty','use_config_manage_stock'
 	    ,'min_qty','use_config_min_qty','min_sale_qty','use_config_min_sale_qty',' max_sale_qty',' use_config_max_sale_qty','');
+  $image_fid = 0;
   $magento_product_attributes = new magento_product_attributes();
   $magento_additional_attributes = array();
   	$magento_product_data = array();
@@ -159,12 +160,8 @@ function es_webform_webform_submission_presave($node, &$submission) {
     				}
   		//all other attributes must be exlplicitely referenced
   		} //if not then not valid attribute
-  	} elseif($item == 23 || isset($value['value']['categories'])) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
-       $magento_media = new magento_media;
-			 //process a file through the function
-			 //$magento_media->process_managed_file($form_state)
-       $file_fid = file_load($value['value'][0]);
-       $file = file_create_url($file_fid->uri);
+  	} elseif(isset($value['value']['product-image'])) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
+       $image_fid = $value['value']['product-image'];
     } elseif(isset($value['value']['categories'])) {      
         $categories = array();
         foreach($value['value']['categories'] as $cat_key=>$cat_value) {
@@ -190,8 +187,10 @@ function es_webform_webform_submission_presave($node, &$submission) {
     $sku = substr(md5($magento_product_data['name']. time()),0,32);
     $product_id = $magento->create_product($magento->decryptText(variable_get('session_id')), $node->field_market_space_setup['und'][0]['type_code'],
     	$node->field_market_space_setup['und'][0]['attribute_set_id'], $sku, $magento_product_data);
-    $file_output = $magento_media->create_media($magento->decryptText(variable_get('session_id')), $product_id, $magento_product_data, $file, $sku, array('thumbnail','image','small_image'));  
-    
+    if($image_fid) {
+      $file_output = $magento_media->create_media($magento->decryptText(variable_get('session_id')), 
+        $product_id, $magento_product_data, $image_fid, $sku, array('thumbnail','image','small_image'));  
+    }
   }
 
 

@@ -150,9 +150,6 @@ class magento_product extends magento {
 	        }
 	      //all other attributes must be exlplicitely referenced
       } //if not then not valid attribute
-    //} elseif($item == 23) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
-      // $file_fid = file_load($value['value'][0]);
-      // $file = file_create_url($file_fid->uri);
     } elseif(isset($webform[$item]['extra']['magento_categories'])) {      
 	      $categories = array();
 	      foreach($input['submitted']['profile_information_header']['venue_sweets_categories']['categories'] as $cat_key=>$cat_value) {

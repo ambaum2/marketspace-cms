@@ -19,8 +19,6 @@ function _webform_defaults_es_media() {
  */
 function es_media_webform_component_presave(&$component) {
 
-  echo "<pre>" . print_r($component,true) . "</pre>";
-  die;
 }
 /**
  * Implements _webform_edit_[component]().
@@ -29,7 +27,7 @@ function _webform_edit_es_media($component, $form_state) {
   // Use the #managed_file FAPI element to upload an image file.
    $form['extra']['magento_attribute_code_name'] = array(
       '#type' => 'hidden',
-      '#value' => "image",
+      '#value' => "product_image",
     ); 
   // Because we have many fields with the same values, we have to set
   // #tree to be able to access them.
@@ -47,7 +45,7 @@ function _webform_render_es_media($component, $value = NULL, $filter = TRUE, $fo
     '#title' => t('Image'),
     '#type' => 'managed_file',
     '#description' => t('Upload an image: '),
-    //'#default_value' => variable_get('image_example_image_fid', ''),
+    '#default_value' => variable_get('marketspace_image_fid', ''),
     '#process' => array("marketspace_image_upload"),
     '#upload_location' => 'public://u' . $user->uid,
   );

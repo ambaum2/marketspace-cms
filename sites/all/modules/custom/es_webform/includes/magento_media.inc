@@ -1,33 +1,152 @@
 <?php
 
 class magento_media extends magento {
-
+  var $session_id;
+  function __construct() {
+    parent::__construct();
+    $this->session_id = parent::decryptText(variable_get('session_id'));
+  }
   /*
    * create new media for a product
    */
-   public function create_media($session_id, $product_id, $product_data, $file_path, $sku, $image_types = array('thumbnail','image'), $host = magento::primary_host) {
-      $proxy = new SoapClient($host);
-      $image = file_get_contents($file_path);
-      $file_info = new finfo(FILEINFO_MIME_TYPE);
-      $mime_type = $file_info->buffer($image);
-      $file_content = base64_encode($image);
-      $file = array(
-      'content' => $file_content,
-      'mime' => $mime_type,
-      //'name' => $product_data['name'] . $sku,
+  public function create_media($session_id, $product_id, $data, $image_fid = null, $host = magento::primary_host) {
+    $proxy = new SoapClient($host);
+    $managed_file = true;
+    ($image_fid != null) ? $managed_file = true : $managed_file = false;
+    $file = $this->get_magento_media_data($image_url, $data, $managed_file);
+    try {    
+      $result = $proxy->catalogProductAttributeMediaCreate(
+        $session_id,
+        $product_id,
+        $file
+        //array('file' => $file, 'label' => 'a label', 'position' => '10', 'types' => $image_types, 'exclude' => 0)
       );
+      return $result;
+    } catch (exception $e) {
+       throw $e;
+    }
+  }
+
+  /*
+   * get all product media
+   *
+   */
+   public function get_all_media($product_id, $host = magento::primary_host) {
+     $proxy = new SoapClient($host);
      try {    
-        $result = $proxy->catalogProductAttributeMediaCreate(
-          $session_id,
-          $product_id,
-          array('file' => $file, 'label' => 'a label', 'position' => '10', 'types' => $image_types, 'exclude' => 0)
-        );
+        $result = $proxy->catalogProductAttributeMediaList($this->session_id, $product_id);
         return $result;
      } catch (exception $e) {
         throw $e;
      }
+   }
+  /*
+   * remove product media
+   *
+   */
+  public function update_media_by_product_id($product_id, $data, $host = magento::primary_host) {
+    $proxy = new SoapClient($host);
+    try {    
+       $result = $proxy->catalogProductAttributeMediaUpdate($this->session_id, $product_id, $data['file']['name'], $data);
+       return $result;
+    } catch (exception $e) {
+       throw $e;
+    }
+  }
+  
+  /*
+   * remove product media
+   *
+   */
+  public function remove_media_by_product_id($product_id, $file_name, $host = magento::primary_host) {
+    $proxy = new SoapClient($host);
+    try {    
+       $result = $proxy->catalogProductAttributeMediaRemove($this->session_id, $product_id, $file_name);
+       return $result;
+    } catch (exception $e) {
+       throw $e;
+    }
   }
 
+  /*
+   * load data for magento image
+   * managed_file - is file from drupal or elsewhere
+   */
+  public function get_magento_media_data($data) { 
+    $image = file_get_contents($data->url);
+    $file_info = new finfo(FILEINFO_MIME_TYPE);
+    $mime_type = $file_info->buffer($image);
+    $file_content = base64_encode($image);
+    $file = array(
+      'content' => $file_content,
+      'mime' => $mime_type,
+      'name' => $data->file,
+    );
+    $magento_media_info = array('file'=>$file, 'label'=>$data->label, 'position'=>$data->position,
+      'types' => array('image', 'thumbnail', 'small_image'), 'exclude' => 0);
+    return $magento_media_info;
+  }
+  /*
+   * get data array for use in create edit delete
+   * api calls which use get_mangeto_media_data
+   * and that is the function to which the data
+   * returned from this method should be passed
+   */
+  public function get_marketspace_media_data($input, $image_attributes, $new_media = false, $parent_container = 'image_manager', $container_name = 'image_container', $options_container = 'options') {
+    $data = new stdClass();
+    $index = (int)$image_attributes->index;
+    $data->label = $input[$parent_container][$index][$container_name][$options_container]['label'];
+    $data->position = $input[$parent_container][$index][$container_name][$options_container]['position'];
+    if($new_media) { //first save the new file 
+      global $user;
+      $this->process_managed_file($image_fid, "marketspace", "user", $user->uid); //we want to save this file although don't necessarily have to
+      $file = file_load($input[$parent_container][$index][$container_name]['image']['fid']);
+      $data->file = $file->filename;
+      $data->url = file_create_url($file->uri);  
+    } else {
+      $data->file = $input[$parent_container][$index][$container_name]['file'];
+      $data->url = $input[$parent_container][$index][$container_name]['url'];   
+    }
+    return $data;
+  }
+  /*
+   * get media info array for 
+   */
+  /*public function get_magento_media_info($image_fid) {
+    $this->process_managed_file($image_fid, "marketspace", "user", $user->uid, 'marketspace_profile_image'); //permanently save
+     //process a file through the function
+    $file_obj = file_load($image_fid);
+    $file = file_create_url($file_obj->uri);
+    
+    $image = file_get_contents($file);
+    $file_info = new finfo(FILEINFO_MIME_TYPE);
+    $mime_type = $file_info->buffer($image);
+    $file_content = base64_encode($image);
+    $file = array(
+      'content' => $file_content,
+      'mime' => $mime_type,
+      'name' => $file_obj->filename,
+    );
+    return $file;
+  }*/
+  /*
+   * render product image form element
+   * 
+   * TODO - this probably should be in its own class
+   * along with process_managed_file
+   */
+  public function render_marketspace_image_input($image_link) {
+    global $user;  
+    $element['product-image'] = array(
+      '#title' => t('Image'),
+      '#type' => 'managed_file',
+      '#description' => t('Upload an image: '),
+      '#default_value' => !empty($image_link) ? $image_link : '',
+      '#process' => array("marketspace_image_upload"),
+      '#upload_location' => 'public://u' . $user->uid,
+    );
+    return $element;
+  }
 	/*
 	 * save file if and make permanent or delete
 	 * 
@@ -41,7 +160,7 @@ class magento_media extends magento {
 	 * $style - the image style default to $form_state['values']['image_example_style_name']
 	 */
   // If fid is not 0 we have a valid file.
-  public function process_managed_file($image_fid, $module = "marketspace", $type="user", $id = 1, $style = null) {
+  public function process_managed_file($image_fid, $module = "marketspace", $type="user", $id = 1, $style = 'marketspace_profile_image') {
 		if ($image_fid != 0) { //was $form_state['values']['image_example_image_fid']
 		  // The new file's status is set to 0 or temporary and in order to ensure
 		  // that the file is not removed after 6 hours we need to change it's status
@@ -56,7 +175,7 @@ class magento_media extends magento {
 		
 		  // Save the fid of the file so that the module can reference it later.
 		  variable_set('marketspace_image_fid', $file->fid);
-		  drupal_set_message(t('The image @image_name was uploaded and saved with an ID of @fid and will be displayed using the style @style.', array('@image_name' => $file->filename, '@fid' => $file->fid, '@style' => $style)));
+		  //drupal_set_message(t('The image @image_name was uploaded and saved with an ID of @fid and will be displayed using the style @style.', array('@image_name' => $file->filename, '@fid' => $file->fid, '@style' => $style)));
 		}
 		// If the file was removed we need to remove the module's reference to the
 		// removed file's fid, and remove the file.
@@ -79,11 +198,98 @@ class magento_media extends magento {
 		  // file is in use by another module and not deleted we no longer want to
 		  // use it.
 		  variable_set('marketspace_image_fid', FALSE);
-		  drupal_set_message(t('The image @image_name was removed.', array('@image_name' => $file->filename)));
+		  //drupal_set_message(t('The image @image_name was removed.', array('@image_name' => $file->filename)));
 		}
 		
 		// Save the name of the image style choosen by the user.
-		variable_set('image_example_style_name', $style);
+		variable_set('marketspace_style_name', $style);
 	}    
+  /*
+   * render_image_manager_element
+   * output an image manager 
+   * 
+   */
+  public function render_image_manager_element(&$form, $key, $image, $fieldset, $edit_form = true) {
+    $form[$fieldset]['image_manager'][$key]['image_container'] = array(
+      '#type' => 'fieldset',
+      '#prefix' => '<div id="image-container-' . $key . '">',
+      '#suffix' => '</div>',
+    );
+    if($edit_form) {
+      $form[$fieldset]['image_manager'][$key]['image_container']['image'] = array(
+        '#type' => 'item',
+        '#markup' => '<img src="' . $image->url . '" style="width:75px; height:75px;float:left;margin:0px 5px 5px 0px;" />'
+      );
+    } else {
+      global $user;
+      $form[$fieldset]['image_manager'][$key]['image_container']['image'] = array(
+        '#title' => t('Image'),
+        '#type' => 'managed_file',
+        '#description' => t('Upload an image: '),
+        //'#default_value' => '',
+        //'#process' => array("marketspace_image_upload"),
+        '#upload_location' => 'public://marketspace/u' . $user->uid,
+      );
+    }
+    $form[$fieldset]['image_manager'][$key]['image_container']['options'] = array(
+      '#type' => 'fieldset',
+      '#prefix' => '<div id="options-container' . $key . '">',
+      '#suffix' => '</div><div style="clear:both;"></div>',
+    );
+    $form[$fieldset]['image_manager'][$key]['image_container']['options']['label'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Label'),
+      '#size' => 5,
+      '#default_value' => isset($image->label) ? $image->label : '',
+    );
+    $form[$fieldset]['image_manager'][$key]['image_container']['options']['position'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Position'),
+      '#size' => 5,
+      '#default_value' => isset($image->position) ? $image->position : '',
+    );
+    /*$form[$fieldset]['image_manager'][$key]['image_container']['options']['check_deleted'] = array(
+      '#type' => 'checkbox',
+      '#value' => t('Delete'),                 
+    );*/
+    if($edit_form) {
+      $form[$fieldset]['image_manager'][$key]['image_container']['delete'] = array(
+        '#type' => 'button',
+        '#value' => t('Delete'),
+        '#prefix' => "<!--<image_edit><index>" . $key . "</index></image_edit>-->",
+        '#ajax' => array(
+          'callback' => 'edit_marketspace_image_callback',
+          'method' => 'replace',
+          'wrapper' => 'image-container-' . $key,
+        ),
+      );
+      $form[$fieldset]['image_manager'][$key]['image_container']['edit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Edit'),
+        '#prefix' => "<!--<image_edit><index>" . $key . "</index></image_edit>-->",
+        '#suffix' => "",
+        //'#submit' => array('edit_marketspace_image_callback'),
+        '#ajax' => array(
+          'callback' => 'edit_marketspace_image_callback',
+          //'method' => 'replace',
+          //'wrapper' => 'image-container-' . $key,
+        ),
+      );
+      $form[$fieldset]['image_manager'][$key]['image_container']['file'] = array('#type' => 'hidden', '#value' => $image->file);
+      $form[$fieldset]['image_manager'][$key]['image_container']['url'] = array('#type' => 'hidden', '#value' => $image->url);
+    } else {
+      $form[$fieldset]['image_manager'][$key]['image_container']['add'] = array(
+        '#type' => 'submit',
+        '#value' => t('Add'),
+        '#prefix' => "<!--<image_edit><index>" . $key . "</index></image_edit>-->",
+        '#ajax' => array(
+          'callback' => 'edit_marketspace_image_callback',
+          //'method' => 'replace',
+          //'wrapper' => 'image-container-' . $key,
+        ),
+      );      
+    }
+
+  }
 }
   
