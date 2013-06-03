@@ -83,3 +83,9 @@ html .cke_editable_themed {background:white;color:black;}
 .cke_editable {
 	background:#ffffff;
 }
+
+/*custom options */
+#edit-custom-options .form-item {
+	float:left;
+	margin:0px 10px 5px 0px;
+}

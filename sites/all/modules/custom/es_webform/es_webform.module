@@ -17,9 +17,18 @@
       //'access callback' => 'user_access',
       'access arguments' => array('access content'),
   );    
+  $items['product-add-manager'] = array(
+      'page callback' => 'getAddManager',
+      'type' => MENU_CALLBACK,
+      //'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+  );    
     return $items;
   }
-
+	function getAddManager() {
+		$output = "";
+		return $output;
+	}
 	/*
 	 * render dashboard
 	 */
@@ -46,7 +55,7 @@
     
   }  
 
-function product_edit_form($form_state) {
+function product_edit_form($form, &$form_state) {
     /*
      * get url params (encrypted) and
      * get webform that corresponds to the products
@@ -116,6 +125,7 @@ function product_edit_form($form_state) {
   			//set product id and edit node id - for processing the form for magento
   			$form['product_id'] = array('#type'=>'hidden', '#value' => $product_data[0]);
   			$form['product_edit_node_id'] = array('#type'=>'hidden', '#value' => $node_webform_id[0]->entity_id);
+				isset($form_state['active_fieldset_name']) ? '' : $form_state['active_fieldset_name'] = ''; //start a field set as uncollpased if name is set in this variable
         $custom_magento_components = array("categories", "custom_options", "images");
         //display the form components accordion
         $current_fieldset = ""; //all components must be in a fieldset   
@@ -158,9 +168,68 @@ function product_edit_form($form_state) {
                 //make add button
                 $magento_media->render_image_manager_element($form, ($image_count+1), null, $current_fieldset, false);
                 //have an add image button
-                dpm($images);
                 //$form[$current_fieldset][] = $magento_media->render_marketspace_image_input($images[0]->url);
-            }
+            } elseif($component['extra']['magento_attribute_code_name'] == 'custom_options') {
+        				$product_custom_options = new product_custom_options;
+                $magento_custom_options = new magento_custom_options;
+								$options = $product_custom_options->getAllCustomOptions();
+								$form[$current_fieldset]['#tree'] = TRUE;
+								$form[$current_fieldset]['#prefix'] = $form[$current_fieldset]['#prefix'] . "<div id='custom-options-wrapper'>";
+								$form[$current_fieldset]['#suffix'] = $form[$current_fieldset]['#suffix'] . "</div>";
+								
+								$custom_options_count = 0;
+								//make api call
+								$magento_product_options = $magento_custom_options->get_product_custom_options($product_id);
+								//then add all magento options to new options count
+								if(count($magento_product_options) > 0) {
+  								foreach($magento_product_options as $key=>$option) { //option_id, title, type, sort_order, is_require
+  								  $this_option = $magento_custom_options->get_custom_option_info($option->option_id);
+                    $this_option->id = $option->option_id;
+                    //dpm($this_option); //additional_fields[0]->price, price_type, sku, max_characters
+                    //@TODO- put a delete checkbox instead of a delete button for existing magento options
+                    //gray out option on click and say marked for delete save to apply changes
+  								  $form[$current_fieldset][$key] = $product_custom_options->renderOptionInfoForm($options, $key, $form_state, $this_option); 
+  								}
+                }
+								//check for new added options but not sent to magento
+								if(isset($form_state['input']['custom_options'])) { //add pending add options to magento options
+									$custom_options_count = $custom_options_count + count($form_state['input']['custom_options']);
+								} 
+			
+								//added but not saved custom options
+								//for ($i = 0; $i < $form_state['num_custom_options']; $i++) {
+								
+								if(isset($form_state['input']['custom_options'])) {
+									foreach($form_state['input']['custom_options'] as $key=>$option) {
+										$form[$current_fieldset][$key] = $product_custom_options->renderOptionInfoForm($options, $key, $form_state, null);									
+											watchdog('custom options render checkpoint', 'the key' . $key . ' the form<pre>%form</pre><pre>%form_state</pre>', 
+											array('%form_state'=> print_r($form_state,true), '%form'=> print_r($form,true)), WATCHDOG_NOTICE);
+									}
+								}
+								//display new custom option add element if 
+							  if (!isset($form_state['num_custom_options'])) {
+							    $form_state['num_custom_options'] = 0;
+							  } elseif($form_state['num_custom_options'] == 1) {
+							  	//add new option form after new and existing
+							  	watchdog('custom options new form render', 'count key: ' . $custom_options_count . '<pre>%form_state</pre>', array('%form_state'=> print_r($form_state,true)), WATCHDOG_NOTICE);
+							  	$form[$current_fieldset][$custom_options_count] = $product_custom_options->renderOptionInfoForm($options, $custom_options_count, $form_state);
+									$form_state['num_custom_options'] = 0;
+							  } else {
+							  	//do nothing we don't want the new form showing unless 
+							  	//add custom option button pressed
+							  }
+							  $form[$current_fieldset]['add_custom_option'] = array(
+							    '#type' => 'submit',
+							    '#value' => t('Add Custom Option'),
+							    '#submit' => array('add_custom_option'),
+							    '#ajax' => array(
+							    	//'method' => 'append',
+							      //'callback' => 'add_custom_option',//'ajax_example_add_more_callback',
+							      //'wrapper' => 'custom-options-wrapper',
+							    ),
+							    '#prefix' => '<!--<attributes><id>'. $custom_options_count . '</id></attributes>-->',
+							  );
+						}
           } else { //not a regular attribute could be categories, custom attributes, images etc
           	if($component['type'] != 'pagebreak') {
   						if($component['type'] == 'markup') {
@@ -169,14 +238,18 @@ function product_edit_form($form_state) {
   								'#type' => $component['type'],
   							);
   						} elseif($component['type'] == 'fieldset') {
+  							if($form_state['active_fieldset_name'] == $component['form_key']) {
+									$tab_state_class = ' product-edit-group-marketspace-tab-active';
+								} else {
+									$tab_state_class = '';
+								}
   		          $form[$component['form_key']] = array(
   		          	'#type' => $component['type'],
   	            	'#title' => '',
-  	            	'#prefix' => "<h2 class='product-edit-group-marketspace-tab'>" . $component['name'] . "</h2><div class='product-edit-group-marketspace'>",
+  	            	'#prefix' => "<h2 class='product-edit-group-marketspace-tab" . $tab_state_class . "'>" . $component['name'] . "</h2><div class='product-edit-group-marketspace'>",
   	            	'#suffix' => "</div>",
-  	            	'#collapsible' => ($component['extra']['collapsible'] == 1) ? 0 : 0,
-  	            	'#collapsed' => ($component['extra']['collapsed'] == 1) ? 0 : 0,
   	          	);
+							
   							$current_fieldset = $component['form_key'];
   						}
   					}
@@ -203,47 +276,122 @@ function product_edit_form($form_state) {
  * TODO: - will add similar callback for upsells, 
  * custom options, and bundled products.
  */
-function edit_marketspace_image_callback($form, $form_state) {
-  watchdog('image-edit', "form state thine form <pre>%form_state</pre>", array("form_state" => print_r($form_state,true)),WATCHDOG_NOTICE);
-  if($form_state['input']['_triggering_element_value'] == "Edit") {
+function edit_marketspace_image_callback($form, &$form_state) {
+  watchdog('image-edit', "form state parent %parent ___ form <pre>%form_state</pre>", array("form_state" => print_r($form_state,true), '%parent' => $form_state['triggering_element']['#array_parents'][0]),WATCHDOG_NOTICE);
+  $magento_media = new magento_media;
+  if(isset($form_state['triggering_element']['#prefix']) && isset($form_state['input']['product_id'])) {
+    $product_id = $form_state['input']['product_id'];
     $xml = str_replace(array('<!--','-->'),'',$form_state['triggering_element']['#prefix']);
-    $image_attributes = simplexml_load_string($xml);
-    //$index = (int)$attributes->index;
-    /*$data = new stdClass();
-    $data->label = $form_state['input']['image_manager'][$index]['image_container']['options']['label'];
-    $data->position = $form_state['input']['image_manager'][$index]['image_container']['options']['position'];
-    $data->file = $form_state['input']['image_manager'][$index]['image_container']['file'];
-    $image_url = $form_state['input']['image_manager'][$index]['image_container']['url'];*/
-    $magento_media = new magento_media;
-    $data = $magento_media->get_marketspace_media_data($form_state['input'], $image_attributes, false);
-    $update_data = $magento_media->get_magento_media_data($data);
-    $result = $magento_media->update_media_by_product_id($form_state['input']['product_id'], $update_data);
-  } elseif($form_state['input']['_triggering_element_value'] == "Delete") {
-    $xml = str_replace(array('<!--','-->'),'',$form_state['triggering_element']['#prefix']);
-    $attributes = simplexml_load_string($xml);
-    $index = (int)$attributes->index;
-    $magento_media = new magento_media;
-    $result = $magento_media->remove_media_by_product_id($form_state['input']['product_id'], $form_state['input']['image_manager'][$index]['image_container']['file']);
-  } elseif($form_state['input']['_triggering_element_value'] == "Add") {
-    $xml = str_replace(array('<!--','-->'),'',$form_state['triggering_element']['#prefix']);
-    $attributes = simplexml_load_string($xml);
-    $index = (int)$attributes->index;
-    $magento_media = new magento_media;
-    //$data = $magento_media->get_marketspace_media_data($form_state['input'], $parent_container = 'image_manager', $index, $container_name = 'image_container', $options_container = 'options');
-    
-    //$magento_media->process_managed_file($image_fid);
-     watchdog('image-edit', "INFO <pre>%form_state</pre> <br />result %add_result", array("form_state" => print_r($form_state,true), '%add_result'=>$result),WATCHDOG_NOTICE);
-    //$result = $magento_media->remove_media_by_product_id($form_state['input']['product_id'], $form_state['input']['image_manager'][$index]['image_container']['file']);
+    $image_attributes = simplexml_load_string($xml); 
+    if($form_state['triggering_element']['#value'] == "Edit") {
+        $data = $magento_media->get_marketspace_media_data($form_state['input'], $image_attributes, false);
+        $image_data = $magento_media->get_magento_media_data($data);
+        $result = $magento_media->update_media_by_product_id($product_id, $image_data);
+    } elseif($form_state['triggering_element']['#value'] == "Delete") {
+      watchdog('image-edit', "INFO <pre>%form_state</pre> <br />result ", array("form_state" => print_r($image_attributes,true)),WATCHDOG_NOTICE);
+      $result = $magento_media->remove_media_by_product_id($product_id, $image_attributes->file);
+    } elseif($form_state['triggering_element']['#value'] == "Add") {
+        $data = $magento_media->get_marketspace_media_data($form_state['input'], $image_attributes, true);
+        $image_data = $magento_media->get_magento_media_data($data);
+        $result = $magento_media->create_media($product_id, $image_data);
+    }
   }
   return null;
 }
+/*
+ * Add a custom option
+ * sets num custom options to 1 if add option button
+ * clicked
+ */
+/**
+ * Submit handler for the "add-one-more" button.
+ *
+ * Increments the max counter and causes a rebuild.
+ * 
+ * WARNING this will fire when other unrelated ajax
+ * elements are triggered. Therefore add the check for
+ * _triggering_element_value == "Add one more" so we
+ * we only increment num_names by 1 if the add more
+ * button is clicked
+ */
+function add_custom_option($form, &$form_state) {
 
+	if(isset($form_state['triggering_element'])) {
+		$form_state['active_fieldset_name'] = $form_state['triggering_element']['#array_parents'][0];
+		if($form_state['triggering_element']['#value'] == "Add Custom Option") {
+		  isset($form_state['num_custom_options']) ? $form_state['num_custom_options'] =  $form_state['num_custom_options'] + 1: $form_state['num_custom_options'] = 1; //TODO:-this is undefined initially so may want conditional
+		  watchdog('custom option add more HIT!', '%numcount attr id %attr_id : xml <pre>%xml</pre> ', array('%numcount'=>$form_state['num_custom_options'],
+	  	'%xml' => print_r($form_state,true)),WATCHDOG_NOTICE);
+		  $form_state['rebuild'] = TRUE;
+		} elseif($form_state['triggering_element']['#value'] == "Delete Custom Option") {
+		  //isset($form_state['num_custom_options']) ? $form_state['num_custom_options'] =  $form_state['num_custom_options'] + 1: $form_state['num_custom_options'] = 1; //TODO:-this is undefined initially so may want conditional
+			$xml = str_replace(array('<!--','-->'),'',$form_state['triggering_element']['#prefix']);
+			$attributes = simplexml_load_string($xml);		  
+		  unset($form_state['input']['custom_options'][(int)$attributes->id]);
+			$form_state['input']['custom_options'] = array_values($form_state['input']['custom_options']);
+		  watchdog('custom option delete HIT!', '%numcount attr id <pre>%attr_id</pre> : xml <pre>%xml</pre> ', array('%numcount'=>$form_state['num_custom_options'],
+	  	'%xml' => print_r($form_state,true), '%attr_id' => print_r($attributes,true)),WATCHDOG_NOTICE);
+		  $form_state['rebuild'] = TRUE;
+		}
+	}
+}
+
+/**
+ * Callback for both ajax-enabled buttons.
+ *
+ * get the callback trigger attributes xml. Make an object. Then call on that to be rebuilt
+ * with the return value
+ * WARNING this will fire when other unrelated ajax
+ * elements are triggered. Therefore add the check for
+ * _triggering_element_value == "Add one more" so we
+ * we only increment num_names by 1 if the add more
+ * button is clicked
+ * 
+ * @TODO - support more than 10 custom options (see element id below)
+ *
+function add_custom_option_callback($form, $form_state) {
+
+	//$form_state['custom_option_values'][substr($_POST['_triggering_element_name'],14,1)] = $_POST['custom_options']['option'][substr($_POST['_triggering_element_name'],14,1)]['type'];
+	if(isset($form_state['input']['_triggering_element_value'])) {
+		if($form_state['input']['_triggering_element_value'] == "Add one more") {	
+			$xml = str_replace(array('<!--','-->'),'',$form_state['triggering_element']['#prefix']);
+			$attributes = simplexml_load_string($xml);
+			(int)$attribute_id = key_exists('id', $attributes) ? (int)$attributes->id : 0;
+		  return $form['custom_options']['option'][($attribute_id - 1)];
+		}
+	} elseif(!(strpos($form_state['input']['_triggering_element_name'],'[type]') === false)) { //if this is a custom option type callback
+			// = $_POST['custom_options']['option'][substr($_POST['_triggering_element_name'],14,1)]['type'];
+			$element_id = substr($form_state['input']['_triggering_element_name'],strpos($form_state['input']['_triggering_element_name'],'[option][')+9,1);
+				  watchdog('custom option add more callback HIT!', 'ele id form trigger name: %elementid || %numcount attr id %attr_id : xml <pre>%xml</pre> ', array('%numcount'=>$form_state['num_names'],
+	  	'%xml' => print_r($form,true),'%elementid' => $element_id),WATCHDOG_NOTICE);
+		return $form['custom_options']['option'][0][0]['values'];
+	}
+}*/
+/*
+ * callback for type select
+ * inserts the appropriate custom option
+ * template when changed
+ */
+ function getCustomOptionsTypeTemplate($form, $form_state) {
+	$xml = str_replace(array('<!--','-->'),'',$form_state['triggering_element']['#prefix']);
+	$attributes = simplexml_load_string($xml);	
+	//watchdog('custom option ajax callback', 'attr id %attr_id : values for xmlstring %xml_string attributes arr <pre>%attributes</pre> xml <pre>%xml</pre> <br />form check <pre>%form</pre>', array('%xml'=>print_r($form_state,true)
+	//	, '%form' => print_r($form, true), '%xml_string'=>$xml, '%attributes' => print_r($attributes,true)
+	//	,'%attr_id'=>((int)$attributes->id)),WATCHDOG_NOTICE);
+  return $form['custom_options'][((int)$attributes->id)]['values']; 	
+ }
 function product_edit_form_submit(&$form, &$form_state) {
 	$product = new magento_product;
 	$data = $product->getProductDataArray($form_state);
   //echo "<pre>" . print_r($form_state,true) . "</pre>";
   //die;
 	$result = $product->updateProduct($form_state['input']['product_id'], $data);
+	
+  
+  /*
+   * CUSTOM OPTIONS
+   */
+	//check for custom options save new completed ones and update current ones
 	if($result) {
 		drupal_set_message(t("Product has been updated."), 'notice');
 	} else {

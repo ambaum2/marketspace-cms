@@ -25,7 +25,8 @@ function _webform_edit_es_webform($component) {
   $magento = new magento();
   $product = new product();
   $webform = node_load($component['nid']);
-  if(isset($webform->field_attribute_set_id['und'][0]['value'])) {
+  //dpm($webform);
+  if(isset($webform->field_market_space_setup['und'][0]['attribute_set_id'])) {
     $attribute_set_id = $webform->field_market_space_setup['und'][0]['attribute_set_id'];
     $attributes = $magento->get_all_attributes($attribute_set_id, $magento->decryptText(variable_get('session_id')));
     
@@ -162,6 +163,8 @@ function es_webform_webform_submission_presave($node, &$submission) {
   		} //if not then not valid attribute
   	} elseif(isset($value['value']['product-image'])) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
        $image_fid = $value['value']['product-image'];
+       $magento_media = new magento_media;
+       $media_data = $magento_media->get_marketspace_media_data_by_fid($image_fid, "none", $position = 100);
     } elseif(isset($value['value']['categories'])) {      
         $categories = array();
         foreach($value['value']['categories'] as $cat_key=>$cat_value) {
@@ -188,11 +191,9 @@ function es_webform_webform_submission_presave($node, &$submission) {
     $product_id = $magento->create_product($magento->decryptText(variable_get('session_id')), $node->field_market_space_setup['und'][0]['type_code'],
     	$node->field_market_space_setup['und'][0]['attribute_set_id'], $sku, $magento_product_data);
     if($image_fid) {
-      $file_output = $magento_media->create_media($magento->decryptText(variable_get('session_id')), 
-        $product_id, $magento_product_data, $image_fid, $sku, array('thumbnail','image','small_image'));  
+      $file_output = $magento_media->create_media($product_id, $media_data);  
     }
   }
-
 
 
 //dpm($node);

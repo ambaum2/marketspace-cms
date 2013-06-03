@@ -9,16 +9,13 @@ class magento_media extends magento {
   /*
    * create new media for a product
    */
-  public function create_media($session_id, $product_id, $data, $image_fid = null, $host = magento::primary_host) {
+  public function create_media($product_id, $data, $host = magento::primary_host) {
     $proxy = new SoapClient($host);
-    $managed_file = true;
-    ($image_fid != null) ? $managed_file = true : $managed_file = false;
-    $file = $this->get_magento_media_data($image_url, $data, $managed_file);
     try {    
       $result = $proxy->catalogProductAttributeMediaCreate(
-        $session_id,
+        $this->session_id,
         $product_id,
-        $file
+        $data
         //array('file' => $file, 'label' => 'a label', 'position' => '10', 'types' => $image_types, 'exclude' => 0)
       );
       return $result;
@@ -99,8 +96,9 @@ class magento_media extends magento {
     $data->position = $input[$parent_container][$index][$container_name][$options_container]['position'];
     if($new_media) { //first save the new file 
       global $user;
+      $image_fid = $input[$parent_container][$index][$container_name]['image']['fid'];
       $this->process_managed_file($image_fid, "marketspace", "user", $user->uid); //we want to save this file although don't necessarily have to
-      $file = file_load($input[$parent_container][$index][$container_name]['image']['fid']);
+      $file = file_load($image_fid);
       $data->file = $file->filename;
       $data->url = file_create_url($file->uri);  
     } else {
@@ -110,25 +108,19 @@ class magento_media extends magento {
     return $data;
   }
   /*
-   * get media info array for 
+   * get data array for images with only an fid
    */
-  /*public function get_magento_media_info($image_fid) {
-    $this->process_managed_file($image_fid, "marketspace", "user", $user->uid, 'marketspace_profile_image'); //permanently save
-     //process a file through the function
-    $file_obj = file_load($image_fid);
-    $file = file_create_url($file_obj->uri);
-    
-    $image = file_get_contents($file);
-    $file_info = new finfo(FILEINFO_MIME_TYPE);
-    $mime_type = $file_info->buffer($image);
-    $file_content = base64_encode($image);
-    $file = array(
-      'content' => $file_content,
-      'mime' => $mime_type,
-      'name' => $file_obj->filename,
-    );
-    return $file;
-  }*/
+  public function get_marketspace_media_data_by_fid($image_fid, $label = "", $position = 100) {
+    $data = new stdClass();
+    global $user;
+    $this->process_managed_file($image_fid, "marketspace", "user", $user->uid); //we want to save this file although don't necessarily have to
+    $file = file_load($image_fid);
+    $data->file = $file->filename;
+    $data->url = file_create_url($file->uri);  
+    $data->label = $label;
+    $data->position = $position;
+    return $data;
+  }
   /*
    * render product image form element
    * 
@@ -252,20 +244,18 @@ class magento_media extends magento {
       '#type' => 'checkbox',
       '#value' => t('Delete'),                 
     );*/
-    if($edit_form) {
+    if($edit_form) { //str_replace(array("/"), "\/" ,$image->file)
       $form[$fieldset]['image_manager'][$key]['image_container']['delete'] = array(
-        '#type' => 'button',
+        '#type' => 'submit',
         '#value' => t('Delete'),
-        '#prefix' => "<!--<image_edit><index>" . $key . "</index></image_edit>-->",
-        '#ajax' => array(
-          'callback' => 'edit_marketspace_image_callback',
-          'method' => 'replace',
-          'wrapper' => 'image-container-' . $key,
-        ),
+        '#name' => "delete_image_" . $key,
+        '#prefix' => "<!--<image_edit><index>" . $key . "</index><file>" . $image->file . "</file></image_edit>-->",
+        '#submit' => array('edit_marketspace_image_callback'),
       );
       $form[$fieldset]['image_manager'][$key]['image_container']['edit'] = array(
         '#type' => 'submit',
         '#value' => t('Edit'),
+        '#name' => "edit_image_" . $key,
         '#prefix' => "<!--<image_edit><index>" . $key . "</index></image_edit>-->",
         '#suffix' => "",
         //'#submit' => array('edit_marketspace_image_callback'),
@@ -281,12 +271,14 @@ class magento_media extends magento {
       $form[$fieldset]['image_manager'][$key]['image_container']['add'] = array(
         '#type' => 'submit',
         '#value' => t('Add'),
+        '#name' => "add_image_" . $key,
         '#prefix' => "<!--<image_edit><index>" . $key . "</index></image_edit>-->",
-        '#ajax' => array(
-          'callback' => 'edit_marketspace_image_callback',
+        '#submit' => array('edit_marketspace_image_callback'),
+        //'#ajax' => array(
+          //'callback' => 'edit_marketspace_image_callback',
           //'method' => 'replace',
           //'wrapper' => 'image-container-' . $key,
-        ),
+        //),
       );      
     }
 

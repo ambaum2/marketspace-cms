@@ -67,6 +67,7 @@
     <?php if ($is_front): ?>
     
     <!-- #slideshow -->
+    <?php if(false) : ?>
     <div id="slideshow">
     
         <!--slider-item-->
@@ -158,13 +159,13 @@
                 <li><a href="#"></a></li>
             </ul>
         </div>
-    </div>
+    </div> -->
     <!-- EOF: #slider-controls-wrapper -->
     
     <?php endif; ?>
     
 	<?php endif; ?>  
-
+<?php endif; ?>
 </div><!-- EOF: #banner -->
 
 

@@ -23,7 +23,7 @@ class product_custom_options extends product {
 		return $element;
 	}
 	public function getCustomOptionType($options,$filter_values = array()) {
-		$all_options = array();	
+		$all_options = array('none' => "Select a Type");	
 		foreach($options as $key=>$value) {
 			if(!(in_array($value->value, $filter_values))) {
 				$all_options[$value->value] = $value->label;
@@ -34,10 +34,19 @@ class product_custom_options extends product {
 	/*
 	 * create a template with option name, type, 
 	 * required and order
+	 * 
+	 * $custom_option is the custom option data - for pre
+	 * populating
 	 */
-	public function renderOptionInfoForm($options, $element_id, $form_state, $filter_values = array()) {
+	public function renderOptionInfoForm($options, $element_id, $form_state, $custom_option = null, $filter_values = array()) {
 		$all_options = $this->getCustomOptionType($options,$filter_values);
-		$element[$element_id] = array(
+    //if custom option already in magento get the id
+    $option_id = false;
+    if(isset($custom_option->id) || isset($form_state['values']['custom_options'][$element_id]['magento_option_id'])) {
+      (isset($custom_option->id)) ? $option_id = $custom_option->id : 
+        $option_id = $form_state['values']['custom_options'][$element_id]['magento_option_id'];
+    }
+		$element = array(
 			'#type' => 'fieldset',
 			'#title' => "Option",
 			'#attributes' => array(
@@ -45,40 +54,50 @@ class product_custom_options extends product {
 					'es-custom-option-type',
 				),
 			),
+			//'#disabled' => ($option_id) ? TRUE : FALSE,
 		);
-		$element[$element_id]['title'] = array(
+		$element['title'] = array(
 			'#type' => 'textfield',
 			'#title' => 'Title',
 			'#size' => 20,
 			'#maxlength' => 128,
+			'#default_value' => isset($custom_option->title) ? $custom_option->title : '',
 		);		
-		$element[$element_id]['type'] = array(
+		$element['type'] = array(
 			'#type' => 'select',
 			'#title' => 'Input Type',
 			'#options' => $all_options,
+			'#disabled' => ($option_id) ? TRUE : FALSE,
       '#ajax' => array(
-        'callback' => 'getOptionsTypeTemplate',
+        'callback' => 'getCustomOptionsTypeTemplate',//'getOptionsTypeTemplate',
         'wrapper' => 'custom-options-option-value-' . $element_id,
       ),
       '#prefix' => '<!--<attributes><id>'. $element_id . '</id></attributes>-->',
 		);
-
-		$element[$element_id]['required'] = array(
+    if(isset($custom_option->type)) {
+      $element['type']['#default_value'] = $custom_option->type;
+    } elseif(isset($form_state['values']['custom_options'][$element_id]['type'])) {
+      $element['type']['#default_value'] = $form_state['values']['custom_options'][$element_id]['type'];
+    }
+    
+		$element['required'] = array(
 			'#type' => 'select',
 			'#title' => 'Is Required',
 			'#options' => array(
 				0=>t('No'), 
 				1=>t('Yes'),
-				),
+			),
+			'#default_value' => isset($custom_option->is_require) ? $custom_option->is_require : '',
 		);
-		$element[$element_id]['order'] = array(
+		$element['order'] = array(
 			'#type' => 'textfield',
 			'#title' => 'Sort Order',
 			'#size' => 5,
 			'#maxlength' => 3,
+			'#default_value' => isset($custom_option->sort_order) ? $custom_option->sort_order : '',
 		);		
 		
-		$element[$element_id]['values'] = array(
+		$element['values'] = array(
 			'#type' => 'fieldset',
 			'#title' => "Option Values",
 			'#prefix' => "<div id='custom-options-option-value-" . $element_id . "'>",
@@ -89,41 +108,96 @@ class product_custom_options extends product {
 			),
 			'#suffix' => "</div>",
 		);
-    /*$element[$element_id]['values']['option_select'] = array(
-      '#type' => 'submit',
-      '#value' => t('Select Option Values'),
-      '#submit' => array('renderSelectTemplate'),
-      '#name' => 'option_select_' . $element_id, 
-      '#ajax' => array(
-        'callback' => 'renderSelectTemplateCallback',
-        'wrapper' => 'names-fieldset-wrapper',
-      ),
-      '#prefix' => '<!--<attributes><id>'. $element_id . '</id></attributes>-->',
-    );*/
-				//if(!empty($form_state['values']['custom_options']['option'][$element_id]['type'])) {
-		 
-		 if(isset($form_state['values']['custom_options']['option'][$element_id][$element_id]['type'])) {
-			
-			$option_value_type = $form_state['values']['custom_options']['option'][$element_id][$element_id]['type'];
-			 watchdog('product id options renderfx','type: %value_type id: %id <pre>%options</pre>',array('%options'=>print_r($form_state,true),'%id'=>$element_id, '%value_type'=>$option_value_type),WATCHDOG_NOTICE);
-			if($option_value_type == "field") {
-	    $element[$element_id]['values']['values_type'] = array(
-	    	'#type' => 'textfield',
-	      '#title' => t('Who was the first president of the U.S.?' . $option_value_type ),
-	      );
+		/*
+		 * this is how we distinguish between new
+		 * and existing custom options when form
+		 * has been submitted
+		 */
+  	$element['magento_option_id'] = array(
+			'#type'=>'hidden', 
+			'#value' => ($option_id) ? $option_id : '',
+  	);
+		 if(isset($form_state['values']['custom_options'][$element_id]['type']) || isset($custom_option->additional_fields)) {
+			isset($form_state['values']['custom_options'][$element_id]['type']) ? $option_value_type = $form_state['values']['custom_options'][$element_id]['type'] :
+       $option_value_type = $custom_option->type;
+       
+			//watchdog('product id options renderfx','type: %value_type id: %id <pre>%options</pre>',array('%options'=>print_r($form_state,true),'%id'=>$element_id, '%value_type'=>$option_value_type),WATCHDOG_NOTICE);
+			if($option_value_type == "field" || $option_value_type == "area") {
+  	    $element['values']['price'] = array(
+  	    	'#type' => 'textfield',
+  	      '#title' => t('Price'),
+  	      '#default_value' => isset($custom_option->additional_fields[0]->price) ? $custom_option->additional_fields[0]->price : '',
+  	      '#size' => 5,
+  	      );
+        $element['values']['price_type'] = array(
+          '#type' => 'select',
+          '#title' => 'Price Type',
+          '#options' => array(
+            'fixed'=>t('Price'),
+            'percent'=>t('Percent'),
+          ),
+          '#default_value' => isset($custom_option->additional_fields[0]->price_type) ? $custom_option->additional_fields[0]->price_type : '',
+        );  
+        $element['values']['sku'] = array(
+          '#type' => 'textfield',
+          '#title' => t('SKU'),
+          '#default_value' => isset($custom_option->additional_fields[0]->sku) ? $custom_option->additional_fields[0]->sku : '',
+          '#size' => 5,
+        );
+        $element['values']['max_characters'] = array(
+          '#type' => 'textfield',
+          '#title' => t('Max Characters'),
+          '#default_value' => isset($custom_option->additional_fields[0]->max_characters) ? $custom_option->additional_fields[0]->max_characters : '',
+          '#size' => 5,
+          );     
 			} elseif($option_value_type=="drop_down") {
-			  $element[$element_id]['values']['values_type'] = array(
-	    	'#type' => 'textfield',
-	      '#title' => t('Who dropdown'),
-	      );
-			} else {
-					    $element[$element_id]['values_type'] = array(
-	    	'#type' => 'textfield',
-	      '#title' => t('Who was telse' . $option_value_type ),
-	      );
+  			  $element['values']['values_type'] = array(
+  	    	'#type' => 'textfield',
+  	      '#title' => t('Who dropdown'),
+  	      );
+			} elseif($option_value_type == "date" || $option_value_type == "time" ||
+          $option_value_type == "date_time") {
+          $element['values']['price'] = array(
+            '#type' => 'textfield',
+            '#title' => t('Price'),
+            '#default_value' => isset($custom_option->additional_fields[0]->price) ? $custom_option->additional_fields[0]->price : '',
+            '#size' => 5,
+            );
+          $element['values']['price_type'] = array(
+            '#type' => 'select',
+            '#title' => 'Price Type',
+            '#options' => array(
+              'fixed'=>t('Price'),
+              'percent'=>t('Percent'),
+            ),
+            '#default_value' => isset($custom_option->additional_fields[0]->price_type) ? $custom_option->additional_fields[0]->price_type : '',
+            '#size' => 5,
+          );  
+          $element['values']['sku'] = array(
+            '#type' => 'textfield',
+            '#title' => t('SKU'),
+            '#default_value' => isset($custom_option->additional_fields[0]->sku) ? $custom_option->additional_fields[0]->sku : '',
+            '#size' => 5,
+          );			
+      } else {
+	      $element['values']['values_type'] = array();
 			}
-			}
-    
+		} 
+    if($option_id) {
+      $element['delete'] = array(
+        '#type' => 'checkbox',
+        '#title' => 'Delete',
+        '#description' => t('Existing custom options must be checked if you want to delete them. Click Save Product below to confirm'),
+      );      
+    } else {
+      $element['delete'] = array(
+        '#type' => 'submit',
+        '#name' => 'delete_option_' . $element_id,
+        '#value' => t('Delete Custom Option'),
+        '#submit' => array('add_custom_option'),
+        '#prefix' => '<!--<attributes><id>'. $element_id . '</id></attributes>-->',
+      );
+    }
 		return $element;
 	}
 
@@ -144,10 +218,10 @@ class product_custom_options extends product {
 	  	array('label'=>'Field','value' => 'field'),
 			array('label' => 'Area','value' => 'area'),
 			array('label' => 'File','value'	=> 'file'),
-			array('label' => 'Drop-down','value' => 'drop_down'),
-			array('label' => 'Radio Buttons','value' => 'radio'),
-			array('label' => 'Checkbox','value' => 'checkbox'),
-			array('label' => 'Multiple Select','value' => 'multiple'),
+			//array('label' => 'Drop-down','value' => 'drop_down'),
+			//array('label' => 'Radio Buttons','value' => 'radio'),
+			//array('label' => 'Checkbox','value' => 'checkbox'),
+			//array('label' => 'Multiple Select','value' => 'multiple'),
 			array('label' => 'Date','value' => 'date'),
 			array('label' => 'Date & Time','value' => 'date_time'),
 			array('label' => 'Time','value' => 'time'),

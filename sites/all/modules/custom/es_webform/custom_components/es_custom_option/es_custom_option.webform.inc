@@ -25,12 +25,10 @@ function es_custom_option_webform_component_presave(&$component) {
  */
 function _webform_edit_es_custom_option($component, $form_state) {
 	$product_custom_options = new product_custom_options();
-  $form['description'] = array(
-    '#markup' => '<div>' . t('This example shows an add-more and a remove-last button. The <a href="!ajax">AJAX version</a> does it without page reloads; the <a href="!multistep">non-js version</a> is the same code but simulates a non-javascript environment, showing it with page reloads.',
-      array('!ajax' => url('examples/ajax_example/add_more'), '!multistep' => url('examples/ajax_example/add_more_no_js')))
-    . '</div>',
+  $form['extra']['magento_attribute_code_name'] = array(
+    '#type' => 'hidden',
+    '#value' => "custom_options",
   );
-
   // Because we have many fields with the same values, we have to set
   // #tree to be able to access them.
   $form['#tree'] = TRUE;
