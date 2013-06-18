@@ -66,8 +66,8 @@ function product_edit_form($form, &$form_state) {
     $magento = new magento;
     $magento_product_attributes = new magento_product_attributes;
     //$product_string = $magento->decryptText(urldecode($_GET["info"]));
-    //watchdog('form check', 'get <pre>%get</pre> <br />post <pre>%post</pre> <br /><pre>session
-    //  %session</pre>',array('%get'=>print_r($_GET,true), '%post'=>print_r($_POST,true), '%session'=>print_r($_SESSION,true)),WATCHDOG_NOTICE);
+    watchdog('form check', 'get <pre>%get</pre> <br />post <pre>%post</pre> <br /><pre>session
+      %session</pre>',array('%get'=>print_r($_GET,true), '%post'=>print_r($_POST,true), '%session'=>print_r($_SESSION,true)),WATCHDOG_NOTICE);
     $valid_form = true;
     /*
      * this done for ajax managed files. if you have
@@ -181,6 +181,7 @@ function product_edit_form($form, &$form_state) {
 								//make api call
 								$magento_product_options = $magento_custom_options->get_product_custom_options($product_id);
 								//then add all magento options to new options count
+								//STEP 1: add existing magento custom options
 								if(count($magento_product_options) > 0) {
   								foreach($magento_product_options as $key=>$option) { //option_id, title, type, sort_order, is_require
   								  $this_option = $magento_custom_options->get_custom_option_info($option->option_id);
@@ -196,9 +197,9 @@ function product_edit_form($form, &$form_state) {
 									$custom_options_count = $custom_options_count + count($form_state['input']['custom_options']);
 								} 
 			
-								//added but not saved custom options
+								//STEP 2: Newly added custom options in drupal
+								// but not saved in magento
 								//for ($i = 0; $i < $form_state['num_custom_options']; $i++) {
-								
 								if(isset($form_state['input']['custom_options'])) {
 									foreach($form_state['input']['custom_options'] as $key=>$option) {
 										$form[$current_fieldset][$key] = $product_custom_options->renderOptionInfoForm($options, $key, $form_state, null);									
@@ -216,19 +217,31 @@ function product_edit_form($form, &$form_state) {
 									$form_state['num_custom_options'] = 0;
 							  } else {
 							  	//do nothing we don't want the new form showing unless 
-							  	//add custom option button pressed
+								  //add custom option button pressed
+
 							  }
 							  $form[$current_fieldset]['add_custom_option'] = array(
 							    '#type' => 'submit',
 							    '#value' => t('Add Custom Option'),
 							    '#submit' => array('add_custom_option'),
 							    '#ajax' => array(
-							    	//'method' => 'append',
-							      //'callback' => 'add_custom_option',//'ajax_example_add_more_callback',
-							      //'wrapper' => 'custom-options-wrapper',
+							    	//'method' => 'replace',
+							      'callback' => 'es_webform_add_new',//'ajax_example_add_more_callback',
+							      //'wrapper' => 'edit-custom-options-' . ($custom_options_count + 1),
 							    ),
 							    '#prefix' => '<!--<attributes><id>'. $custom_options_count . '</id></attributes>-->',
 							  );
+                /*$form[$current_fieldset][($custom_options_count + 1)] = array(
+                  '#type' => 'fieldset',
+                  '#title' => "New Option Placeholder",
+                  '#prefix' => "<div id='new-option-" . ($custom_options_count + 1) . "'>",
+                  '#attributes' => array(
+                    'class' => array(
+                      'dwg-new-custom-option',
+                    ),
+                  ),
+                  '#suffix' => "</div>",
+                );*/
 						}
           } else { //not a regular attribute could be categories, custom attributes, images etc
           	if($component['type'] != 'pagebreak') {
@@ -267,7 +280,54 @@ function product_edit_form($form, &$form_state) {
       }
    }
 }
+/* 
+ * custom ajax approach outside of built in 
+ * drupal ajax because it is ot flexible enough.
+ */
+function es_webform_add_new($form, $form_state) {
+  $commands = array();
+  
+  $commands[] = ajax_command_after('#edit-custom-options-add-custom-option', '<fieldset class="es-custom-option-type form-wrapper" id="edit-custom-options-1"></fieldset>');
+  $commands[] = ajax_command_after('#edit-custom-options-1', "<input id='edit-custom-options-1-title' name='custom_options[1][title]' />");
+  //$commands[] = ajax_command_replace("#new-option-0", "<input id='after_status" . rand(0,1000) . "'>Updated after_command_example " . rand(0,1000) . "</input>");
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+/**
+ * Submit handler for the "add-one-more" button.
+ *
+ * Increments the max counter and causes a rebuild.
+ * 
+ * WARNING this will fire when other unrelated ajax
+ * elements are triggered. Therefore add the check for
+ * _triggering_element_value == "Add one more" so we
+ * we only increment num_names by 1 if the add more
+ * button is clicked
+ */
+function add_custom_option($form, &$form_state) {
 
+	if(isset($form_state['triggering_element'])) {
+		$form_state['active_fieldset_name'] = $form_state['triggering_element']['#array_parents'][0];
+		//add custom option
+		if($form_state['triggering_element']['#value'] == "Add Custom Option") {
+			$option_num = $form_state['num_custom_options'];
+		  isset($form_state['num_custom_options']) ? $form_state['num_custom_options'] =  $form_state['num_custom_options'] + 1: $form_state['num_custom_options'] = 1; //TODO:-this is undefined initially so may want conditional
+		  watchdog('custom option add more HIT!', '%numcount attr id %attr_id : xml <pre>%xml</pre> ', array('%numcount'=>$form_state['num_custom_options'],
+	  	'%xml' => print_r($form,true)),WATCHDOG_NOTICE);
+		  $form_state['rebuild'] = TRUE;
+		  return $form['custom_options'][0];//[$option_num];
+		//delete custom option
+		} elseif($form_state['triggering_element']['#value'] == "Delete Custom Option") {
+		  //isset($form_state['num_custom_options']) ? $form_state['num_custom_options'] =  $form_state['num_custom_options'] + 1: $form_state['num_custom_options'] = 1; //TODO:-this is undefined initially so may want conditional
+			$xml = str_replace(array('<!--','-->'),'',$form_state['triggering_element']['#prefix']);
+			$attributes = simplexml_load_string($xml);		  
+		  unset($form_state['input']['custom_options'][(int)$attributes->id]);
+			$form_state['input']['custom_options'] = array_values($form_state['input']['custom_options']);
+		  watchdog('custom option delete HIT!', '%numcount attr id <pre>%attr_id</pre> : xml <pre>%xml</pre> ', array('%numcount'=>$form_state['num_custom_options'],
+	  	'%xml' => print_r($form_state,true), '%attr_id' => print_r($attributes,true)),WATCHDOG_NOTICE);
+		  $form_state['rebuild'] = TRUE;
+		}
+	}
+}
 /*
  * ajax functions for image edit, delete,
  * and add. These have to be seperated from magento
@@ -298,44 +358,6 @@ function edit_marketspace_image_callback($form, &$form_state) {
   }
   return null;
 }
-/*
- * Add a custom option
- * sets num custom options to 1 if add option button
- * clicked
- */
-/**
- * Submit handler for the "add-one-more" button.
- *
- * Increments the max counter and causes a rebuild.
- * 
- * WARNING this will fire when other unrelated ajax
- * elements are triggered. Therefore add the check for
- * _triggering_element_value == "Add one more" so we
- * we only increment num_names by 1 if the add more
- * button is clicked
- */
-function add_custom_option($form, &$form_state) {
-
-	if(isset($form_state['triggering_element'])) {
-		$form_state['active_fieldset_name'] = $form_state['triggering_element']['#array_parents'][0];
-		if($form_state['triggering_element']['#value'] == "Add Custom Option") {
-		  isset($form_state['num_custom_options']) ? $form_state['num_custom_options'] =  $form_state['num_custom_options'] + 1: $form_state['num_custom_options'] = 1; //TODO:-this is undefined initially so may want conditional
-		  watchdog('custom option add more HIT!', '%numcount attr id %attr_id : xml <pre>%xml</pre> ', array('%numcount'=>$form_state['num_custom_options'],
-	  	'%xml' => print_r($form_state,true)),WATCHDOG_NOTICE);
-		  $form_state['rebuild'] = TRUE;
-		} elseif($form_state['triggering_element']['#value'] == "Delete Custom Option") {
-		  //isset($form_state['num_custom_options']) ? $form_state['num_custom_options'] =  $form_state['num_custom_options'] + 1: $form_state['num_custom_options'] = 1; //TODO:-this is undefined initially so may want conditional
-			$xml = str_replace(array('<!--','-->'),'',$form_state['triggering_element']['#prefix']);
-			$attributes = simplexml_load_string($xml);		  
-		  unset($form_state['input']['custom_options'][(int)$attributes->id]);
-			$form_state['input']['custom_options'] = array_values($form_state['input']['custom_options']);
-		  watchdog('custom option delete HIT!', '%numcount attr id <pre>%attr_id</pre> : xml <pre>%xml</pre> ', array('%numcount'=>$form_state['num_custom_options'],
-	  	'%xml' => print_r($form_state,true), '%attr_id' => print_r($attributes,true)),WATCHDOG_NOTICE);
-		  $form_state['rebuild'] = TRUE;
-		}
-	}
-}
-
 /**
  * Callback for both ajax-enabled buttons.
  *
@@ -350,7 +372,8 @@ function add_custom_option($form, &$form_state) {
  * @TODO - support more than 10 custom options (see element id below)
  *
 function add_custom_option_callback($form, $form_state) {
-
+				  watchdog('custom option add more callback HIT!', 'ele id form trigger name: %elementid || %numcount attr id %attr_id : xml <pre>%xml</pre> ', array('%numcount'=>$form_state['num_names'],
+	  	'%xml' => print_r($form_state,true),'%elementid' => $element_id),WATCHDOG_NOTICE);
 	//$form_state['custom_option_values'][substr($_POST['_triggering_element_name'],14,1)] = $_POST['custom_options']['option'][substr($_POST['_triggering_element_name'],14,1)]['type'];
 	if(isset($form_state['input']['_triggering_element_value'])) {
 		if($form_state['input']['_triggering_element_value'] == "Add one more") {	
@@ -380,12 +403,18 @@ function add_custom_option_callback($form, $form_state) {
 	//	,'%attr_id'=>((int)$attributes->id)),WATCHDOG_NOTICE);
   return $form['custom_options'][((int)$attributes->id)]['values']; 	
  }
+
+/*
+ * send product edit data to magento
+ */
 function product_edit_form_submit(&$form, &$form_state) {
 	$product = new magento_product;
+	
+	  echo "<pre>" . print_r($form_state,true) . "</pre>";
+  die;
 	$data = $product->getProductDataArray($form_state);
-  //echo "<pre>" . print_r($form_state,true) . "</pre>";
-  //die;
-	$result = $product->updateProduct($form_state['input']['product_id'], $data);
+
+	//$result = $product->updateProduct($form_state['input']['product_id'], $data);
 	
   
   /*

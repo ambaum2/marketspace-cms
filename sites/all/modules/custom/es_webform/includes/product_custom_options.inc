@@ -46,6 +46,7 @@ class product_custom_options extends product {
       (isset($custom_option->id)) ? $option_id = $custom_option->id : 
         $option_id = $form_state['values']['custom_options'][$element_id]['magento_option_id'];
     }
+		//watchdog('product id options renderfx','type: %value_type id: %id <pre>%options</pre>',array('%options'=>print_r($form_state,true),'%id'=>$element_id, '%value_type'=>$option_value_type),WATCHDOG_NOTICE);
 		$element = array(
 			'#type' => 'fieldset',
 			'#title' => "Option",
