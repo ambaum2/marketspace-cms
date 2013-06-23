@@ -35,10 +35,11 @@ class product_custom_options extends product {
 	 * create a template with option name, type, 
 	 * required and order
 	 * 
-	 * $custom_option is the custom option data - for pre
+	 * $custom_option (Object) is the custom option data - for pre
 	 * populating
 	 */
 	public function renderOptionInfoForm($options, $element_id, $form_state, $custom_option = null, $filter_values = array()) {
+		$product_custom_options_templates = new product_custom_options_templates;
 		$all_options = $this->getCustomOptionType($options,$filter_values);
     //if custom option already in magento get the id
     $option_id = false;
@@ -46,8 +47,9 @@ class product_custom_options extends product {
       (isset($custom_option->id)) ? $option_id = $custom_option->id : 
         $option_id = $form_state['values']['custom_options'][$element_id]['magento_option_id'];
     }
+		$element = $product_custom_options_templates->custom_option_type_template($element_id, $option_id, $custom_option);
 		//watchdog('product id options renderfx','type: %value_type id: %id <pre>%options</pre>',array('%options'=>print_r($form_state,true),'%id'=>$element_id, '%value_type'=>$option_value_type),WATCHDOG_NOTICE);
-		$element = array(
+		/*$element = array(
 			'#type' => 'fieldset',
 			'#title' => "Option",
 			'#attributes' => array(
@@ -74,14 +76,14 @@ class product_custom_options extends product {
         'wrapper' => 'custom-options-option-value-' . $element_id,
       ),
       '#prefix' => '<!--<attributes><id>'. $element_id . '</id></attributes>-->',
-		);
+		);*/
     if(isset($custom_option->type)) {
       $element['type']['#default_value'] = $custom_option->type;
     } elseif(isset($form_state['values']['custom_options'][$element_id]['type'])) {
       $element['type']['#default_value'] = $form_state['values']['custom_options'][$element_id]['type'];
     }
     
-		$element['required'] = array(
+		/*$element['required'] = array(
 			'#type' => 'select',
 			'#title' => 'Is Required',
 			'#options' => array(
@@ -108,7 +110,7 @@ class product_custom_options extends product {
 				),
 			),
 			'#suffix' => "</div>",
-		);
+		);*/
 		/*
 		 * this is how we distinguish between new
 		 * and existing custom options when form
