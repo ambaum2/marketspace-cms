@@ -99,6 +99,10 @@ class magento_product extends magento {
 			return false;
 		}
 	}
+	public function getCoreStockAttributes() {
+		  return array('qty','is_in_stock','manage_stock','use_config_manage_stock','min_qty','use_config_manage_stock'
+      ,'min_qty','use_config_min_qty','min_sale_qty','use_config_min_sale_qty',' max_sale_qty',' use_config_max_sale_qty','');
+	}
   /*
    * process update/create product data
    * from a submission array
@@ -150,6 +154,8 @@ class magento_product extends magento {
 	        }
 	      //all other attributes must be exlplicitely referenced
       } //if not then not valid attribute
+    } elseif(isset($webform[$item]['extra']['inventory_attribute'])) {
+    	 $magento_product_data[$webform[$item]['extra']['inventory_attribute']] = $input[$webform[$item]['extra']['inventory_attribute']];
     } elseif(isset($webform[$item]['extra']['magento_categories'])) {      
 	      $categories = array();
 	      foreach($input['submitted']['profile_information_header']['venue_sweets_categories']['categories'] as $cat_key=>$cat_value) {

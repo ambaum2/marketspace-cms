@@ -88,10 +88,13 @@ class magento_media extends magento {
    * api calls which use get_mangeto_media_data
    * and that is the function to which the data
    * returned from this method should be passed
+	 * 
+	 * $input - form_state['input'] array
    */
   public function get_marketspace_media_data($input, $image_attributes, $new_media = false, $parent_container = 'image_manager', $container_name = 'image_container', $options_container = 'options') {
     $data = new stdClass();
     $index = (int)$image_attributes->index;
+		//look at formstate input for image_manager
     $data->label = $input[$parent_container][$index][$container_name][$options_container]['label'];
     $data->position = $input[$parent_container][$index][$container_name][$options_container]['position'];
     if($new_media) { //first save the new file 

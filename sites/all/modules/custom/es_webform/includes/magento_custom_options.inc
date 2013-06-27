@@ -22,30 +22,9 @@ class magento_custom_options extends magento {
 				throw $e;
 			}
 		}
-	/*
-	 * api call to add custom option to a product
-	 * $data will be an array of title, type, sort_order, 
-	 * is_required, and aditional fields. Additional fields are:
-	 * title (custom option title), price, price_type (fixed percent), 
-	 * sku, max characters, sort_order, file_extension, 
-	 * image_size_x (width limit for images), image_size_y, 
-	 * value_id. For type dropdown can have multiple additional_fields
-	 * 
-	 * basic example of data array:
-	 * $customTextFieldOption = array(
-	    "title" => "Custom Text Field Option Title",
-	    "type" => "field",
-	    "is_require" => 1,
-	    "sort_order" => 0,
-	    "additional_fields" => array(
-	        array(
-	            "price" => 10.00,
-	            "price_type" => "fixed",
-	            "sku" => "custom_text_option_sku",
-	            "max_characters" => 255
-	        )
-	    )
-		);
+  /*
+	 * simply add a new custom option by
+	 * passing the product id
 	 */
 	public function add_custom_option($product_id, $data, $store = 0) {		
 		$proxy = new SoapClient(magento::primary_host);
@@ -56,6 +35,7 @@ class magento_custom_options extends magento {
 				throw $e;
 			}
 		}
+	
 	/*
 	 * update custom option by option id
 	 * works similar to add_custom_option have to
@@ -68,7 +48,7 @@ class magento_custom_options extends magento {
 	public function update_custom_option($option_id, $data, $store = 0) {		
 		$proxy = new SoapClient(magento::primary_host);
 			try {
-				$result = $proxy->catalogProductCustomOptionUpdate($this->session_id, $product_id, $data); //return true if added false if not
+				$result = $proxy->catalogProductCustomOptionUpdate($this->session_id, intval($option_id), $data); //return true if added false if not
 				return $result;
 			} catch(exception $e) {
 				throw $e;
@@ -116,6 +96,21 @@ class magento_custom_options extends magento {
 		$proxy = new SoapClient(magento::primary_host);
 			try {
 				$result = $proxy->catalogProductCustomOptionRemove($this->session_id, $option_id);
+				return $result;
+			} catch(exception $e) {
+				throw $e;
+			}
+		}
+	/*
+	 * remove a custom option value
+	 * so existing value have to
+	 * pass $value_id 
+	 * returns boolean - true if removed 
+	 */
+	public function remove_custom_option_value($value_id, $store = 0) {		
+		$proxy = new SoapClient(magento::primary_host);
+			try {
+				$result = $proxy->catalogProductCustomOptionValueRemove($this->session_id, $value_id);
 				return $result;
 			} catch(exception $e) {
 				throw $e;

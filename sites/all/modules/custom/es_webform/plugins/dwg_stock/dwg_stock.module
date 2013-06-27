@@ -1,0 +1,19 @@
+<?php
+/**
+ * Implements hook_webform_component_info().
+ */
+function dwg_stock_webform_component_info() {
+  $components['dwg_stock'] = array(
+    'label' => t('Magento Inventory Attributes'),
+    'description' => t('Lets admins add stock attributes to webforms.'),
+    'features' => array(
+      'default_value' => FALSE,
+      'required' => TRUE,
+    ),
+    'file' => 'dwg_stock.webform.inc',
+  );
+
+  return $components;
+}
+
+?>

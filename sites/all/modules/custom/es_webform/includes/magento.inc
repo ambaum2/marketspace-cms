@@ -46,6 +46,7 @@ class magento {
    */
   public function get_all_attributes($attribute_set_id, $session_id, $host = magento::primary_host) {
     $proxy = new SoapClient($host);
+		
     try {
       $result = $proxy->catalogProductAttributeList($session_id, $attribute_set_id);
       return $result;

@@ -89,3 +89,6 @@ html .cke_editable_themed {background:white;color:black;}
 	float:left;
 	margin:0px 10px 5px 0px;
 }
+.es-custom-option-value-container {
+	float:left;
+}
