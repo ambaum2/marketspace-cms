@@ -46,7 +46,7 @@ class product_custom_options extends product {
 							}
 						}
 					}
-					echo "<pre>select pre update/add" . print_r($data,true) . '</pre>';
+					drupal_set_message( "<pre>select pre update/add" . print_r($data,true) . '</pre>', 'status');
 					if($value['magento_option_id'] > 0) {
 						$result = $magento_custom_options->update_custom_option($value['magento_option_id'], $data);
 					} else {
@@ -142,10 +142,10 @@ class product_custom_options extends product {
           '#title' => t('Max Characters'),
           '#default_value' => isset($custom_option->additional_fields[0]->max_characters) ? $custom_option->additional_fields[0]->max_characters : '',
           '#size' => 5,
-          );  
+          );
 			} elseif($option_value_type=="drop_down" || $option_value_type=="checkbox" 
 		       || $option_value_type=="radio" || $option_value_type=="multiple" ) {
-		      dpm($custom_option);
+		      //dpm($custom_option);
 
           //option values from magento
           $custom_options_count = 0;
@@ -154,7 +154,7 @@ class product_custom_options extends product {
               foreach($custom_option->additional_fields as $key=>$val) {
                 $element['values'][$key] = $product_custom_options_templates->custom_option_value_select_type_template($key, $element_id, $custom_option->additional_fields[$key]->value_id, $custom_option);  
                 $custom_options_count++;
-								watchdog('mage create', '%num_count count and <pre>%form</pre><br />',array('%form' => print_r($form_state,true), '%num_count'=>($custom_options_count)),WATCHDOG_NOTICE); 
+								//watchdog('mage create', '%num_count count and <pre>%form</pre><br />',array('%form' => print_r($form_state,true), '%num_count'=>($custom_options_count)),WATCHDOG_NOTICE); 
               }
             }
           }
@@ -167,13 +167,14 @@ class product_custom_options extends product {
             foreach($form_state['input']['custom_options'][$element_id]['values'] as $key=>$option) {
             	if(isset($form_state['input']['custom_options'][$element_id]['values'][$key]['value_id'])) {
             		$value_id = $form_state['input']['custom_options'][$element_id]['values'][$key]['value_id'];
+								//$custom_options_count--;
 							} else {
 								$value_id = null;
 							}
             	$element['values'][$key] = $product_custom_options_templates->custom_option_value_select_type_template($key, $element_id, $value_id);
 							
-              $custom_options_count++;
-							watchdog('form state create', '%num_count count and <pre>%form</pre><br />',array('%form' => print_r($form_state,true), '%num_count'=>($custom_options_count)),WATCHDOG_NOTICE); 
+              //$custom_options_count++;
+							//watchdog('form state create', '%num_count count and <pre>%form</pre><br />',array('%form' => print_r($form_state,true), '%num_count'=>($custom_options_count)),WATCHDOG_NOTICE); 
             }
           } 
           
@@ -181,14 +182,26 @@ class product_custom_options extends product {
           if(isset($form_state['triggering_element']['#value'])) {
     	      $xml = str_replace(array('<!--','-->'),'',$form_state['triggering_element']['#prefix']);
 			      $attributes = simplexml_load_string($xml);  
-            if($form_state['triggering_element']['#value'] == 'Add Value') {
-              $element['values'][((int)($attributes->id) + 1)] = $product_custom_options_templates->custom_option_value_select_type_template(((int)($attributes->id) + 1), $element_id);
-              //watchdog('value option add', '%num_count count and <pre>%form</pre><br />',array('%form' => print_r($form_state,true), '%num_count'=>($custom_options_count)),WATCHDOG_NOTICE);              
+            if($form_state['triggering_element']['#value'] == 'Add Value' && $element_id == $attributes->parent_id) {
+            	$new_option_position = count($form_state['input']['custom_options'][$element_id]['values']); //0 ?
+              //$element['values'][((int)($attributes->id) + 1)] = $product_custom_options_templates->custom_option_value_select_type_template(((int)($attributes->id) + 1), $element_id);
+              $element['values'][$new_option_position] = $product_custom_options_templates->custom_option_value_select_type_template($new_option_position, $element_id);
+              
+              /*watchdog('value option add', '%num_count count and <pre>%form</pre><br />'
+              ,array('%form' => print_r($form_state,true), '%num_count'=>($new_option_position . ' ele id ' . $element_id))
+              ,WATCHDOG_NOTICE);  */            
             } elseif($form_state['triggering_element']['#value'] == 'Delete') {    
 								unset($element['values'][(int)$attributes->id]);
+								array_values($element['values'][(int)$attributes->parent_id]);
 					      //unset($form_state['input']['custom_options'][(int)$attributes->parent_id]['values'][(int)$attributes->id]);
-								watchdog('value option unset', '%num_count count and <pre>%form</pre><br />',array('%form' => print_r($form_state,true), '%num_count'=>($custom_options_count)),WATCHDOG_NOTICE);  
+								/*watchdog('value option unset', '%num_count count and <pre>%form</pre><br />'
+									,array('%form' => print_r($form_state,true), '%num_count'=>($custom_options_count))
+									,WATCHDOG_NOTICE); */ 
             }
+          } else {
+          	/*watchdog('value option failed add/delete', '%num_count count and <pre>%form</pre><br />'
+              ,array('%form' => print_r($form_state,true), '%num_count'=>(2222 . ' ele id ' . $element_id))
+              ,WATCHDOG_NOTICE);   */  
           }
           
           
@@ -201,7 +214,9 @@ class product_custom_options extends product {
               'method' => 'before',
             ),
 			      '#name' => 'add_option_value_' . $element_id,
-			      '#prefix' => '<!--<attributes><id>'. $key . '</id><parent_id>' . $element_id . '</parent_id></attributes>-->',
+			      '#prefix' => '<!--<attributes><parent_id>' . $element_id . '</parent_id></attributes>-->',
+			      //shouldn't need <id>'. $key . '</id> anymore but will keep here for reference
+			      //it will be null for newly added options
           );      
 			} elseif($option_value_type == "date" || $option_value_type == "time" ||
           $option_value_type == "date_time") {
