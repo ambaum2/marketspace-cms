@@ -219,13 +219,16 @@ function es_webform_webform_component_presave(&$component) {
     $magento = new magento();
     $magento_attributes = new magento_product_attributes();
     $attribute = $magento->get_attribute_information($magento->decryptText(variable_get('session_id')), $component['extra']['magento_attribute_code']);
-      if($magento_attributes->exists_magento_attribute($component['extra']['magento_attribute_code'])) {
-        //update
-        $magento_attributes->update_magento_attribute($component,serialize($attribute));
-      } else {
-        //insert
-        $magento_attributes->insert_magento_attribute($component,serialize($attribute));
-      }
+    if($attribute->attribute_code == 'tax_class_id') { //special fix for tax_class_id
+    	array_unshift($attribute->options, (object)array('label'=>'None', 'value'=>0)); //magento has a none option in admin but it does not get pulled in with api
+    }
+	  if($magento_attributes->exists_magento_attribute($component['extra']['magento_attribute_code'])) {
+      //update
+      $magento_attributes->update_magento_attribute($component,serialize($attribute));
+    } else {
+      //insert
+      $magento_attributes->insert_magento_attribute($component,serialize($attribute));
+    }
     }
   }
 }

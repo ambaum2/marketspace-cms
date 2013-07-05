@@ -85,11 +85,14 @@ class magento_product extends magento {
 	/*
 	 * check if element is built in magento attribute 
 	 * by attribute code
+	 * 
+	 * removed: 'special_price','special_from_date'
+      ,'special_to_date'
 	 */
 	public function isCoreMagentoAttribute($attribute_code) {
     $default_magento_attributes = array('categories','websites','name','description','short_description','weight','status','url_key','url_path'
-      ,'visibility','category_ids','website_ids','has_options','gift_message_available','price','special_price','special_price','special_from_date'
-      ,'special_to_date','tax_class_id','meta_title','meta_keyword','meta_description','custom_design','custom_layout_update','options_container'
+      ,'visibility','category_ids','website_ids','has_options','gift_message_available','price'
+      ,'tax_class_id','meta_title','meta_keyword','meta_description','custom_design','custom_layout_update','options_container'
       );
     $default_magento_stock_attributes = array('qty','is_in_stock','manage_stock','use_config_manage_stock','min_qty','use_config_manage_stock'
       ,'min_qty','use_config_min_qty','min_sale_qty','use_config_min_sale_qty',' max_sale_qty',' use_config_max_sale_qty','');
@@ -120,6 +123,7 @@ class magento_product extends magento {
 		$node = node_load($form_state['input']['product_edit_node_id']);
 		$webform = $node->webform["components"];
     foreach($webform as $item=>$value) {
+    	//drupal_set_message('option <pre>' . print_r($value, true) . "<br /></pre>");
       //is this a magento component whether custom (custom options, categories, images etc) or built in
       if(isset($webform[$item]['extra']['magento_attribute_code'])) {
         $mage_id = $webform[$item]['extra']['magento_attribute_code'];

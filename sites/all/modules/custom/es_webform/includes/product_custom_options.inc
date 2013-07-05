@@ -25,12 +25,12 @@ class product_custom_options extends product {
 					$magento_custom_options->delete_product_custom_option($value['magento_option_id']);
 				} elseif(!in_array($value['type'], array('drop_down', 'radio', 'checkbox', 'multiple'))) {
 						$data['additional_fields'] = array($value['values']);
-						echo "<pre>" . print_r($data,true) . '</pre>';
+						//echo "<pre>" . print_r($data,true) . '</pre>';
 					if($value['magento_option_id'] > 0) {
 						$result = $magento_custom_options->update_custom_option($value['magento_option_id'], $data);
 					} else { //new simple option
-					  print "fired add";
-						echo "<pre>" . print_r($data,true) . '</pre>';
+					  //print "fired add";
+						//echo "<pre>" . print_r($data,true) . '</pre>';
 						$result = $magento_custom_options->add_custom_option($options['product_id'], $data);
 					}
 				} else { //loop through option values and add, edit, delete
@@ -38,9 +38,9 @@ class product_custom_options extends product {
 					foreach($value['values'] as $okey => $ovalue) {
 						if(is_numeric($okey)) {
 							$data['additional_fields'][$okey] = $ovalue;
-							echo "<pre>data item" . $okey . print_r($data['additional_fields'][$okey],true) . '</pre>';
+							//echo "<pre>data item" . $okey . print_r($data['additional_fields'][$okey],true) . '</pre>';
 							if($data['additional_fields'][$okey]['delete'] == 1) {
-								echo "<pre>select type thing" . print_r($data,true) . '</pre>';
+								//echo "<pre>select type thing" . print_r($data,true) . '</pre>';
 								$result = $magento_custom_options->remove_custom_option_value($data['additional_fields'][$okey]['value_id']);
 								unset($data['additional_fields'][$okey]); //remove from array so not updated 
 							}

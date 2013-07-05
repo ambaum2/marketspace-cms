@@ -52,6 +52,7 @@ class product_custom_options_templates extends product_custom_options {
 			),
 			'#default_value' => isset($custom_option->is_require) ? $custom_option->is_require : '',
 		);
+    
 		$element['sort_order'] = array(
 			'#type' => 'textfield',
 			'#title' => 'Sort Order',

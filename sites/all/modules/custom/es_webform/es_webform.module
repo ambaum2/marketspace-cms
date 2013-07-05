@@ -119,6 +119,7 @@ function product_edit_form($form, &$form_state) {
             . '</div>',
           '#attached' => array(
             'js' => array(drupal_get_path('module', 'es_webform') . '/js/accordion_tabs.js'),
+            	array(drupal_get_path('module', 'es_webform'), '/js/jquery-ui.js'),
             'css' => array(drupal_get_path('module', 'es_webform') . '/css/es_webform.css'),
           ),
         );
@@ -227,9 +228,9 @@ function product_edit_form($form, &$form_state) {
 							    '#type' => 'button',
 							    '#value' => t('Add Custom Option'),
 							    '#ajax' => array(
-							    	'method' => 'after',
+							    	'method' => 'before',
 							      'callback' => 'add_custom_option',//'ajax_example_add_more_callback', es_webform_add_new add_custom_option
-							      'wrapper' => 'edit-custom-options-0',//'edit-custom-options-' . ($custom_options_count),
+							      'wrapper' => 'edit-custom-options-add-custom-option',//'edit-custom-options-' . ($custom_options_count),
 							    ),
 							    '#prefix' => '<!--<attributes><id>'. $custom_options_count . '</id></attributes>-->',
 							  );
@@ -289,9 +290,19 @@ function add_custom_option($form, &$form_state) {
 		$form_state['active_fieldset_name'] = $form_state['triggering_element']['#array_parents'][0];
 		//add custom option
 		if($form_state['triggering_element']['#value'] == "Add Custom Option") {
-		  $option_num = count($form_state['input']['custom_options']);
-		  $form_state['rebuild'] = TRUE;
-		  return $form['custom_options'][$option_num];
+		  if(isset($form_state['input']['custom_options'])) {
+		    $option_num = count($form_state['input']['custom_options']);
+        watchdog('custom option add HIT!', '%numcount attr id <pre>%attr_id</pre> : xml <pre>%xml</pre> ', array('%numcount'=>$option_num,
+        '%xml' => print_r($form_state,true), '%attr_id' => "no atts"),WATCHDOG_NOTICE);
+  		  $form_state['rebuild'] = TRUE;
+  		  return $form['custom_options'][$option_num];
+      } elseif(isset($form_state['values']['custom_options'])) {
+        $option_num = count($form_state['values']['custom_options']);
+        watchdog('custom option add (values) hit!', '%numcount attr id <pre>%attr_id</pre> : xml <pre>%xml</pre> ', array('%numcount'=>$option_num,
+        '%xml' => print_r($form,true), '%attr_id' => "no atts"),WATCHDOG_NOTICE);
+        $form_state['rebuild'] = TRUE;
+        return $form['custom_options'][0];        
+      }
 		//delete custom option
 		} elseif($form_state['triggering_element']['#value'] == "Delete Custom Option") {
 		  //isset($form_state['num_custom_options']) ? $form_state['num_custom_options'] =  $form_state['num_custom_options'] + 1: $form_state['num_custom_options'] = 1; //TODO:-this is undefined initially so may want conditional
@@ -403,6 +414,7 @@ function product_edit_form_submit(&$form, &$form_state) {
 	
 	 // echo "<pre>" . print_r($form_state,true) . "</pre>";
   //die;
+  //drupal_set_message('form_state: alan ' . print_r($form_state,true), 'notice');
 	$data = $product->getProductDataArray($form_state);
 
 	$result = $product->updateProduct($form_state['input']['product_id'], $data);
