@@ -19,7 +19,6 @@ class product_edit extends product {
             'js' => array(drupal_get_path('module', 'es_webform') . '/js/product_edit.js'),
           );
 					//this seems stupid also inneficient
-					drupal_add_js("http://code.jquery.com/jquery-1.9.1.js", "external");
   				drupal_add_js("http://code.jquery.com/ui/1.10.3/jquery-ui.js", "external");
 					$element['#attributes'] = array(
 			      'class' => array(
