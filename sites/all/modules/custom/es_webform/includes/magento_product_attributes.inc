@@ -27,6 +27,7 @@ class magento_product_attributes extends magento {
       ->condition('mage_id',$component['extra']['magento_attribute_code'])
       ->execute();
    }
+
    /*
    * see if record exists into webform_es_attribute
    * @TODO - put db functions into own class as 

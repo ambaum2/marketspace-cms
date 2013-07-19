@@ -183,8 +183,11 @@ class product_custom_options extends product {
     	      $xml = str_replace(array('<!--','-->'),'',$form_state['triggering_element']['#prefix']);
 			      $attributes = simplexml_load_string($xml);  
             if($form_state['triggering_element']['#value'] == 'Add Value' && $element_id == $attributes->parent_id) {
-            	$new_option_position = count($form_state['input']['custom_options'][$element_id]['values']); //0 ?
-              //$element['values'][((int)($attributes->id) + 1)] = $product_custom_options_templates->custom_option_value_select_type_template(((int)($attributes->id) + 1), $element_id);
+            	if(isset($form_state['input']['custom_options'][$element_id]['values'])) {
+            		$new_option_position = count($form_state['input']['custom_options'][$element_id]['values']); //0 ?
+							} else {
+								$new_option_position = 0;
+							}
               $element['values'][$new_option_position] = $product_custom_options_templates->custom_option_value_select_type_template($new_option_position, $element_id);
               
               /*watchdog('value option add', '%num_count count and <pre>%form</pre><br />'

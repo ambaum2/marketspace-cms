@@ -68,6 +68,39 @@ class magento_product extends magento {
         throw $e;
      }
   }
+  /*
+   * update a product stock data - only update function exists
+	 * b/c stock data is in the core
+   */
+  public function updateProductStockData($product_id, $data, $host = magento::primary_host) {
+     $proxy = new SoapClient($host);
+     try {    
+        $result = $proxy->catalogInventoryStockItemUpdate($this->session_id, $product_id, $data);
+        return $result;
+     } catch (exception $e) {
+        drupal_set_message(t("Error could not update/add product inventory information. Contact admin"), 'error');
+        watchdog('magento', 'update product stock data <pre>%e</pre>', array('%e' => print_r($e,true),WATCHDOG_ERROR));
+        throw $e;
+     }
+  }
+  /*
+   * update a product stock data - only update function exists
+   * b/c stock data is in the core
+   * you can pass mulitple product ids but not useful to me now
+   * returns a keyed array right now only useful for me to get one
+   * 
+   */
+  public function getProductStockData($product_id, $host = magento::primary_host) {
+     $proxy = new SoapClient($host);
+     try {    
+        $result = $proxy->catalogInventoryStockItemList($this->session_id, array($product_id));
+        return $result;
+     } catch (exception $e) {
+        drupal_set_message(t("Error could not get product inventory information. Contact admin"), 'error');
+        watchdog('magento', 'get product stock data <pre>%e</pre>', array('%e' => print_r($e,true),WATCHDOG_ERROR));
+        throw $e;
+     }
+  }
 	/*
 	 * get nid by product attribute set id
 	 */
@@ -102,6 +135,9 @@ class magento_product extends magento {
 			return false;
 		}
 	}
+	/*
+	 * TODO - should probably be static method
+	 */
 	public function getCoreStockAttributes() {
 		  return array('qty','is_in_stock','manage_stock','use_config_manage_stock','min_qty','use_config_manage_stock'
       ,'min_qty','use_config_min_qty','min_sale_qty','use_config_min_sale_qty',' max_sale_qty',' use_config_max_sale_qty','');
@@ -112,7 +148,15 @@ class magento_product extends magento {
    * return data array for update/insert 
    * api call
    * 
+   * note the returned array will have
+   * an array called inventory_data 
+   * where inventory attributes are stored
+   * since they are handled seperatly from
+   * attributes and additional_attributes
+   * 
    * TODO Change submission to your array
+   * TODO make a seperate function for getting
+   * stock data array
    */
   public function getProductDataArray($form_state, $insert=false) {
     $magento_product_attributes = new magento_product_attributes();
@@ -123,14 +167,12 @@ class magento_product extends magento {
 		$node = node_load($form_state['input']['product_edit_node_id']);
 		$webform = $node->webform["components"];
     foreach($webform as $item=>$value) {
-    	//drupal_set_message('option <pre>' . print_r($value, true) . "<br /></pre>");
       //is this a magento component whether custom (custom options, categories, images etc) or built in
       if(isset($webform[$item]['extra']['magento_attribute_code'])) {
         $mage_id = $webform[$item]['extra']['magento_attribute_code'];
         //if it is a standard catalog attribute default or custom attribute
         if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($mage_id)) {
 	        $attribute = unserialize($attribute_data->data); //get stored attribute data from drupal
-	        //process textareas 
 	        if($attribute->frontend_input == "textarea") { //could also check ->additional_fields[0]->is_wysiwyg_enabled
 	          if($this->isCoreMagentoAttribute($attribute->attribute_code)) {//in_array($attribute->attribute_code,$default_magento_attributes)) {
 	              $magento_product_data[$attribute->attribute_code] = $input[$attribute->attribute_code]['value'];
@@ -157,9 +199,12 @@ class magento_product extends magento {
 		          }
 	        }
 	      //all other attributes must be exlplicitely referenced
-      } //if not then not valid attribute
+      } //if not then a regular attribute could be category or inventroy
     } elseif(isset($webform[$item]['extra']['inventory_attribute'])) {
-    	 $magento_product_data[$webform[$item]['extra']['inventory_attribute']] = $input[$webform[$item]['extra']['inventory_attribute']];
+    	 $magento_product_data['inventory_data'][$webform[$item]['extra']['inventory_attribute']] = $input[$webform[$item]['extra']['inventory_attribute']];
+       if(!isset($magento_product_data['inventory_data']['manage_stock'])) { // automatically set manage stock to true if any inventory attribute is used
+         $magento_product_data['inventory_data']['manage_stock'] = 1;
+       }
     } elseif(isset($webform[$item]['extra']['magento_categories'])) {      
 	      $categories = array();
 	      foreach($input['submitted']['profile_information_header']['venue_sweets_categories']['categories'] as $cat_key=>$cat_value) {

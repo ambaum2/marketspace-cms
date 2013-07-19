@@ -89,7 +89,7 @@ function _webform_render_es_webform($component, $value = NULL, $filter = TRUE, $
   global $user;
   $magento = new magento();
   $magento_attribute = new magento_product_attributes();
-  $product = new product();
+  $product = new product_edit;//$product = new product();
   $attribute = $magento_attribute->get_stored_magento_attribute_data($component['extra']['magento_attribute_code']);
   $attribute = unserialize($attribute->data);
   $form = $product->create_attribute_input($attribute, $form_state, $component);
@@ -116,7 +116,7 @@ function _webform_display_es_webform($component, $value, $format = 'html') {
 function es_webform_webform_submission_presave($node, &$submission) {
   // Update some component's value before it is saved..
   global $user;
-	//drupal_set_message($node->field_tickettype['und'][0]['value'] . "ticket and attributeset" . $node->field_market_space_setup['und'][0]['attribute_set_id'], 'notice');
+
   if($submission->is_draft == 0 && isset($node->field_market_space_setup['und'][0])) {
 	  $default_magento_attributes = array('categories','websites','name','description','short_description','weight','status','url_key','url_path'
 	    ,'visibility','category_ids','website_ids','has_options','gift_message_available','price','special_price','special_price','special_from_date'
@@ -130,37 +130,42 @@ function es_webform_webform_submission_presave($node, &$submission) {
   	$magento_product_data = array();
 	   foreach($submission->data as $item=>$value) {
     		if(isset($node->webform['components'][$item]['extra']['magento_attribute_code'])) {
-  			$mage_id = $node->webform['components'][$item]['extra']['magento_attribute_code'];
+  			 $mage_id = $node->webform['components'][$item]['extra']['magento_attribute_code'];
   			  //if it is a standard catalog attribute
   	  		if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($mage_id)) {
   				$attribute = unserialize($attribute_data->data);
-    	  		if(isset($value['value']['text']['textarea']['value'])) {
+    	  		if(isset($value['value']['value']['format'])) { //check format to see if textarea or wysiwyg
     	  		  if(in_array($attribute->attribute_code,$default_magento_attributes)) {
-    	  		      $magento_product_data[$attribute->attribute_code] = $value['value']['text']['textarea']['value'];
+    	  		      $magento_product_data[$attribute->attribute_code] = $value['value']['value']; //used to be ['value']['text']['textarea']['value']
   	  				} else {
     				      $magento_additional_attributes['single_data'][] = array('key'=>$attribute->attribute_code, 'value'=>$value['value']['text']['textarea']['value']);
   	  				}
     				} else {
-    		  				if($attribute->frontend_input == "multiselect") {
-      		  				  $selections = array();
-                      foreach($value['value'] as $select_key=>$select_value) {
-                        $selections[] = $select_value;
-                      } 
-      		  				  if(in_array($attribute->attribute_code,$default_magento_attributes)) {
-        		  					$magento_product_data[$attribute->attribute_code] =	$selections;
-                      } else {
-                        $magento_additional_attributes['multi_data'][] = array('key'=>$attribute->attribute_code, 'value'=>$selections);
-                      }
-      						} else {
-                      if(in_array($attribute->attribute_code,$default_magento_attributes)) {
-        							    $magento_product_data[$attribute->attribute_code] =	$value['value'][0];
-                      } else {
-                          $magento_additional_attributes['single_data'][] = array('key'=>$attribute->attribute_code, 'value' => $value['value'][0]);
-                      }
-                  }
+  		  				if($attribute->frontend_input == "multiselect") {
+    		  				  $selections = array();
+                    foreach($value['value'] as $select_key=>$select_value) {
+                      $selections[] = $select_value;
+                    } 
+    		  				  if(in_array($attribute->attribute_code,$default_magento_attributes)) {
+      		  					$magento_product_data[$attribute->attribute_code] =	$selections;
+                    } else {
+                      $magento_additional_attributes['multi_data'][] = array('key'=>$attribute->attribute_code, 'value'=>$selections);
+                    }
+    						} else {
+                    if(in_array($attribute->attribute_code, $default_magento_attributes)) {
+      							    $magento_product_data[$attribute->attribute_code] =	$value['value'][0];
+                    } else {
+                        $magento_additional_attributes['single_data'][] = array('key'=>$attribute->attribute_code, 'value' => $value['value'][0]);
+                    }
+                }
     				}
   		//all other attributes must be exlplicitely referenced
   		} //if not then not valid attribute
+  	} elseif(isset($node->webform['components'][$item]['extra']['inventory_attribute'])) {
+  	   $magento_product_data['inventory_data'][$node->webform['components'][$item]['extra']['inventory_attribute']] = $value['value'][0];
+       if(!isset($magento_product_data['inventory_data']['manage_stock'])) { // automatically set manage stock to true if any inventory attribute is used
+         $magento_product_data['inventory_data']['manage_stock'] = 1;
+       }       
   	} elseif(isset($value['value']['product-image'])) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
        $image_fid = $value['value']['product-image'];
        $magento_media = new magento_media;
@@ -175,8 +180,10 @@ function es_webform_webform_submission_presave($node, &$submission) {
         $magento_product_data['categories'] = $categories;
     }
 	}
+
   	$magento = new magento();
     $magento_media = new magento_media();
+    $magento_product = new magento_product;
   	$magento_product_data['websites'] = array(1);
   	$magento_product_data['status'] = 1;
   	$magento_product_data['url_key'] = $magento_product_data['name'];
@@ -192,6 +199,9 @@ function es_webform_webform_submission_presave($node, &$submission) {
     	$node->field_market_space_setup['und'][0]['attribute_set_id'], $sku, $magento_product_data);
     if($image_fid) {
       $file_output = $magento_media->create_media($product_id, $media_data);  
+    }
+    if(isset($magento_product_data['inventory_data']['manage_stock'])) {
+      $result = $magento_product->updateProductStockData($product_id, $magento_product_data['inventory_data']);
     }
   }
 

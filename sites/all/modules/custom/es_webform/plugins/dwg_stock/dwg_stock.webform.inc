@@ -26,7 +26,7 @@ function _webform_edit_dwg_stock($component) {
     $form['extra']['inventory_attribute'] = array(
       '#type' => 'select',
       '#title' => t('Magento Stock Attributes'),
-      '#options' => array('qty' => 'Quantity','is_in_stock' => 'In Stock?'),
+      '#options' => array('qty' => 'Quantity','is_in_stock' => 'In Stock'), //'manage_stock' => 'Manage Stock (must have before quantity can be used)'
       '#default_value' => isset($component['extra']['inventory_attribute']) ? $component['extra']['inventory_attribute'] : '',
       '#required' => TRUE,
     );
@@ -46,15 +46,25 @@ function _webform_edit_dwg_stock($component) {
 
 /**
  * Implements _webform_render_[component]().
+ * 
+ * TODO - these obvously need a static class for the makeup
+ * of the built in inventory variables - their type, options etc
  */
 function _webform_render_dwg_stock($component, $value = NULL, $filter = TRUE, $form_state) {
   global $user;
+  $inventory_type = 'select';
+  if(in_array($component['extra']['inventory_attribute'], array('qty'))) {
+    $inventory_type = 'textfield';
+  }
   $form = array(
-    '#type' => 'textfield',
+    '#type' => $inventory_type,
     '#title' => $component['name'],
     '#required' => ($component['mandatory']) ? TRUE : FALSE,
     '#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
   );
+  if(in_array($inventory_type, array('select', 'dropdown'))) {
+    $form['#options'] = array(1 => 'In Stock', 0 => 'Out Of Stock');
+  }
   return $form;
 }
 

@@ -93,6 +93,7 @@ function product_edit_form($form, &$form_state) {
   			$webform = $node->webform["components"];
   			//get all additional attribute codes that need to be called in api
   			$additional_attributes = array();
+        $stock_data_exists = false;
   			foreach($webform as $component) {
   				if(isset($component['extra']['magento_attribute_code']))	{
   					if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($component['extra']['magento_attribute_code'])) {
@@ -101,6 +102,8 @@ function product_edit_form($form, &$form_state) {
   							$additional_attributes['additional_attributes'][] = $attribute->attribute_code;
   						}
   					}
+  				} elseif(isset($component['extra']['inventory_attribute'])) {
+  				  $stock_data_exists = true;
   				}
   			}
   			//get this products data from magento
@@ -113,7 +116,14 @@ function product_edit_form($form, &$form_state) {
 	  				$product_obj->{$attr->key} = $attr->value;
 	  			}
 				}
-  			 
+        if($stock_data_exists) {
+            //get stock data TODO - must make a better function to get stock data
+            //and perhaps an all inclusive function
+            $stock_data_obj = $product->getProductStockData($product_data[0]);
+            dpm($stock_data_obj);
+            $product_obj->is_in_stock = $stock_data_obj[0]->is_in_stock;
+            $product_obj->qty = $stock_data_obj[0]->qty;
+          }
         $form['product-edit-form'] = array(
           '#markup' => '<div>' . t('Product Edit Form')
             . '</div>',
@@ -133,6 +143,7 @@ function product_edit_form($form, &$form_state) {
         $custom_magento_components = array("categories", "custom_options", "images");
         //display the form components accordion
         $current_fieldset = ""; //all components must be in a fieldset   
+        dpm($product_obj);
         foreach($webform as $component) {
           if(isset($component['extra']['magento_attribute_code'])) {
             if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($component['extra']['magento_attribute_code'])) {
@@ -141,12 +152,22 @@ function product_edit_form($form, &$form_state) {
               $form[$current_fieldset][$attribute->attribute_code] = $product_edit->create_attribute_input($attribute, $form_state, $component, $product_obj);
             }
 					} elseif(isset($component['extra']['inventory_attribute'])) {
+					  $inventory_type = 'select';
+            if(in_array($component['extra']['inventory_attribute'], array('qty'))) {
+					    $inventory_type = 'textfield';
+					  }
 						$form[$current_fieldset][$component['extra']['inventory_attribute']] = array(
-						    '#type' => 'textfield',
+						    '#type' => $inventory_type,
 						    '#title' => $component['name'],
 						    '#required' => ($component['mandatory']) ? TRUE : FALSE,
 						    '#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
-						  );					
+						    '#default_value' => isset($product_obj->{$component['extra']['inventory_attribute']}) ? 
+						      $product_obj->{$component['extra']['inventory_attribute']} : '',
+						  );
+              //drupal_set_message($product_obj->{$component['extra']['inventory_attribute']} . "stock data " . $component['extra']['inventory_attribute'], 'notice');
+            if($inventory_type == 'select') {
+              $form[$current_fieldset][$component['extra']['inventory_attribute']]['#options'] = array(1 => 'In Stock', 0 => 'Out Of Stock');
+            }
   				} elseif(isset($component['extra']['magento_attribute_code_name'])) {
   					if($component['extra']['magento_attribute_code_name'] == 'categories') {
   						$category = new magento_product_category;
@@ -355,7 +376,11 @@ function option_value_callback($form, &$form_state) {
       //$form_state['rebuild'] = TRUE;
       $xml = str_replace(array('<!--','-->'),'',$form_state['triggering_element']['#prefix']);
       $attributes = simplexml_load_string($xml);
-			$value_num = count($form_state['input']['custom_options'][(int)$attributes->parent_id]['values']);
+			if(isset($form_state['input']['custom_options'][(int)$attributes->parent_id]['values'])) {
+				$value_num = count($form_state['input']['custom_options'][(int)$attributes->parent_id]['values']);
+			} else {
+				$value_num = 0;
+			}
       //watchdog('option value callback add value', '%num_count count and <pre>%form</pre><br />',array('%form' => print_r($form_state,true), '%num_count'=>$attributes->parent_id . ' val ' . $value_num),WATCHDOG_NOTICE);
       return $form['custom_options'][(int)$attributes->parent_id]['values'][$value_num];
     //delete custom option
@@ -408,6 +433,15 @@ function edit_marketspace_image_callback($form, &$form_state) {
 function product_edit_form_submit(&$form, &$form_state) {
 	$product = new magento_product;
 	$product_custom_options = new product_custom_options;
+  
+  //there was no good way so I just look for qty or is_in_stock could possibly search
+  //through values array
+  //TODO - search through values array and look for stock attribute in key
+  //TODO you can apparently blindly pass the values array without magento giving a problem
+  //test for the performance hit
+  if(isset($form_state['values']['qty']) || isset($form_state['values']['is_in_stock'])) {
+    $result = $product->updateProductStockData($form_state['input']['product_id'], $form_state['values']);
+  } 
 	if(isset($form_state['values']['custom_options'])) {
 		$product_custom_options->updateCustomOptions($form_state['values']);
 	}
@@ -416,10 +450,11 @@ function product_edit_form_submit(&$form, &$form_state) {
   //die;
   //drupal_set_message('form_state: alan ' . print_r($form_state,true), 'notice');
 	$data = $product->getProductDataArray($form_state);
-
-	$result = $product->updateProduct($form_state['input']['product_id'], $data);
 	
-  
+	$result = $product->updateProduct($form_state['input']['product_id'], $data);
+	//$stockData = $product->getProductStockDataArray($form_state);
+	//$resultStock = $product->updateProductStockData($form_state['input']['product_id'], $stockData)
+ 
   /*
    * CUSTOM OPTIONS
    */
