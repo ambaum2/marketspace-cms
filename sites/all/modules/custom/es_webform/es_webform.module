@@ -120,7 +120,6 @@ function product_edit_form($form, &$form_state) {
             //get stock data TODO - must make a better function to get stock data
             //and perhaps an all inclusive function
             $stock_data_obj = $product->getProductStockData($product_data[0]);
-            dpm($stock_data_obj);
             $product_obj->is_in_stock = $stock_data_obj[0]->is_in_stock;
             $product_obj->qty = $stock_data_obj[0]->qty;
           }
@@ -143,7 +142,6 @@ function product_edit_form($form, &$form_state) {
         $custom_magento_components = array("categories", "custom_options", "images");
         //display the form components accordion
         $current_fieldset = ""; //all components must be in a fieldset   
-        dpm($product_obj);
         foreach($webform as $component) {
           if(isset($component['extra']['magento_attribute_code'])) {
             if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($component['extra']['magento_attribute_code'])) {
