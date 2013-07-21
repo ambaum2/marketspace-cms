@@ -4,8 +4,8 @@ class magento {
   const api_user = "market_space_user"; //@TODO : should not be constat?
   const api_password = "19e16eb11791a0a05033ada1baafc51c621c2abb "; //also should not? keep the space
   private $encrypt_key = "b4baa5e8c5e5676db4baa5e";//8c5e5676d
-  const primary_host = "http://aaortho.net/index.php/api/v2_soap?wsdl";
-  public $base_url = "http://aaortho.net/index.php/";
+  const primary_host = "http://mspace.thedotworldgroup.com/index.php/api/v2_soap?wsdl";
+  public $base_url = "http://mspace.thedotworldgroup.com/index.php/";
   /*
    * constructor to login and start session
 	 * TODO make this a singleton again
@@ -13,7 +13,7 @@ class magento {
    function __construct() {
       $session_start_time = variable_get("session_start");
       if(!empty($session_start_time)) { //if a session is active
-        if((time() - variable_get("session_start")) > 1200) { //login again session has been active for more than 20 minutes
+        if((time() - variable_get("session_start")) > 0) { //login again session has been active for more than 20 minutes
           $this->login();
         } 
       } else { //login if session has not been started yet
@@ -28,7 +28,7 @@ class magento {
    * and update session id every twenty minutes on cron
    */
   private function login($host = magento::primary_host) {  
-    $proxy = new SoapClient("http://aaortho.net/api/v2_soap/?wsdl"); // @TODO : make url a variable
+    $proxy = new SoapClient(magento::primary_host);
     try {
       $sessionId = $proxy->login(magento::api_user, magento::api_password); // @TODO : change login and pwd if necessary
       variable_set("session_start",time());//set session start time   

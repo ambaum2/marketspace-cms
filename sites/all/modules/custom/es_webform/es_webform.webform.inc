@@ -169,7 +169,8 @@ function es_webform_webform_submission_presave($node, &$submission) {
   	} elseif(isset($value['value']['product-image'])) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
        $image_fid = $value['value']['product-image'];
        $magento_media = new magento_media;
-       $media_data = $magento_media->get_marketspace_media_data_by_fid($image_fid, "none", $position = 100);
+       $media_data = $magento_media->get_magento_media_data($magento_media->get_marketspace_media_data_by_fid($image_fid, "none", $position = 100));
+			 //set_variable('marketspace_image_new_fid_' . $node->nid, ''); //unset this because we don't want it to appear again
     } elseif(isset($value['value']['categories'])) {      
         $categories = array();
         foreach($value['value']['categories'] as $cat_key=>$cat_value) {

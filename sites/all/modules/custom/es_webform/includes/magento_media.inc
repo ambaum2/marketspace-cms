@@ -16,11 +16,12 @@ class magento_media extends magento {
         $this->session_id,
         $product_id,
         $data
-        //array('file' => $file, 'label' => 'a label', 'position' => '10', 'types' => $image_types, 'exclude' => 0)
       );
       return $result;
     } catch (exception $e) {
-       throw $e;
+    	drupal_set_message('data array error: please contact the admin', '<pre>' . print_r($data,true). "</pre>");
+    	watchdog('magento media', 'image create failed. <pre>%e</pre> <pre>%data</pre>', array('%e'=>print_r($e,true), '%data'=>print_r($data,true)),WATCHDOG_ERROR);
+      throw $e;
     }
   }
 
@@ -112,6 +113,12 @@ class magento_media extends magento {
   }
   /*
    * get data array for images with only an fid
+	 * this data is no good for media Create or 
+	 * update on its own fro the api calls. You'll need
+	 * to pass this into get_magento_media_data 
+	 * to get workable data (content adn mime types)
+	 * 
+	 * returns array
    */
   public function get_marketspace_media_data_by_fid($image_fid, $label = "", $position = 100) {
     $data = new stdClass();

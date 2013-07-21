@@ -12,16 +12,18 @@ class product_edit extends product {
 				case "textfield":
 					$product_data != null ? $element['#default_value'] = $product_data->{$attribute->attribute_code} : '';
 					break;
-				case "date": //date has to be mm/dd/yyyy for magento to take it
+				case "date": //date has to be yyyy-mm-dd for magento to take it
 					$product_data != null ? $element['#default_value'] = $product_data->{$attribute->attribute_code} : $element['#default_value'] = '';
 					 //$element['#default_value'] = $product_data->{$attribute->attribute_code};
 					$element['#type'] = 'textfield';
 					$element['#attached'] = array(
             'js' => array(drupal_get_path('module', 'es_webform') . '/js/product_edit.js'),
           );
-					//this seems stupid also inneficient
-					//drupal_add_js("http://code.jquery.com/jquery-1.9.1.js", "external");
-  				drupal_add_js("http://code.jquery.com/ui/1.10.3/jquery-ui.js", "external");
+  				drupal_add_library('system','ui.datepicker');
+				  drupal_add_js('jQuery(document).ready(function(){jQuery( ".dwg-datepicker" ).datepicker({
+				      dateFormat: "dd-mm-yy",
+				      autoSize: true
+				    });});', 'inline'); 
 					$element['#attributes'] = array(
 			      'class' => array(
 			        'dwg-datepicker',
@@ -38,7 +40,9 @@ class product_edit extends product {
 					break;
 				case "textarea":
 					//$element['text'][$attribute->frontend_input]['#default_value'] = $product_data->{$attribute->attribute_code};
-					$element = $this->wywiwyg_editor_render($attribute, $component, $product_data);
+					if($product_data != null) { //@TODO this is a temporary fix for product add form
+						$element = $this->wywiwyg_editor_render($attribute, $component, $product_data);
+					}
 					break;
 				default:
 			}

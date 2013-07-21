@@ -37,24 +37,23 @@ function _webform_edit_es_media($component, $form_state) {
 
 /**
  * Implements _webform_render_[component]().
+ * 
+ * for reference 
  */
 function _webform_render_es_media($component, $value = NULL, $filter = TRUE, $form_state) {
   global $user;
-
   $form['product-image'] = array(
     '#title' => t('Image'),
     '#type' => 'managed_file',
     '#description' => t('Upload an image: '),
-    '#default_value' => variable_get('marketspace_image_fid', ''),
     '#process' => array("marketspace_image_upload"),
     '#upload_location' => 'public://u' . $user->uid,
   );
+
   return $form;
 }
 function marketspace_image_upload($element, &$form_state, $form) {
   $element = file_managed_file_process($element, $form_state, $form);
-	//echo "<pre>" . print_r($element,true) . "</pre>";
-  //$element['upload_button']['#access'] = FALSE;
   return $element;
 }
 /*
