@@ -134,9 +134,9 @@ function es_webform_webform_submission_presave($node, &$submission) {
   			  //if it is a standard catalog attribute
   	  		if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($mage_id)) {
   				$attribute = unserialize($attribute_data->data);
-    	  		if(isset($value['value']['value']['format'])) { //check format to see if textarea or wysiwyg
+    	  		if(isset($value['value']['text']['textarea'])) { //check format to see if textarea or wysiwyg
     	  		  if(in_array($attribute->attribute_code,$default_magento_attributes)) {
-    	  		      $magento_product_data[$attribute->attribute_code] = $value['value']['value']; //used to be ['value']['text']['textarea']['value']
+    	  		      $magento_product_data[$attribute->attribute_code] = $value['value']['text']['textarea']['value']; //used to be ['value']['text']['textarea']['value']
   	  				} else {
     				      $magento_additional_attributes['single_data'][] = array('key'=>$attribute->attribute_code, 'value'=>$value['value']['text']['textarea']['value']);
   	  				}
@@ -191,11 +191,13 @@ function es_webform_webform_submission_presave($node, &$submission) {
   	$magento_product_data['url_path'] = $magento_product_data['name'];
   	$magento_product_data['visibility'] = 4;
   	$magento_product_data['price'] = 0;
+		$magento_product_data['page_layout'] = 'one_column';
 		//TODO: obviously these need to be dynamic 
     $magento_additional_attributes['single_data'][] = array('key' => 'tickettype', 'value' => $node->field_tickettype['und'][0]['value']);//;
     $magento_additional_attributes['single_data'][] = array('key' => 'marketspace_owner', 'value' => $user->uid);
     $magento_product_data['additional_attributes'] = $magento_additional_attributes;
     $sku = substr(md5($magento_product_data['name']. time()),0,32);
+		watchdog('New Product Submission', ' added product data<pre>%data</pre>', array('%data'=>print_r($magento_product_data,true)), WATCHDOG_NOTICE);
     $product_id = $magento->create_product($magento->decryptText(variable_get('session_id')), $node->field_market_space_setup['und'][0]['type_code'],
     	$node->field_market_space_setup['und'][0]['attribute_set_id'], $sku, $magento_product_data);
     if($image_fid) {
