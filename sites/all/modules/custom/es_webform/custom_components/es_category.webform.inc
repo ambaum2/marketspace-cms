@@ -26,7 +26,7 @@ function _webform_edit_es_category($component) {
   $product = new product();
   $category = new magento_product_category();
   $webform = node_load($component['nid']);
-  if(isset($webform->field_attribute_set_id['und'][0]['value'])) {
+  if(isset($webform->field_market_space_setup['und'][0]['attribute_set_id'])) {
     $category->get_category_tree($magento->decryptText(variable_get('session_id')));
     $all_categories = $category->get_categories();
     $form['extra']['magento_attribute_code_name'] = array(
