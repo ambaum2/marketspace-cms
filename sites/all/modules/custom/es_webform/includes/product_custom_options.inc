@@ -17,7 +17,7 @@ class product_custom_options extends product {
 	
 	public function updateCustomOptions($options) {
 		$magento_custom_options = new magento_custom_options;
-		echo "<pre>" . print_r($options,true) . '</pre>';
+		//echo "<pre>" . print_r($options,true) . '</pre>';
 		foreach($options['custom_options'] as $key=>$value) {
 			if(!empty($value['type']) && is_numeric($key)) { //must check is numeric or else will sibling form elements in this
 				$data = $value;
@@ -46,7 +46,7 @@ class product_custom_options extends product {
 							}
 						}
 					}
-					drupal_set_message( "<pre>select pre update/add" . print_r($data,true) . '</pre>', 'status');
+					//drupal_set_message( "<pre>select pre update/add" . print_r($data,true) . '</pre>', 'status');
 					if($value['magento_option_id'] > 0) {
 						$result = $magento_custom_options->update_custom_option($value['magento_option_id'], $data);
 					} else {

@@ -80,7 +80,9 @@ function array_searchRecursive( $needle, $haystack, $strict=false, $path=array()
 }
 
 /**
- * Implements _webform_render_[component]().
+ * Implements _webform_render_[component]().j
+ * $component has information about component
+ * $form state is a hack of webform to get it to show up
  */
 function _webform_render_es_category($component, $value = NULL, $filter = TRUE, $form_state) {
   global $user;
@@ -88,10 +90,8 @@ function _webform_render_es_category($component, $value = NULL, $filter = TRUE, 
   $product = new product();
   $category = new magento_product_category();
   $path2 = "";
-  dpm($form_state);
   //if(in_array('authenticated_user',$user->roles)) {
     if(isset($form_state['values']['submitted'][$component['cid']]['categories'])) {
-      //echo "<pre>" . print_r($form_state['values']['submitted'],true) . "</pre>";
       $selected_values = $form_state['values']['submitted'][$component['cid']]['categories'];
     } else {
       $selected_values = array();
@@ -102,7 +102,6 @@ function _webform_render_es_category($component, $value = NULL, $filter = TRUE, 
     
     //render category checkboxes
     isset($_POST['form_build_id']) ? $form_build_id = $_POST['form_build_id'] : $form_build_id = "";
-    //echo $form_build_id;
     $category->create_category_checkboxes($categories, $category_select_element, $component, true, $selected_values);
     return $category_select_element;
   //}
@@ -125,7 +124,7 @@ function _webform_display_es_category($component, $value, $format = 'html') {
  * so check database if exists for this nid
  * and cid 
  */
-function es_category_webform_component_presave(&$component) {
+//function es_category_webform_component_presave(&$component) {
   //if($component['type'] == "es_category") { //if this is a magento component
     //check webform_es_attribute for the magento_attribute_code id
     /*echo "<pre>" . print_r($component,true) . "</pre>";
@@ -144,5 +143,5 @@ function es_category_webform_component_presave(&$component) {
       }
     }*/
   //}
-}
+//}
 
