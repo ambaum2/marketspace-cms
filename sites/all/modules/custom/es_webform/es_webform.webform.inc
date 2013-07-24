@@ -171,9 +171,9 @@ function es_webform_webform_submission_presave($node, &$submission) {
        $magento_media = new magento_media;
        $media_data = $magento_media->get_magento_media_data($magento_media->get_marketspace_media_data_by_fid($image_fid, "none", $position = 100));
 			 //set_variable('marketspace_image_new_fid_' . $node->nid, ''); //unset this because we don't want it to appear again
-    } elseif(isset($value['value']['categories'])) {      
+    } elseif(isset($value['value']['magento_categories'])) {      
         $categories = array();
-        foreach($value['value']['categories'] as $cat_key=>$cat_value) {
+        foreach($value['value']['magento_categories'] as $cat_key=>$cat_value) {
           if($cat_value == 1) {
             $categories[] = $cat_key;
           }
@@ -185,22 +185,25 @@ function es_webform_webform_submission_presave($node, &$submission) {
   	$magento = new magento();
     $magento_media = new magento_media();
     $magento_product = new magento_product;
+    //set defaults for required or ones that we want set for sure
   	$magento_product_data['websites'] = array(1);
-  	$magento_product_data['status'] = 1;
-  	$magento_product_data['url_key'] = $magento_product_data['name'];
-  	$magento_product_data['url_path'] = $magento_product_data['name'];
-  	$magento_product_data['visibility'] = 4;
-  	$magento_product_data['price'] = 0;
-		$magento_product_data['page_layout'] = 'one_column';
+  	!isset($magento_product_data['status']) ? $magento_product_data['status'] = 1 : '';
+  	!isset($magento_product_data['url_key']) ? $magento_product_data['url_key'] = $magento_product_data['name'] : '';
+  	//$magento_product_data['url_path'] = $magento_product_data['name'];
+  	!isset($magento_product_data['visibility']) ? $magento_product_data['visibility'] = 4 : '';
+  	!isset($magento_product_data['price']) ? $magento_product_data['price'] = 0 : '';
+    $magento_product_data['page_layout'] = 'one_column';
+		//!isset($magento_product_data['page_layout']) ? $magento_product_data['page_layout'] = 'one_column' : '';
 		//TODO: obviously these need to be dynamic 
     $magento_additional_attributes['single_data'][] = array('key' => 'tickettype', 'value' => $node->field_tickettype['und'][0]['value']);//;
     $magento_additional_attributes['single_data'][] = array('key' => 'marketspace_owner', 'value' => $user->uid);
     $magento_product_data['additional_attributes'] = $magento_additional_attributes;
-    $sku = substr(md5($magento_product_data['name']. time()),0,32);
+    //if sku isset then we have to set the sku variable  - TODO -don't know if variable needed 
+    !isset($magento_product_data['sku']) ? $sku = substr(md5($magento_product_data['name']. time()),0,32) : $sku = $magento_product_data['sku'];
 		watchdog('New Product Submission', ' added product data<pre>%data</pre>', array('%data'=>print_r($magento_product_data,true)), WATCHDOG_NOTICE);
     $product_id = $magento->create_product($magento->decryptText(variable_get('session_id')), $node->field_market_space_setup['und'][0]['type_code'],
     	$node->field_market_space_setup['und'][0]['attribute_set_id'], $sku, $magento_product_data);
-    if($image_fid) {
+    if($image_fid > 0) { //TODO is this a good check for image isset?
       $file_output = $magento_media->create_media($product_id, $media_data);  
     }
     if(isset($magento_product_data['inventory_data']['manage_stock'])) {

@@ -88,8 +88,9 @@ function _webform_render_es_category($component, $value = NULL, $filter = TRUE, 
   $product = new product();
   $category = new magento_product_category();
   $path2 = "";
+  dpm($form_state);
   //if(in_array('authenticated_user',$user->roles)) {
-    if(isset($form_state['values']['submitted'])) {
+    if(isset($form_state['values']['submitted'][$component['cid']]['categories'])) {
       //echo "<pre>" . print_r($form_state['values']['submitted'],true) . "</pre>";
       $selected_values = $form_state['values']['submitted'][$component['cid']]['categories'];
     } else {
