@@ -116,7 +116,6 @@ function _webform_display_es_webform($component, $value, $format = 'html') {
 function es_webform_webform_submission_presave($node, &$submission) {
   // Update some component's value before it is saved..
   global $user;
-
   if($submission->is_draft == 0 && isset($node->field_market_space_setup['und'][0])) {
 	  $default_magento_attributes = array('categories','websites','name','description','short_description','weight','status','url_key','url_path'
 	    ,'visibility','category_ids','website_ids','has_options','gift_message_available','price','special_price','special_price','special_from_date'
@@ -173,9 +172,9 @@ function es_webform_webform_submission_presave($node, &$submission) {
         $media_data = $magento_media->get_magento_media_data($magento_media->get_marketspace_media_data_by_fid($image_fid, "none", $position = 100));
        }
 			 //set_variable('marketspace_image_new_fid_' . $node->nid, ''); //unset this because we don't want it to appear again
-    } elseif(isset($value['value']['magento_categories'])) {      
+    } elseif(isset($value['value']['categories'])) {//this was old check think it fails isset($value['value']['magento_categories'])) {      
         $categories = array();
-        foreach($value['value']['magento_categories'] as $cat_key=>$cat_value) {
+        foreach($value['value']['categories'] as $cat_key=>$cat_value) {
           if($cat_value == 1) {
             $categories[] = $cat_key;
           }

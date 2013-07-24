@@ -207,7 +207,7 @@ class magento_product extends magento {
        }
     } elseif(isset($webform[$item]['extra']['magento_categories'])) {      
 	      $categories = array();
-	      foreach($input['submitted']['profile_information_header']['venue_sweets_categories']['categories'] as $cat_key=>$cat_value) {
+	      foreach($input['categories'] as $cat_key=>$cat_value) {
 	        if($cat_value == 1) {
 	          $categories[] = $cat_key;
 	        }

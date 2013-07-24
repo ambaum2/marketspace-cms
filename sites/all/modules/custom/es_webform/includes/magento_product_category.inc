@@ -22,6 +22,8 @@ class magento_product_category extends magento {
    * this should return categories in nested order
    * TODO must fix by adding a query to recursively
    * search and get children for a parent that has children
+   * 
+   * make a form element called categories
    */
   public function create_category_checkboxes($categories, &$form, $component, $frontend = false, $selected_values = array()) {
 	  $form['categories'] =array(
@@ -33,7 +35,7 @@ class magento_product_category extends magento {
     );
     foreach($categories as $item) {
       $current_level = ($item->level)-1;
-      if($item->children_count == 0) {
+      if($item->children_count == 0) { //TODO -seems redundant remove default a var to parent and do an if and then one category level create call
         $this->category_level_create($form, $item, "child", $component, $frontend, $selected_values);          
       } else {
         $this->category_level_create($form, $item, "parent", $component, $frontend, $selected_values);
@@ -81,7 +83,7 @@ class magento_product_category extends magento {
           "#prefix" => "<div class='category_select_"
             . $item->id . " parent_category_" . $item->parent_id 
             . "' style='margin-left:" . (($item->level)*10) . "px;'>",
-          "#parents" => array("submitted","profile_information_header", "venue_sweets_categories","categories",$item->id),
+          //"#parents" => array("submitted","profile_information_header", "venue_sweets_categories","categories",$item->id),
           "#suffix" => "</div>",
           "#default_value" => $default_value,
           '#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
@@ -97,10 +99,10 @@ class magento_product_category extends magento {
           "#suffix" => "</div>",
           "#default_value" => $default_value,
           '#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
-          "#parents" => array("submitted","profile_information_header", "venue_sweets_categories","categories", $item->id),
+          //"#parents" => array("submitted","profile_information_header", "venue_sweets_categories","categories", $item->id),
           );    //"#field_prefix" => "<a class='child_category_select'><img src='http://aaortho.net/js/spacer.gif' /></a>"
       }
-    } else { //backend display
+    } else { //backend display - is this still needed?
       if($type == "parent") {
         eval('$form' . $checkbox_array_string . '=array(
           "#type" => "checkbox",
