@@ -15,6 +15,8 @@ class magento_product extends magento {
 		$proxy = new SoapClient(magento::primary_host);
 			try {
 				$result = $proxy->catalogProductList($this->session_id, $complex_filter);
+				drupal_set_message('<xmp>' . $proxy->__getLastRequest() . '</xmp>', 'notice');
+				dpm('<xmp>' . $proxy->__getLastRequestHeaders() . "</xmp>");
 				return $result;
 			} catch(exception $e) {
 				throw $e;

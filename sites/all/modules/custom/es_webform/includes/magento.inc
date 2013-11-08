@@ -4,11 +4,10 @@ class magento {
   const api_user = "market_space_user"; //@TODO : should not be constat?
   const api_password = "19e16eb11791a0a05033ada1baafc51c621c2abb "; //also should not? keep the space
   private $encrypt_key = "b4baa5e8c5e5676db4baa5e";//8c5e5676d
-  const primary_host = "http://mspace.thedotworldgroup.com/index.php/api/v2_soap?wsdl";
-  public $base_url = "http://mspace.thedotworldgroup.com/index.php/";
+  const primary_host = "http://mspacedev.thedotworldgroup.com/index.php/api/v2_soap?wsdl";
+  public $base_url = "http://mspacedev.thedotworldgroup.com/index.php/";
   /*
    * constructor to login and start session
-	 * TODO make this a singleton again
    */
    function __construct() {
       $session_start_time = variable_get("session_start");

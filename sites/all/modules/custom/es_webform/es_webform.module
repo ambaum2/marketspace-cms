@@ -5,15 +5,16 @@
    function es_webform_menu() {
    	
 	$items = array();
-  $items['dashboard'] = array(
+  $items['manage-products'] = array(
       'page callback' => 'getDashboard',
       'type' => MENU_CALLBACK,
       //'access callback' => 'user_access',
       'access arguments' => array('access content'),
   );
-  $items['product_edit'] = array(
+  $items['manage-products/product_edit'] = array(
       'page callback' => 'getProductEdit',
       'type' => MENU_CALLBACK,
+      'title' => "Product Edit",
       //'access callback' => 'user_access',
       'access arguments' => array('access content'),
   );    
@@ -22,11 +23,70 @@
       'type' => MENU_CALLBACK,
       //'access callback' => 'user_access',
       'access arguments' => array('access content'),
-  );    
+  );
+  $items['json-test'] = array(
+      'page callback' => 'getDataFromMagento',
+      'type' => MENU_CALLBACK,
+      //'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+  );
+  $items['reports'] = array(
+      'page callback' => 'getProductEdit',
+      'type' => MENU_CALLBACK,
+      //'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+  );
+  $items['oauth-mage'] = array(
+      'page callback' => 'magentoOauthTest',
+      'type' => MENU_CALLBACK,
+      //'access callback' => 'user_access',
+      'access arguments' => array('access content'),
+  ); 
     return $items;
   }
 	function getAddManager() {
 		$output = "";
+		return $output;
+	}
+	function magentoOauthTest() {
+		$magento = new magento_product_rest;
+		$magento->getProducts();
+		return "content";
+	}  
+  /*
+   * get and process json data from
+   * magento
+   */
+  function getDataFromMagento() {
+  /*
+   * as drupal I need to encrypt the data with hmac sha1 or sha256
+   * with a private key so that my request is secure
+   * 
+   * as drupal I need to encrypt with a timestamp so
+   * that my request is less vulnerable to replay attacks
+   */
+   
+  /* TODO: as drupal I need to set a hash in the mysql database 
+   * so that magento can determine if the request is 
+   * real
+   */
+   
+  /* as drupal I need to send a curl request 
+   * over tls so it is secure
+   */
+   
+   
+    
+  }
+	function getReportsDashboard() {
+		//get reports header
+		
+		//load highchartsjs
+		
+		//get data from magento
+		
+		//generate hight charts
+		
 		return $output;
 	}
 	/*
@@ -37,10 +97,9 @@
 		$magento = new magento;
 		$products = $dashboard->renderProductGrid();
 		$output = "<ul class = 'marketspace_dashboard_grid'>";
-    
 		foreach($products as $product) {
 		  $product_info = $product->product_id . "," . $product->set . "," . $product->type;
-			$output .= "<li><a href='product_edit?info=" . urlencode($product_info)
+			$output .= "<li><a href='manage-products/product_edit?info=" . urlencode($product_info)
 				. "'>" . $product->name . "</a></li>";
 		}
 		$output = $output . "</ul>";
@@ -109,6 +168,9 @@ function product_edit_form($form, &$form_state) {
   			//get this products data from magento
   			//TODO: - needs to be a custom webservices that also checks ownership by a passed product id
       	$product_obj = $product->getProductById($product_data[0], $additional_attributes);
+				$breadcrumb = drupal_get_breadcrumb();
+				$breadcrumb[] = $product_obj->name;
+				drupal_set_breadcrumb($breadcrumb);
   			//put additional attributes on same level as core magento attributes. So easier to work with
   			//don't worry about multi select yet
   			if(isset($product_obj->additional_attributes)) {
