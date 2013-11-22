@@ -24,6 +24,16 @@
       //'access callback' => 'user_access',
       'access arguments' => array('access content'),
   );
+  //admin settings form (es_webform_admin is the settings form function)
+  $items['admin/config/system/marketspace-settings'] = array(
+    'title' => 'Marketspace settings',
+    'description' => 'Setup Marketspace Configuration',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('es_webform_admin'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+   );
+  /* test urls are below */
   $items['json-test'] = array(
       'page callback' => 'getDataFromMagento',
       'type' => MENU_CALLBACK,
@@ -44,6 +54,34 @@
   ); 
     return $items;
   }
+/* 
+ * admin settings form
+ * 
+ */
+ function es_webform_admin() {
+  $form = array();
+
+  $form['magento_base_url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Base Url of magento site'),
+    '#default_value' => variable_get('magento_base_url', 'http://communitymarketspace.com/index.php/'),
+    '#size' => 80,
+    '#maxlength' => 400,
+    '#description' => t("Base url plus src and type variables"),
+    '#required' => TRUE,
+  );
+  $form['magento_api_wsdl'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get('magento_api_wsdl', "http://communitymarketspace.com/index.php/api/v2_soap?wsdl"),
+    '#title' => t('base wsdl for magento site'),
+    '#description' => t("disable tab it is annoying"),
+    '#size' => 80,
+    '#maxlength' => 400,
+    '#description' => t("Base url plus src and type variables"),
+    '#required' => TRUE,
+  );
+  return system_settings_form($form);
+}
 	function getAddManager() {
 		$output = "";
 		return $output;

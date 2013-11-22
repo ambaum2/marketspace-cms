@@ -9,7 +9,7 @@ class magento_product_types_sets extends magento {
 	 * get all products attribute sets
 	 */
 	public function getAllAttributeSets() {		
-		$proxy = new SoapClient(magento::primary_host);
+		$proxy = new SoapClient(variable_get("magento_api_wsdl"));
 			try {
 				$result = $proxy->catalogProductAttributeSetList($this->session_id);
 				return $result;
@@ -21,7 +21,7 @@ class magento_product_types_sets extends magento {
 	 * get all products types
 	 */
 	public function getAllProductTypes() {		
-		$proxy = new SoapClient(magento::primary_host);
+		$proxy = new SoapClient(variable_get("magento_api_wsdl"));
 			try {
 				$result = $proxy->catalogProductTypeList($this->session_id);
 				return $result;

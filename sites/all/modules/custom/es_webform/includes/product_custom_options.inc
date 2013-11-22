@@ -1,7 +1,8 @@
 <?php
 class product_custom_options extends product {
 	public static $ajax_option;
-	/*
+	/**
+   * @param options | array 
 	 * options is an array of objects which have value label like:
 	 *     [6] => stdClass Object
         (
@@ -9,10 +10,8 @@ class product_custom_options extends product {
             [value] => multiple
         )
 	 * select type for future can specify whether select, checkbox, radio etc
-	 */
-	/*
 	 * loop through custom options and values
-	 * and add, update, or delete array
+	 * and add, update, or delete array 
 	 */
 	
 	public function updateCustomOptions($options) {
@@ -56,6 +55,26 @@ class product_custom_options extends product {
 			}
 		}
 	}
+  /**
+   * create custom options select form
+   * 
+   * @param options | array
+   *  array of options keted [number] => [value]
+   * @param element_id | integer
+   *  id of option
+   * @param title | string
+   *  name of option from magento
+   * @param description | string
+   *  optinal description for element
+   * @param filter_values | array
+   *  optional filter out certain values
+   * @param select_type | string
+   *  can choose the type of select select, radio, multi etc
+   * @param defaults | array
+   *  array of default option or options
+   * @return array 
+   *  the renderable array for drupal form
+   */
 	public function renderOptionTypeSelect($options, $element_id, $title, $description = "", $filter_values = array(), $select_type = "select", $defaults = array()) {
 		$element[$element_id] = array(
 	    '#type' => $select_type,
@@ -68,7 +87,19 @@ class product_custom_options extends product {
 	  $element[$element_id]['#description'] = t($description);
 		return $element;
 	}
-	public function getCustomOptionType($options,$filter_values = array()) {
+  
+  /**
+   * create the options array for the select elements form element
+   * 
+   * @param options | array
+   *  array of keyed option 
+   * @param filter_values | array
+   *  optional filter out certain values
+   * @return array
+   *  array of keyed values
+   * 
+   */
+	public function getCustomOptionType($options, $filter_values = array()) {
 		$all_options = array('none' => "Select a Type");	
 		foreach($options as $key=>$value) {
 			if(!(in_array($value->value, $filter_values))) {
@@ -77,10 +108,23 @@ class product_custom_options extends product {
 		}
 		return $all_options;
 	}
-	/*
+	/**
 	 * create a template with option name, type, 
 	 * required and order
-	 * 
+   * @param options | array
+   *  array of options keted [number] => [value]
+   * @param element_id | integer
+   *  id of option
+   * @param form_state | array
+   *  current form state so we can get custom options and other 
+   *  form variables
+   * @param custom_option | object
+   *  custom option object for prefilling the option form
+   * @param filter_values | array
+   *  optional filter out certain values
+   * @return array 
+   *  the renderable array for drupal form
+   * @todo this seems insane
 	 * $custom_option (Object) is the custom option data - for pre
 	 * populating
 	 */
@@ -145,7 +189,6 @@ class product_custom_options extends product {
           );
 			} elseif($option_value_type=="drop_down" || $option_value_type=="checkbox" 
 		       || $option_value_type=="radio" || $option_value_type=="multiple" ) {
-		      //dpm($custom_option);
 
           //option values from magento
           $custom_options_count = 0;
@@ -267,18 +310,19 @@ class product_custom_options extends product {
 		return $element;
 	}
 
-	/*
+	/**
 	 * create the custom option value templates
 	 * one for text, select, and date types
 	 * they are rendered all at once but hidden
+   * @return object
+   *  returns all custom options as an object when they are 
+   *  needed as an object instead of an array like the template
 	 * @TODO - file type
-	 * 
-	/* 
- * hardcode custom options for now
- * no reason to put them in a table or pull
- * them in because they don't change without
- * a custom magento module
- */
+   * hardcode custom options for now
+   * no reason to put them in a table or pull
+   * them in because they don't change without
+   * a custom magento module
+   */
 	public function getAllCustomOptions() {	
 		$options_array = array(
 	  	array('label'=>'Field','value' => 'field'),

@@ -4,16 +4,23 @@ class magento_media extends magento {
   var $session_id;
   function __construct() {
     parent::__construct();
-    $this->session_id = parent::decryptText(variable_get('session_id'));
+    $this->session_key = parent::decryptText(variable_get('session_id'));
   }
-  /*
+  
+  /**
    * create new media for a product
+   * @param product_id | integer 
+   *  product id of product for this custom option in magento
+   * @param data | array
+   *  keyed array of media data
+   * @return boolean 
+   *  true if worked false otherwise
    */
-  public function create_media($product_id, $data, $host = magento::primary_host) {
-    $proxy = new SoapClient($host);
+  public function create_media($product_id, $data) {
+    $proxy = new SoapClient(variable_get("magento_api_wsdl"));
     try {    
       $result = $proxy->catalogProductAttributeMediaCreate(
-        $this->session_id,
+        $this->session_key,
         $product_id,
         $data
       );
@@ -25,49 +32,70 @@ class magento_media extends magento {
     }
   }
 
-  /*
+  /**
    * get all product media
-   *
+   * @param product_id | integer 
+   *  product id of product for this custom option in magento
+   * @return xml string 
+   *  string of xml data for media for product 
    */
-   public function get_all_media($product_id, $host = magento::primary_host) {
-     $proxy = new SoapClient($host);
+   public function get_all_media($product_id) {
+     $proxy = new SoapClient(variable_get("magento_api_wsdl"));
      try {    
-        $result = $proxy->catalogProductAttributeMediaList($this->session_id, $product_id);
+        $result = $proxy->catalogProductAttributeMediaList($this->session_key, $product_id);
         return $result;
      } catch (exception $e) {
         throw $e;
      }
    }
-  /*
-   * remove product media
-   *
+   
+  /**
+   * update product media data
+   * 
+   * @param product_id | integer 
+   *  product id of product for this custom option in magento
+   * @param data | array
+   *  keyed array of media data
+   * @return boolean 
+   *  true if worked false otherwise
    */
-  public function update_media_by_product_id($product_id, $data, $host = magento::primary_host) {
-    $proxy = new SoapClient($host);
+  public function update_media_by_product_id($product_id, $data) {
+    $proxy = new SoapClient(variable_get("magento_api_wsdl"));
     try {    
-       $result = $proxy->catalogProductAttributeMediaUpdate($this->session_id, $product_id, $data['file']['name'], $data);
+       $result = $proxy->catalogProductAttributeMediaUpdate($this->session_key, $product_id, $data['file']['name'], $data);
        return $result;
     } catch (exception $e) {
        throw $e;
     }
   }
   
-  /*
+  /**
    * remove product media
-   *
+   * @param product_id | integer 
+   *  product id of product for this custom option in magento
+   * @param file_name | string
+   *  name of file
+   * @return boolean 
+   *  true if worked false otherwise
    */
-  public function remove_media_by_product_id($product_id, $file_name, $host = magento::primary_host) {
-    $proxy = new SoapClient($host);
+  public function remove_media_by_product_id($product_id, $file_name) {
+    $proxy = new SoapClient(variable_get("magento_api_wsdl"));
     try {    
-       $result = $proxy->catalogProductAttributeMediaRemove($this->session_id, $product_id, $file_name);
+       $result = $proxy->catalogProductAttributeMediaRemove($this->session_key, $product_id, $file_name);
        return $result;
     } catch (exception $e) {
        throw $e;
     }
   }
 
-  /*
-   * load data for magento image
+  /**
+   * @param data | object
+   *  image data
+   * @return array
+   * 
+   * load data for magento image. Actually
+   * get the contents of a file. This would 
+   * not work for private files.
    * managed_file - is file from drupal or elsewhere
    */
   public function get_magento_media_data($data) { 
@@ -84,12 +112,14 @@ class magento_media extends magento {
       'types' => array('image', 'thumbnail', 'small_image'), 'exclude' => 0);
     return $magento_media_info;
   }
-  /*
+  /**
    * get data array for use in create edit delete
    * api calls which use get_mangeto_media_data
    * and that is the function to which the data
    * returned from this method should be passed
-	 * 
+	 * @param input | 
+   * @return array of media data
+   * @todo i need to reaxamine this i don't fully understand it
 	 * $input - form_state['input'] array
    */
   public function get_marketspace_media_data($input, $image_attributes, $new_media = false, $parent_container = 'image_manager', $container_name = 'image_container', $options_container = 'options') {
@@ -131,9 +161,12 @@ class magento_media extends magento {
     $data->position = $position;
     return $data;
   }
-  /*
+  /**
    * render product image form element
-   * 
+   * @param image_link | string
+   *  url of image to create input
+   * @return array
+   *  renderable array for form element
    * TODO - this probably should be in its own class
    * along with process_managed_file
    */
@@ -149,17 +182,22 @@ class magento_media extends magento {
     );
     return $element;
   }
-	/*
+	/**
 	 * save file if and make permanent or delete
 	 * 
 	 * Variables Needed:
-	 * $image_fid - for determining if file temporary (0) and delete
+	 * @param image_fid | integer
+   *  for determining if file temporary (0) and delete
 	 *  or permenant != 0 so save
-	 * $module = marketspace or whatever module it belongs to
-	 * $type - user possibly or any type of object that contains the reference
-	 * $id - id of user or entity that owns the file $global $user $user->uid
-	 * defaults to superuser
-	 * $style - the image style default to $form_state['values']['image_example_style_name']
+	 * @param module | string
+   *  marketspace or whatever module it belongs to
+	 * @param type | string
+   *  user possibly or any type of object that contains the reference
+	 * @param id | integer
+   *  id of user or entity that owns the file $global $user $user->uid
+	 *  defaults to superuser
+	 * @param style | string
+   *  the image style default to $form_state['values']['image_example_style_name']
 	 */
   // If fid is not 0 we have a valid file.
   public function process_managed_file($image_fid, $module = "marketspace", $type="user", $id = 1, $style = 'marketspace_profile_image') {
@@ -206,10 +244,19 @@ class magento_media extends magento {
 		// Save the name of the image style choosen by the user.
 		variable_set('marketspace_style_name', $style);
 	}    
-  /*
+  /**
    * render_image_manager_element
    * output an image manager 
-   * 
+   * @param form | array
+   *  form that contains image manager
+   * @param key | integer
+   *  key of element from iterator
+   * @param image | object
+   *  image object 
+   * @param fieldset | string
+   *  tab group the image manager is in
+   * @param edit_form | boolean
+   *  is this the edit or new form
    */
   public function render_image_manager_element(&$form, $key, $image, $fieldset, $edit_form = true) {
     $form[$fieldset]['image_manager'][$key]['image_container'] = array(

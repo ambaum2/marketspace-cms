@@ -143,8 +143,8 @@ class magento_product_category extends magento {
   /*
    * get all categories for a store in magento
    */
-  public function get_category_tree($session_id,$parent_id = 1, $store_view = 1,$host = parent::primary_host) {
-    $proxy = new SoapClient($host);
+  public function get_category_tree($session_id,$parent_id = 1, $store_view = 1) {
+    $proxy = new SoapClient(variable_get("magento_api_wsdl"));
     try {
       $result = $proxy->catalogCategoryTree($session_id, $parent_id, $store_view);
       $this->update_category_records($result);
