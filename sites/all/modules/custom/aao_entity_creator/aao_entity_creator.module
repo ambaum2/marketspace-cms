@@ -1,0 +1,174 @@
+<?php
+
+/* 
+ * hook_menu
+ */
+function aao_entity_creator_menu() {
+    
+  $items = array();
+  $items['admin/config/system/create-entity'] = array(
+      'title' => 'Entity Creator',
+      'description' => 'Setup entity Parameters',
+      'page callback' => 'getEntityCreatorAdminForm',
+      'type' => MENU_NORMAL_ITEM,
+      //'access callback' => 'user_access',
+      'access arguments' => array('administer modules'),
+  );
+  $items['admin/config/system/create-entity-test'] = array(
+      'title' => 'Entity Creator',
+      'description' => 'Setup entity Parameters',
+      'page callback' => 'runTest',
+      'type' => MENU_NORMAL_ITEM,
+      //'access callback' => 'user_access',
+      'access arguments' => array('administer modules'),
+  );
+    return $items;
+}
+
+function runTest() {
+  echo "output";
+  $entityFiles = new makeEntityFiles;
+  $type = $entityFiles->cleanMysqlTypeText('somegarbage(33) dk');
+   if (!copy('sites/all/modules/custom/aao_entity_creator/includes/entity_module_template.php', "sometemplate.php")) {
+        echo "failed to copy the file...\n";
+    }
+  return $type;
+}
+/*
+ * render entity createor  edit
+ */
+function getEntityCreatorAdminForm() {
+  return drupal_get_form('entityCreatorAdminForm');
+  
+}  
+function entityCreatorAdminForm_submit(&$form, &$form_state) {
+  $makeEntityFiles = new makeEntityFiles;
+  $database = $form_state['values']['database'];
+  $module_name = $form_state['values']['module_name'];
+  $entity_title = $form_state['values']['entity_title']; //will be schemea and entity name
+  $entity_machine_name = $form_state['values']['entity_machine_name'];
+  $base_table = $form_state['values']['base_table'];
+  $primary_key = $form_state['values']['primary_key'];
+  $primary_key_label = $form_state['values']['primary_key_label'];
+  $module_url_key = $form_state['values']['module_url_key'];
+  $tabs = array("  ", "  ", "    ", "      ", "        ");
+  
+  $settings = array();
+  $settings['module_name'] = $form_state['values']['module_name'];
+  $settings['entity_title'] = $form_state['values']['entity_title'];
+  $settings['base_table'] = $form_state['values']['base_table'];
+  $settings['primary_key'] = $form_state['values']['primary_key'];
+  $settings['module_entity_table_help_comment'] = $form_state['values']['module_entity_table_help_comment'];
+  
+  //check if directory exists if not create a module directory
+  if(!is_dir(drupal_get_path('module', 'aao_entity_creator') . "/includes/" . $module_name)) {
+    mkdir(drupal_get_path('module', 'aao_entity_creator') . "/includes/" . $module_name, 0775);
+  }
+  //remove old files if they exist
+  shell_exec("rm -rf " . drupal_get_path('module', 'aao_entity_creator') . "/includes/" . $module_name . "/" .  $module_name . ".install");
+  shell_exec("rm -rf " . drupal_get_path('module', 'aao_entity_creator') . "/includes/" . $module_name . "/" . $module_name . ".module");
+  shell_exec("rm -rf " . drupal_get_path('module', 'aao_entity_creator') . "/includes/" . $module_name . "/" . $module_name . ".views.inc");
+  /*$mysqli = new mysqli("localhost", "root", "foley33$", $database);
+  if ($mysqli->connect_errno) {
+      echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
+  }*/
+  
+  /*echo $mysqli->host_info . "\n";
+  if(!$result = $mysqli->query("SHOW FULL COLUMNS FROM " . $base_table . ";")) {
+    echo "failed to show tables";
+  }*/
+  //create install file
+  $makeEntityFiles->createEntityInstallFile(db_query("SHOW FULL COLUMNS FROM " . $base_table . ";"), $module_name, $entity_machine_name, $tabs);
+  //create module file
+  $makeEntityFiles->createEntityModuleFile(db_query("SHOW FULL COLUMNS FROM " . $base_table . ";"), $module_name, $entity_machine_name, $entity_title, $base_table, $primary_key, $primary_key_label, $module_url_key, $tabs);
+  //create views file
+  $makeEntityFiles->createEntityViewsFile(db_query("SHOW FULL COLUMNS FROM " . $base_table . ";"), $settings, $tabs);
+  //create info file 
+  //$makeEntityFiles->createModuleInfoFile($settings);
+}
+function entityCreatorAdminForm($form, &$form_state) {
+    $form['aao-entity-setup'] = array(
+      '#markup' => '<div>' . t('Create files for entity by entering in a databasse table and some basic info'). '</div>',
+      '#id' => 'aao-entity-setup',
+    );
+    $form['database'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Database',
+      '#size' => 40,
+      '#default_value' => "Pantheon",
+      '#maxlength' => 60,
+      '#required' => TRUE,
+    );
+    $form['module_name'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Module machine name no spaces',
+      '#size' => 40,
+      '#default_value' => "aao_module",
+      '#maxlength' => 60,
+      '#required' => TRUE,
+    );
+    $form['entity_title'] = array(
+      '#type' => 'textfield',
+      '#title' => 'entity human readable name can have spaces',
+      '#size' => 40,
+      '#default_value' => "My entity",
+      '#maxlength' => 60,
+      '#required' => TRUE,
+    );
+    $form['entity_machine_name'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Entity machine name no spaces',
+      '#size' => 40,
+      '#default_value' => "Pantheon",
+      '#maxlength' => 60,
+      '#required' => TRUE,
+      '#description' => t('can be the same as module name or database'),
+    );
+    $form['base_table'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Base Table',
+      '#size' => 40,
+      '#default_value' => "my_table",
+      '#maxlength' => 60,
+      '#required' => TRUE,
+      
+    );
+    $form['primary_key'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Entity Primary Key (for Views.inc file)',
+      '#size' => 40,
+      '#default_value' => "id",
+      '#maxlength' => 60,
+      '#required' => TRUE,
+    );
+    $form['primary_key_label'] = array(
+      '#type' => 'textfield',
+      '#title' => 'primary key label for entity key (from above)',
+      '#size' => 40,
+      '#default_value' => "lecture_id",
+      '#maxlength' => 60,
+      '#required' => TRUE,
+    );
+    $form['module_url_key'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Url Key for Admin link',
+      '#size' => 40,
+      '#default_value' => "aao_ppgm",
+      '#maxlength' => 60,
+      '#required' => TRUE,
+    );
+    $form['module_entity_table_help_comment'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Module entity table help commment',
+      '#size' => 40,
+      '#default_value' => "a brief description of yoru entity",
+      '#maxlength' => 60,
+      '#required' => TRUE,
+    );
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Submit'),
+    );
+    return $form;
+}  
+

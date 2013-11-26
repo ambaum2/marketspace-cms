@@ -1,0 +1,9 @@
+name = aao Entity Creator
+description = creates base entity with views file and entity schema
+files[] = includes/makeEntityFiles.inc
+files[] = includes/entity_module_template.php
+files[] = includes/entity_views_template.php
+core = 7.x
+; Information added by drupal.org packaging script on 2012-11-18
+version = "7.x-1.x-dev"
+;core = "7.x"

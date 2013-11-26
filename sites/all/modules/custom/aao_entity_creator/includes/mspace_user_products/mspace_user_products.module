@@ -1,0 +1,190 @@
+<?php
+/*
+ *replace: mspace_user_products, module_title, module_primary_key,
+ * module_primary_key_label, mspace_user_products, user-product-control
+ * 
+ */
+/**
+ * @file
+ * Provides a simple custom entity type named 'ppgm' for the preview program.
+ */
+
+/**
+ * Implements hook_entity_info().
+ */
+function mspace_user_products_entity_info() {
+  $info = array();
+  $info['mspace_user_products'] = array(
+    // Human readable label.
+    'label' => t('Marketspace User Products'),
+    'base table' => 'mspace_user_products',
+    'entity keys' => array(
+      'id' => 'id',
+      'label' => 'id_label',
+    ),
+    'uri callback' => 'entity_class_uri',
+    // This is the default controller.
+    //'controller class' => 'DrupalDefaultEntityController',
+    // Other options provided by the EntityAPI contrib module which we'll be using later.
+    // 'controller class' => 'EntityAPIController ',
+    // 'controller class' => 'EntityAPIControllerExportable',
+    'entity class' => 'mspace_user_products',
+    // This is a uri function provided by the Entity contrib module.
+    // It's a simple wrapper around the uri method that needs to be implemented in the controller class.
+    'uri callback' => 'entity_class_uri',
+    // Here is our custom controller that we will provide below.
+    'controller class' => 'mspace_user_productsEntityController',
+         // The information below is used by the VideoEntityUIController (which extends the EntityDefaultUIController)
+     'admin ui' => array(
+       'path' => 'admin/mspace_user_products',
+       'controller class' => 'mspace_user_productsEntityUIController',
+       'menu wildcard' => '%mspace_user_products',
+       'file' => 'mspace_user_products.admin.inc'
+     ),
+    'module' => 'mspace_user_products',
+    //Acess callback to determine permissions
+    'access callback' => 'mspace_user_products_access_callback',
+   ); 
+   
+   return $info;
+ }
+
+ /**
+ * Implements hook_menu().
+ */
+function mspace_user_products_menu() {
+  $items = array();
+    $items['mspace_user_products/%user-product-control'] = array(
+    'title' => 'module_title',
+    'page callback' => 'mspace_user_products_view_entity',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+  );
+  return $items;
+}
+/**
+ * Implements hook_views_api().
+ */
+function mspace_user_products_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'mspace_user_products'),
+  );
+}
+/**
+ * Callback for /mspace_user_products page.
+ *
+ * Just a place to test things out and be able to see the results on a page.
+ */
+function mspace_user_products_demo_page() {
+  $mspace_user_products = entity_load('mspace_user_products', array(1));
+ kpr($mspace_user_products);
+ $content = "hello!";
+   // Or load it with EFQ.
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'mspace_user_products');
+  $results = $query->execute();
+ kpr($results);
+  return $content;
+}
+
+/**
+ * Implements hook_entity_property_info().
+ */
+function mspace_user_products_entity_property_info() {
+  $info = array();
+  $properties = &$info['mspace_user_products']['properties'];
+  
+  $properties['id'] = array(
+    'label' => t('Id'),
+    'schema field' => 'id',
+    'description' => 'unique id of this product record',
+  );
+  $properties['uid'] = array(
+    'label' => t('Uid'),
+    'schema field' => 'uid',
+    'description' => 'drupal user id. maps back to magentos marketspace owner field',
+  );
+  $properties['product_id'] = array(
+    'label' => t('Product Id'),
+    'schema field' => 'product_id',
+    'description' => 'product id from magento',
+  );
+
+  
+  return $info;
+}
+/**
+ * Implements hook_permission().
+ */
+function mspace_user_products_permission() {
+  return array(
+    'administer mspace_user_products' => array(
+      'title' => t('Administer mspace_user_products Entities'),
+    ),
+    'view mspace_user_products' => array(
+      'title' => t('View mspace_user_products Entities'),
+    ),
+    );
+  }
+/**
+ * Check access permissions for mspace_user_products entities
+ */
+function mspace_user_products_access_callback($op, $mspace_user_products = NULL, $account = NULL){
+  if(($op == 'view' && user_access('view mspace_user_products', $account)) || user_access('administer mspace_user_products', $account)){
+    return TRUE;
+  }
+  else if (user_access('administer mspace_user_products', $account)){
+    return TRUE;
+  }
+  return TRUE;
+}
+/**
+ * 
+ * /
+ * Menu autoloader for /mspace_user_products
+ */
+ function mspace_user_products_load($id) {
+  $mspace_user_products = entity_load('mspace_user_products', array($id));
+  return array_pop($mspace_user_products);
+ }
+/**
+ * Callback for /video/ID page.
+ *
+ * Just a place to render a complete video entity.
+ */
+function mspace_user_products_view_entity($mspace_user_products) {
+  drupal_set_title($mspace_user_products->name);
+  $mspace_user_products_entity = entity_view('mspace_user_products', array($mspace_user_products->id => $mspace_user_products), 'member');
+  kpr($mspace_user_products);
+  return $mspace_user_products_entity;
+}
+
+/**
+ * Our custom entity class.
+ */
+class mspace_user_products extends Entity {
+  /**
+   * Override this in order to implement a custom default URI.
+   */
+  protected function defaultUri() {
+    return array('path' => 'ppgm/' . $this->identifier());
+  }
+}
+
+/**
+ * Our custom controller for the videoentity type.
+ *
+ * We're choosing to extend the controller provided by the entity module so that we'll have
+ * full CRUD support for videoentities.
+ */
+class mspace_user_productsEntityController extends EntityAPIController {
+
+} 
+
+/**
+ * Our custom controller for the admin ui.
+ */
+class mspace_user_productsEntityUIController extends EntityDefaultUIController {
+  
+}
