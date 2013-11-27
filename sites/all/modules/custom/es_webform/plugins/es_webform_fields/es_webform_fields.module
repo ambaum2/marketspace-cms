@@ -60,7 +60,7 @@ function es_webform_fields_field_info() {
     // We name our field as the associative name of the array.
     'es_webform_mage_webform_setup' => array(
       'label' => t('Magento Product Type Select'),
-      'description' => t('Select the product type (virtual, simple, bundle, etc), attribute set, and other pre determined fields'),
+      'description' => t('Select the product type (virtual, simple, bundle, etc), attribute set, product type and other pre determined fields'),
       'default_widget' => 'es_webform_mage_product_type_select',
       'default_formatter' => 'es_webform_mage_product_type_select_display',
     ),
@@ -208,6 +208,7 @@ function es_webform_fields_field_widget_info() {
 function es_webform_fields_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
 	$magento = new magento_product_types_sets;
   $attribute_set = isset($items[$delta]['attribute_set_id']) ? $items[$delta]['attribute_set_id'] : '';
+	$product_type = isset($items[$delta]['product_type']) ? $items[$delta]['product_type'] : '';
   $type_code = isset($items[$delta]['type_code']) ? $items[$delta]['type_code'] : '';
   //drupal_set_message("<pre>" . print_r($field,true) . "</pre>" . "Hello", 'notice');
   $element['type_code'] = array(          
@@ -223,6 +224,13 @@ function es_webform_fields_field_widget_form(&$form, &$form_state, $field, $inst
     '#default_value' => $attribute_set,
     '#description' => t('Select one attribute set that this form will pull its attributes from'),
     '#options' => $magento->convertProductAttributesToOptionsArray($magento->getAllAttributeSets()),
+  );
+  $element['product_type'] = array(          
+    '#type' => 'select',
+    '#title' => "Select Product Classification",
+    '#default_value' => $product_type,
+    '#description' => t('Select one attribute set that this form will pull its attributes from'),
+    //@TODO - need to build an rpc for getting product type attribute '#options' => $magento->convertProductAttributesToOptionsArray($magento->getAllAttributeSets()),
   );
   return $element;
 }
