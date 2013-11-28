@@ -1,0 +1,30 @@
+<?php
+/**
+* Implements hook_schema().
+*/
+function mspace_user_products_schema() {
+  $schema = array();
+  $schema['mspace_user_products'] = array(
+    'description' => 'the base table for the mspace_user_products entity',
+    'fields' => array(
+      'id' => array(
+        'description' => 'unique id of this product record',
+        'type' => 'serial',
+        'not null' => 'TRUE',
+      ),
+      'uid' => array(
+        'description' => 'drupal user id. maps back to magentos marketspace owner field',
+        'type' => 'int',
+        'size' => 'normal',
+        'not null' => 'FALSE',
+      ),
+      'product_id' => array(
+        'description' => 'product id from magento',
+        'type' => 'int',
+        'size' => 'normal',
+        'not null' => 'FALSE',
+      ),
+    ),
+  );
+  return $schema;
+}

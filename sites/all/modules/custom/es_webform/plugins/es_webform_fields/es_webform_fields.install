@@ -25,6 +25,7 @@ function es_webform_fields_field_schema($field) {
   $columns = array(
     'type_code' => array('type'=>'varchar', 'length'=>64, 'not null' => TRUE),
     'attribute_set_id' => array('type'=>'varchar', 'length' => 64, 'not null' => TRUE),
+    'product_type' => array('type'=>'varchar', 'length' => 64, 'not null' => TRUE),
     'preset_attributes' => array('type'=>'text', 'not null' => FALSE),
   );
   $indexes = array(
