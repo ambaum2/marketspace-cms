@@ -19,8 +19,8 @@ function _webform_defaults_dwg_stock() {
 function _webform_edit_dwg_stock($component) {
   $webform = node_load($component['nid']);
   //dpm($webform);
-  if(isset($webform->field_market_space_setup['und'][0]['attribute_set_id'])) {
-    $attribute_set_id = $webform->field_market_space_setup['und'][0]['attribute_set_id'];
+  if(isset($webform->field_market_space_settings['und'][0]['attribute_set_id'])) {
+    $attribute_set_id = $webform->field_market_space_settings['und'][0]['attribute_set_id'];
     //$attributes = $magento->get_all_attributes($attribute_set_id, $magento->decryptText(variable_get('session_id')));
     
     $form['extra']['inventory_attribute'] = array(

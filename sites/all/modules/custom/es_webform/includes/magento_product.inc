@@ -147,15 +147,14 @@ class magento_product extends magento {
    *  the product type
    * @return array
    *    an array of entity id, attribute set id, adn type_code
+	 * @TODO - Limit 1
 	 */
 	public function getWebformIdByAttributeSetAndType($attribute_set_id,$product_type) {
 
-    $query = db_select('field_data_field_market_space_setup', 'a')
-      ->fields('a',array('entity_id', 'field_market_space_setup_attribute_set_id', 'field_market_space_setup_type_code'))
-      ->condition('field_market_space_setup_attribute_set_id', (int)$attribute_set_id)
-			->condition('field_market_space_setup_type_code', $product_type);
-    $query->join('field_data_field_tickettype', 't', 't.entity_id = a.entity_id');
-    $query->fields('t',array('field_tickettype_value'));
+    $query = db_select('field_data_field_market_space_settings', 'a')
+      ->fields('a',array('entity_id', 'field_market_space_settings_attribute_set_id', 'field_market_space_settings_type_code', 'field_market_space_settings_product_type'))
+      ->condition('field_market_space_settings_attribute_set_id', (int)$attribute_set_id)
+			->condition('field_market_space_settings_type_code', $product_type);
     $node_webform = $query->execute()->fetchAll();
 		return $node_webform;
 	}

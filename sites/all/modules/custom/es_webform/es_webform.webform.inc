@@ -26,8 +26,8 @@ function _webform_edit_es_webform($component) {
   $product = new product();
   $webform = node_load($component['nid']);
   //dpm($webform);
-  if(isset($webform->field_market_space_setup['und'][0]['attribute_set_id'])) {
-    $attribute_set_id = $webform->field_market_space_setup['und'][0]['attribute_set_id'];
+  if(isset($webform->field_market_space_settings['und'][0]['attribute_set_id'])) {
+    $attribute_set_id = $webform->field_market_space_settings['und'][0]['attribute_set_id'];
     $attributes = $magento->get_all_attributes($attribute_set_id, $magento->decryptText(variable_get('session_id')));
     
     $form['extra']['magento_attribute_code'] = array(
@@ -116,7 +116,7 @@ function _webform_display_es_webform($component, $value, $format = 'html') {
 function es_webform_webform_submission_presave($node, &$submission) {
   // Update some component's value before it is saved..
   global $user;
-  if($submission->is_draft == 0 && isset($node->field_market_space_setup['und'][0])) {
+  if($submission->is_draft == 0 && isset($node->field_market_space_settings['und'][0])) {
 	  $default_magento_attributes = array('categories','websites','name','description','short_description','weight','status','url_key','url_path'
 	    ,'visibility','category_ids','website_ids','has_options','gift_message_available','price','special_price','special_price','special_from_date'
 	    ,'special_to_date','tax_class_id','meta_title','meta_keyword','meta_description','custom_design','custom_layout_update','options_container'
@@ -196,14 +196,14 @@ function es_webform_webform_submission_presave($node, &$submission) {
     //this makes no sense to me why its single_data but it is 
 		!isset($magento_product_data['single_data']['page_layout']) ? $magento_product_data['single_data']['page_layout'] = 'one_column' : '';
 		//TODO: obviously these need to be dynamic 
-    $magento_additional_attributes['single_data'][] = array('key' => 'tickettype', 'value' => $node->field_tickettype['und'][0]['value']);//;
+    $magento_additional_attributes['single_data'][] = array('key' => 'product_type', 'value' => $node->field_market_space_settings['und'][0]['product_type']);//;
     $magento_additional_attributes['single_data'][] = array('key' => 'marketspace_owner', 'value' => $user->uid);
     $magento_product_data['additional_attributes'] = $magento_additional_attributes;
     //if sku isset then we have to set the sku variable  - don't know if variable needed 
     !isset($magento_product_data['sku']) ? $sku = substr(md5($magento_product_data['name']. time()),0,32) : $sku = $magento_product_data['sku'];
 		watchdog('New Product Submission', ' added product data<pre>%data</pre>', array('%data'=>print_r($magento_product_data,true)), WATCHDOG_NOTICE);
-    $product_id = $magento->create_product($magento->decryptText(variable_get('session_id')), $node->field_market_space_setup['und'][0]['type_code'],
-    	$node->field_market_space_setup['und'][0]['attribute_set_id'], $sku, $magento_product_data);
+    $product_id = $magento->create_product($magento->decryptText(variable_get('session_id')), $node->field_market_space_settings['und'][0]['type_code'],
+    	$node->field_market_space_settings['und'][0]['attribute_set_id'], $sku, $magento_product_data);
     if($image_fid > 0) {
       $file_output = $magento_media->create_media($product_id, $media_data);  
     }
