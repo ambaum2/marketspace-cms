@@ -206,7 +206,7 @@ function es_webform_fields_field_widget_info() {
  * 'rgb' form element.
  */
 function es_webform_fields_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
-	$magento = new magento_product_types_sets;
+	//$magento = new magento_product_types_sets;
 	$mspaceApi = new mspaceApi;
   $attribute_set = isset($items[$delta]['attribute_set_id']) ? $items[$delta]['attribute_set_id'] : '';
 	$product_type = isset($items[$delta]['product_type']) ? $items[$delta]['product_type'] : '';
@@ -216,14 +216,14 @@ function es_webform_fields_field_widget_form(&$form, &$form_state, $field, $inst
     '#title' => "Select Product Type",
     '#default_value' => $type_code,
     '#description' => t('Select one attribute set that this form will pull its attributes from'),
-    '#options' => $magento->convertTypesToOptionsArray($magento->getAllProductTypes()),
+    '#options' => $mspaceApi->apiTokenCall('product/v1/type/'),
   );
   $element['attribute_set_id'] = array(          
     '#type' => 'select',
     '#title' => "Select Attribute Set",
     '#default_value' => $attribute_set,
     '#description' => t('Select one attribute set that this form will pull its attributes from'),
-    '#options' => $magento->convertProductAttributesToOptionsArray($magento->getAllAttributeSets()),
+    '#options' => $mspaceApi->apiTokenCall('product/v1/attributeSet/'),
   );
 	//drupal_set_message(print_r($magento->convertProductAttributesToOptionsArray($magento->getAllAttributeSets()), true), 'notice');
 	//drupal_set_message(print_r($mspaceApi->apiTokenCall('product/v1/attribute/type/options/code/product_type'), true), 'notice');
@@ -232,7 +232,6 @@ function es_webform_fields_field_widget_form(&$form, &$form_state, $field, $inst
     '#title' => "Select Product Classification",
     '#default_value' => $product_type,
     '#description' => t('Select one attribute set that this form will pull its attributes from'),
-    '#options' => array(1 => 'one'),
     '#options' => $mspaceApi->apiTokenCall('product/v1/attribute/type/options/code/product_type'),
     //@TODO - need to build an rpc for getting product type attribute '#options' => $magento->convertProductAttributesToOptionsArray($magento->getAllAttributeSets()),
   );

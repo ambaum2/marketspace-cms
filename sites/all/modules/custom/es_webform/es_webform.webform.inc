@@ -22,25 +22,26 @@ function _webform_defaults_es_webform() {
  * Implements _webform_edit_[component]().
  */
 function _webform_edit_es_webform($component) {
-  $magento = new magento();
-  $product = new product();
+  //$magento = new magento();
+  //$product = new product();
+  $mspaceApi = new mspaceApi;
   $webform = node_load($component['nid']);
-  //dpm($webform);
   if(isset($webform->field_market_space_settings['und'][0]['attribute_set_id'])) {
     $attribute_set_id = $webform->field_market_space_settings['und'][0]['attribute_set_id'];
-    $attributes = $magento->get_all_attributes($attribute_set_id, $magento->decryptText(variable_get('session_id')));
+    //CHANGE
+    //$attributes = $magento->get_all_attributes($attribute_set_id, $magento->decryptText(variable_get('session_id')));
     
     $form['extra']['magento_attribute_code'] = array(
       '#type' => 'select',
       '#title' => t('Magento Attribute'),
-      '#options' => $product->create_attribute_select_options($attributes),
+      '#options' => $mspaceApi->apiTokenCall('product/v1/attribute/set/options/id/' . $attribute_set_id),//$product->create_attribute_select_options($attributes),
       '#default_value' => isset($component['extra']['magento_attribute_code']) ? $component['extra']['magento_attribute_code'] : '',
       '#required' => TRUE,
-      '#ajax' => array(
+      /*'#ajax' => array(
         'callback' => 'get_attribute_info',
         'method' => 'replace',
         'wrapper' => 'edit-extra-attribute-info'//apparenly this has to be the id of the destination element
-      )
+      )*/
     );
    $form['extra']['magento_attribute_code_name'] = array(
      '#type' => 'hidden',
@@ -68,17 +69,19 @@ function _webform_edit_es_webform($component) {
  * ['extra']['magento_attribute_code']['#value']
  */
 function get_attribute_info($form, $form_state) {
-  $magento = new magento();
-  $attribute = $magento->get_attribute_information($magento->decryptText(variable_get('session_id')), $form['extra']['magento_attribute_code']['#value']);
-  ($attribute->is_required == 1 ? $required = 'Yes' : $required = 'No');
-  $attribute_code_name = $attribute->code;
-  $attribute_info ='<div id="edit-extra-attribute-info"><span>Frontend Name: ' . $attribute->frontend_label[0]->label 
-    . '</span><br /><span>Form Type: ' . $attribute->frontend_input . '</span><br /><span>Required: ' 
-    . $required . '</div>'; //$attribute->frontend_label[0]->label
+  //$magento = new magento();
+  //watch('')
+  //$attribute = $magento->get_attribute_information($magento->decryptText(variable_get('session_id')), $form['extra']['magento_attribute_code']['#value']);
+  //$attribute = $mspaceApi->apiTokenCall('product/v1/attribute/type/data/code/' . $form['extra']['magento_attribute_code']['#value']);
+  //($attribute['is_required'] == 1 ? $required = 'Yes' : $required = 'No');
+  //$attribute_code_name = $attribute['code'];
+  /*$attribute_info ='<div id="edit-extra-attribute-info"><span>Frontend Name: ' . $attribute['frontend_label'][0]['label'] 
+    . '</span><br /><span>Form Type: ' . $attribute['frontend_input'] . '</span><br /><span>Required: ' 
+    . $required . '</div>'; //$attribute->frontend_label[0]->label*/
   $commands = array();
   //$commands[] = ajax_command_before('edit-extra-attribute-info', $attribute_info);
-  $commands[] = ajax_command_replace("#attribute_code_name", '<div id="attribute_code_name"><input type="hidden" value="' . $attribute->attribute_code . '" name="extra[magento_attribute_code_name]"></div>');
-  $commands[] = ajax_command_replace("#edit-extra-attribute-info", $attribute_info);
+  $commands[] = ajax_command_replace("#attribute_code_name", '<div id="attribute_code_name"><input type="hidden" value="' . $attribute['code'] . '" name="extra[magento_attribute_code_name]"></div>');
+  //$commands[] = ajax_command_replace("#edit-extra-attribute-info", $attribute_info);
   return array('#type' => 'ajax', '#commands' => $commands);
 }
 
@@ -87,11 +90,9 @@ function get_attribute_info($form, $form_state) {
  */
 function _webform_render_es_webform($component, $value = NULL, $filter = TRUE, $form_state) {
   global $user;
-  $magento = new magento();
   $magento_attribute = new magento_product_attributes();
   $product = new product_edit;//$product = new product();
-  $attribute = $magento_attribute->get_stored_magento_attribute_data($component['extra']['magento_attribute_code']);
-  $attribute = unserialize($attribute->data);
+  $attribute = $magento_attribute->get_stored_magento_attribute_data_by_code($component['extra']['magento_attribute_code']);
   $form = $product->create_attribute_input($attribute, $form_state, $component);
   return $form;
 }
@@ -219,6 +220,8 @@ function es_webform_webform_submission_presave($node, &$submission) {
  * check if magento component (es_webform) if
  * so check database if exists for this nid
  * and cid 
+ * Must save attribute as an object to the 
+ * database
  */
 function es_webform_webform_component_presave(&$component) {
   if($component['type'] == "es_webform") { //if this is a magento component
@@ -226,18 +229,20 @@ function es_webform_webform_component_presave(&$component) {
     if(isset($component['extra']['magento_attribute_code'])) {
     module_load_include("inc", "es_webform", "includes/magento");
     module_load_include("inc","es_webform", "includes/magento_product_attributes");
-    $magento = new magento();
+    //$magento = new magento();
     $magento_attributes = new magento_product_attributes();
-    $attribute = $magento->get_attribute_information($magento->decryptText(variable_get('session_id')), $component['extra']['magento_attribute_code']);
+		$mspaceApi = new mspaceApi;
+    //$attribute = $magento->get_attribute_information($magento->decryptText(variable_get('session_id')), $component['extra']['magento_attribute_code']);
+    $attribute = (object)$mspaceApi->apiTokenCall('product/v1/attribute/type/data/code/' . $component['extra']['magento_attribute_code']);
     if($attribute->attribute_code == 'tax_class_id') { //special fix for tax_class_id
     	array_unshift($attribute->options, (object)array('label'=>'None', 'value'=>0)); //magento has a none option in admin but it does not get pulled in with api
     }
-	  if($magento_attributes->exists_magento_attribute($component['extra']['magento_attribute_code'])) {
+	  if($magento_attributes->exists_magento_attribute($attribute->attribute_id)) {
       //update
-      $magento_attributes->update_magento_attribute($component,serialize($attribute));
+      $magento_attributes->update_magento_attribute($attribute);
     } else {
       //insert
-      $magento_attributes->insert_magento_attribute($component,serialize($attribute));
+      $magento_attributes->insert_magento_attribute($attribute);
     }
     }
   }

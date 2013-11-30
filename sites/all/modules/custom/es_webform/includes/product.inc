@@ -1,10 +1,12 @@
 <?php
 class product {
   
-  /*
+  /**
    * take the array of attributes from magento api method
    * catalogProductAttributeList(sessionId, attribute_set_id)
    *  and return an array
+	 * @param attributes | array
+	 * 	an array of attributes
    */
   public function create_attribute_select_options($attributes) {
     $options = array();
