@@ -63,7 +63,7 @@ class product_edit extends product {
 	      $form_field = array(
 	        '#type' => 'text_format', //http://drupal.org/node/1031160#comment-6256154
 	        '#format' => 'content_admin',
-	    		'#title' => $attribute->frontend_label[0]->label,
+	    		'#title' => $attribute->frontend_label,
 	    		'#required' => (($attribute->is_required == 1) ? TRUE : FALSE),
 	    		'#default_value' => isset($product_data->{$attribute->attribute_code}) ? $product_data->{$attribute->attribute_code} : '',
 	    		'#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',

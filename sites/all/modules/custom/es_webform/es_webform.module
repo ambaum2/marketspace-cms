@@ -233,7 +233,7 @@ function product_edit_form($form, &$form_state) {
           ),
         );
   			$form['view-product'] = array(
-  				'#markup' => t('<p><a href="@link" target="_blank">View Product</a></p>', array('@link' => $product->base_url . $product_obj->url_path)),
+  				'#markup' => t('<p><a href="@link" target="_blank">View Product</a></p>', array('@link' => variable_get('magento_base_url') . $product_obj->url_path)),
   			);
   			//set product id and edit node id - for processing the form for magento
   			$form['product_id'] = array('#type'=>'hidden', '#value' => $product_data[0]);

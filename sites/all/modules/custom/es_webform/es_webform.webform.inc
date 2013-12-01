@@ -77,7 +77,7 @@ function get_attribute_info($form, $form_state) {
   //$attribute_code_name = $attribute['code'];
   /*$attribute_info ='<div id="edit-extra-attribute-info"><span>Frontend Name: ' . $attribute['frontend_label'][0]['label'] 
     . '</span><br /><span>Form Type: ' . $attribute['frontend_input'] . '</span><br /><span>Required: ' 
-    . $required . '</div>'; //$attribute->frontend_label[0]->label*/
+    . $required . '</div>'; //$attribute->frontend_*/
   $commands = array();
   //$commands[] = ajax_command_before('edit-extra-attribute-info', $attribute_info);
   $commands[] = ajax_command_replace("#attribute_code_name", '<div id="attribute_code_name"><input type="hidden" value="' . $attribute['code'] . '" name="extra[magento_attribute_code_name]"></div>');
