@@ -117,31 +117,4 @@ function _webform_display_es_category($component, $value, $format = 'html') {
   );
 }
 
-/*
- * hook webform_component_presave
- * mofdify component before submitted
- * check if magento component (es_webform) if
- * so check database if exists for this nid
- * and cid 
- */
-//function es_category_webform_component_presave(&$component) {
-  //if($component['type'] == "es_category") { //if this is a magento component
-    //check webform_es_attribute for the magento_attribute_code id
-    /*echo "<pre>" . print_r($component,true) . "</pre>";
-    die;
-    if(isset($component['extra']['magento_attribute_code'])) {
-    module_load_include("inc", "es_webform", "includes/magento");
-      module_load_include("inc", "es_webform", "includes/magentoproduct_attributes");
-    $magento = new magento();
-    $attribute = $magento->get_attribute_information($magento->decryptText(variable_get('session_id')), $component['extra']['magento_attribute_code']);
-      if(exists_magento_attribute($component['extra']['magento_attribute_code'])) {
-        //update
-        update_magento_attribute($component,serialize($attribute));
-      } else {
-        //insert
-        insert_magento_attribute($component,serialize($attribute));
-      }
-    }*/
-  //}
-//}
 

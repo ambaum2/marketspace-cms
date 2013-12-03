@@ -77,7 +77,7 @@ function get_attribute_info($form, $form_state) {
   //$attribute_code_name = $attribute['code'];
   /*$attribute_info ='<div id="edit-extra-attribute-info"><span>Frontend Name: ' . $attribute['frontend_label'][0]['label'] 
     . '</span><br /><span>Form Type: ' . $attribute['frontend_input'] . '</span><br /><span>Required: ' 
-    . $required . '</div>'; //$attribute->frontend_*/
+    . $required . '</div>'; //$attribute->frontend_label[0]->label*/
   $commands = array();
   //$commands[] = ajax_command_before('edit-extra-attribute-info', $attribute_info);
   $commands[] = ajax_command_replace("#attribute_code_name", '<div id="attribute_code_name"><input type="hidden" value="' . $attribute['code'] . '" name="extra[magento_attribute_code_name]"></div>');
@@ -130,7 +130,7 @@ function es_webform_webform_submission_presave($node, &$submission) {
   	$magento_product_data = array();
 	   foreach($submission->data as $item=>$value) {
     		if(isset($node->webform['components'][$item]['extra']['magento_attribute_code'])) {
-  			 $mage_id = $node->webform['components'][$item]['extra']['magento_attribute_code'];
+  			 $mage_id = $magento_product_attributes->get_magento_attribute_id_by_code($node->webform['components'][$item]['extra']['magento_attribute_code']);
   			  //if it is a standard catalog attribute
   	  		if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($mage_id)) {
   				$attribute = unserialize($attribute_data->data);

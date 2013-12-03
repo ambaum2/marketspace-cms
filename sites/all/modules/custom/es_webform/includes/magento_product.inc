@@ -226,32 +226,32 @@ class magento_product extends magento {
     foreach($webform as $item=>$value) {
       //is this a magento component whether custom (custom options, categories, images etc) or built in
       if(isset($webform[$item]['extra']['magento_attribute_code'])) {
-        $mage_id = $webform[$item]['extra']['magento_attribute_code'];
+        $mage_id = $magento_product_attributes->get_magento_attribute_id_by_code($webform[$item]['extra']['magento_attribute_code']);
         //if it is a standard catalog attribute default or custom attribute
         if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($mage_id)) {
 	        $attribute = unserialize($attribute_data->data); //get stored attribute data from drupal
 	        if($attribute->frontend_input == "textarea") { //could also check ->additional_fields[0]->is_wysiwyg_enabled
-	          if($this->isCoreMagentoAttribute($attribute->attribute_code)) {//in_array($attribute->attribute_code,$default_magento_attributes)) {
+	          if($this->isCoreMagentoAttribute($attribute->attribute_code['code'])) {//in_array($attribute->attribute_code,$default_magento_attributes)) {
 	              $magento_product_data[$attribute->attribute_code] = $input[$attribute->attribute_code]['value'];
 	          } else { //custom attribute so put in additional attributes
-	              $magento_additional_attributes['single_data'][] = array('key'=>$attribute->attribute_code, 'value'=>$input[$attribute->attribute_code]['value']);
+	              $magento_additional_attributes['single_data'][] = array('key'=>$attribute->attribute_code['code'], 'value'=>$input[$attribute->attribute_code['code']]['value']);
 	          }
 	        } else { //for all other types 
 		          if($attribute->frontend_input == "multiselect") {
 		              $selections = array();
-		              foreach($input[$attribute->attribute_code] as $select_key=>$select_value) {
+		              foreach($input[$attribute->attribute_code['code']] as $select_key=>$select_value) {
 		                $selections[] = $select_value;
 		              } 
-		              if($this->isCoreMagentoAttribute($attribute->attribute_code)) { //in_array($attribute->attribute_code,$default_magento_attributes)) {
-		                $magento_product_data[$attribute->attribute_code] = $selections;
+		              if($this->isCoreMagentoAttribute($attribute->attribute_code['code'])) { //in_array($attribute->attribute_code['code'],$default_magento_attributes)) {
+		                $magento_product_data[$attribute->attribute_code['code']] = $selections;
 		              } else {
-		                $magento_additional_attributes['multi_data'][] = array('key'=>$attribute->attribute_code, 'value'=>$selections);
+		                $magento_additional_attributes['multi_data'][] = array('key'=>$attribute->attribute_code['code'], 'value'=>$selections);
 		              }
 		          } else { //textfields, number, should be processed the same
-		              if($this->isCoreMagentoAttribute($attribute->attribute_code)) {
-		                  $magento_product_data[$attribute->attribute_code] = $input[$attribute->attribute_code];
+		              if($this->isCoreMagentoAttribute($attribute->attribute_code['code'])) {
+		                  $magento_product_data[$attribute->attribute_code['code']] = $input[$attribute->attribute_code['code']];
 		              } else {
-		                  $magento_additional_attributes['single_data'][] = array('key'=>$attribute->attribute_code, 'value' => $input[$attribute->attribute_code]);
+		                  $magento_additional_attributes['single_data'][] = array('key'=>$attribute->attribute_code['code'], 'value' => $input[$attribute->attribute_code['code']]);
 		              }
 		          }
 	        }

@@ -10,11 +10,11 @@ class product_edit extends product {
 			$attribute_type = parent::_convert_attribute_type($attribute->frontend_input);
 			switch($attribute_type) {
 				case "textfield":
-					$product_data != null ? $element['#default_value'] = $product_data->{$attribute->attribute_code} : '';
+					$product_data != null ? $element['#default_value'] = $product_data->{$attribute->attribute_code['code']} : '';
 					break;
 				case "date": //date has to be yyyy-mm-dd for magento to take it
-					$product_data != null ? $element['#default_value'] = $product_data->{$attribute->attribute_code} : $element['#default_value'] = '';
-					 //$element['#default_value'] = $product_data->{$attribute->attribute_code};
+					$product_data != null ? $element['#default_value'] = $product_data->{$attribute->attribute_code['code']} : $element['#default_value'] = '';
+					 //$element['#default_value'] = $product_data->{$attribute->attribute_code['code']};
 					$element['#type'] = 'textfield';
 					$element['#attached'] = array(
             'js' => array(drupal_get_path('module', 'es_webform') . '/js/product_edit.js'),
@@ -31,15 +31,15 @@ class product_edit extends product {
 					break;
 				case "select":
           if($product_data != null) {
-  					if(is_array($product_data->{$attribute->attribute_code})) {
-  						$element['#default_value'] = $product_data->{$attribute->attribute_code};
+  					if(is_array($product_data->{$attribute->attribute_code['code']})) {
+  						$element['#default_value'] = $product_data->{$attribute->attribute_code['code']};
   					} else { //non core mage select attributes options aren't in array form yet
-  						$element['#default_value'] = explode(",",$product_data->{$attribute->attribute_code});
+  						$element['#default_value'] = explode(",",$product_data->{$attribute->attribute_code['code']});
   					}
           }
 					break;
 				case "textarea":
-					//$element['text'][$attribute->frontend_input]['#default_value'] = $product_data->{$attribute->attribute_code};
+					//$element['text'][$attribute->frontend_input]['#default_value'] = $product_data->{$attribute->attribute_code['code']};
 					if($product_data != null) { //@TODO this is a temporary fix for product add form
 						$element = $this->wywiwyg_editor_render($attribute, $component, $product_data);
 					}
@@ -51,10 +51,11 @@ class product_edit extends product {
 		}
 
 	protected function wywiwyg_editor_render($attribute, $component, $product_data) {
+		echo "<pre>" . print_r($attribute, true) . "</pre>";
 		foreach($attribute->additional_fields as $field) {
   		//check if this is a wysiwyg editor
 	    if($field->key == 'is_wysiwyg_enabled' && $field->value == 1) {
-	  		/*if(isset($product_data->{$attribute->attribute_code})) {
+	  		/*if(isset($product_data->{$attribute->attribute_code['code']})) {
 	  			$default_text = $form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'];
 	  		}*/
 				//create the fieldset for wysiwyg
@@ -65,7 +66,7 @@ class product_edit extends product {
 	        '#format' => 'content_admin',
 	    		'#title' => $attribute->frontend_label,
 	    		'#required' => (($attribute->is_required == 1) ? TRUE : FALSE),
-	    		'#default_value' => isset($product_data->{$attribute->attribute_code}) ? $product_data->{$attribute->attribute_code} : '',
+	    		'#default_value' => isset($product_data->{$attribute->attribute_code['code']}) ? $product_data->{$attribute->attribute_code['code']} : '',
 	    		'#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
 	    		array('#attached'=>array('css' => array(drupal_get_path('module', 'es_webform') . '/css/es_webform_wysiwyg.css'))),
 	  		);
@@ -73,4 +74,15 @@ class product_edit extends product {
 	  	}
 		}
 	}
+	
+	//public function isValidEditForm($urlParam, )
+	/**
+	 * grab url data
+	 *
+	 * @param
+	 */
+	/*public function () {
+      $product_string = urldecode(variable_get('info'));
+      $product_data = explode(",", $product_string);
+	}*/
 }

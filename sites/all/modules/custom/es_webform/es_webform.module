@@ -181,7 +181,7 @@ function product_edit_form($form, &$form_state) {
     if(isset($_GET['q']) && $valid_form) {
       $product_string = urldecode(variable_get('info'));
       $product_data = explode(",", $product_string);
-      
+     
   		//get webform nid by attribute set attribute
   		$node_webform_id = $product->getWebformIdByAttributeSetAndType($product_data[1], $product_data[2]);
   		if(count($node_webform_id) == 1) { //make sure just one webform	TODO:- may want to have multiple
@@ -193,10 +193,9 @@ function product_edit_form($form, &$form_state) {
         $stock_data_exists = false;
   			foreach($webform as $component) {
   				if(isset($component['extra']['magento_attribute_code']))	{
-  					if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($component['extra']['magento_attribute_code'])) {
-  						$attribute = unserialize($attribute_data->data);
-  						if(!($product->isCoreMagentoAttribute($attribute->attribute_code)))	{
-  							$additional_attributes['additional_attributes'][] = $attribute->attribute_code;
+  					if($attribute = $magento_product_attributes->get_stored_magento_attribute_data_by_code($component['extra']['magento_attribute_code'])) {
+  						if(!($product->isCoreMagentoAttribute($component['extra']['magento_attribute_code'])))	{
+  							$additional_attributes['additional_attributes'][] = $component['extra']['magento_attribute_code'];
   						}
   					}
   				} elseif(isset($component['extra']['inventory_attribute'])) {
@@ -205,6 +204,7 @@ function product_edit_form($form, &$form_state) {
   			}
   			//get this products data from magento
   			//TODO: - needs to be a custom webservices that also checks ownership by a passed product id
+  			
       	$product_obj = $product->getProductById($product_data[0], $additional_attributes);
 				$breadcrumb = drupal_get_breadcrumb();
 				$breadcrumb[] = $product_obj->name;
@@ -244,10 +244,9 @@ function product_edit_form($form, &$form_state) {
         $current_fieldset = ""; //all components must be in a fieldset   
         foreach($webform as $component) {
           if(isset($component['extra']['magento_attribute_code'])) {
-            if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($component['extra']['magento_attribute_code'])) {
-              $attribute = unserialize($attribute_data->data);
+            if($attribute = $magento_product_attributes->get_stored_magento_attribute_data_by_code($component['extra']['magento_attribute_code'])) {
               //add element to form with data prepopultated
-              $form[$current_fieldset][$attribute->attribute_code] = $product_edit->create_attribute_input($attribute, $form_state, $component, $product_obj);
+              $form[$current_fieldset][$attribute->attribute_code['code']] = $product_edit->create_attribute_input($attribute, $form_state, $component, $product_obj);
             }
 					} elseif(isset($component['extra']['inventory_attribute'])) {
 					  $inventory_type = 'select';
