@@ -51,38 +51,38 @@ class product {
 	    }
 	  }
 		//wysiwyg fields have this additional fields thing i think...
-		if(isset($attribute->additional_fields)) {
-			foreach($attribute->additional_fields as $field) {
+		//if(isset($attribute->additional_fields)) {
+			//foreach($attribute->additional_fields as $field) {
 		  	//check if this is a wysiwyg editor
-		    if($field->key == 'is_wysiwyg_enabled' && $field->value == 1) {
-		  		if(isset($form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'])) {
-		  			$default_text = $form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'];
-		  		}
-					//create the fieldset for wysiwyg
-		  		$form_field = array();
-		  		$form_field['text'] = array(
-		  		  '#type' => 'fieldset',
-		  		  '#title' => t('Editor'),
-		  		  '#weight' => 5,
-		  		  '#collapsible' => TRUE,
-		  		  '#collapsed' => FALSE,
-		  		);
-		      //create wysiwyg editor 
-		      $form_field['text'][$attribute->frontend_input] = array(
-		        '#type' => 'text_format', //http://drupal.org/node/1031160#comment-6256154
-		        '#format' => 'content_admin',
-		    		'#title' => $attribute->frontend_label,
-		    		'#required' => (($attribute->is_required == 1) ? TRUE : FALSE),
-		    		'#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
-		    		array('#attached'=>array('css' => array(drupal_get_path('module', 'es_webform') . '/css/es_webform_wysiwyg.css'))),
-		  		);
-					//set default wysiwyg text
-		  		if(isset($form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'])) {
-		  			$form_field['text'][$attribute->frontend_input]['#default_value'] = $default_text;
-		  		}
-		    	//exit; //no reason to go any further if this is found TODO remove if adding more checks for other attributes
-		  	}
-		  }
+    if($attribute->is_wysiwyg_enabled == 1) {
+  		if(isset($form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'])) {
+  			$default_text = $form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'];
+  		}
+			//create the fieldset for wysiwyg
+  		$form_field = array();
+  		$form_field['text'] = array(
+  		  '#type' => 'fieldset',
+  		  '#title' => t('Editor'),
+  		  '#weight' => 5,
+  		  '#collapsible' => TRUE,
+  		  '#collapsed' => FALSE,
+  		);
+      //create wysiwyg editor 
+      $form_field['text'][$attribute->frontend_input] = array(
+        '#type' => 'text_format', //http://drupal.org/node/1031160#comment-6256154
+        '#format' => 'content_admin',
+    		'#title' => $attribute->frontend_label,
+    		'#required' => (($attribute->is_required == 1) ? TRUE : FALSE),
+    		'#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
+    		array('#attached'=>array('css' => array(drupal_get_path('module', 'es_webform') . '/css/es_webform_wysiwyg.css'))),
+  		);
+			//set default wysiwyg text
+  		if(isset($form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'])) {
+  			$form_field['text'][$attribute->frontend_input]['#default_value'] = $default_text;
+  		}
+    	//exit; //no reason to go any further if this is found TODO remove if adding more checks for other attributes
+
+		  //}
 		}
 		return $form_field;
 	}

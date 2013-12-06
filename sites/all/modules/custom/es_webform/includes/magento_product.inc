@@ -232,7 +232,7 @@ class magento_product extends magento {
 	        $attribute = unserialize($attribute_data->data); //get stored attribute data from drupal
 	        if($attribute->frontend_input == "textarea") { //could also check ->additional_fields[0]->is_wysiwyg_enabled
 	          if($this->isCoreMagentoAttribute($attribute->attribute_code['code'])) {//in_array($attribute->attribute_code,$default_magento_attributes)) {
-	              $magento_product_data[$attribute->attribute_code] = $input[$attribute->attribute_code]['value'];
+	              $magento_product_data[$attribute->attribute_code['code']] = $input[$attribute->attribute_code['code']]['value'];
 	          } else { //custom attribute so put in additional attributes
 	              $magento_additional_attributes['single_data'][] = array('key'=>$attribute->attribute_code['code'], 'value'=>$input[$attribute->attribute_code['code']]['value']);
 	          }

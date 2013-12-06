@@ -51,10 +51,9 @@ class product_edit extends product {
 		}
 
 	protected function wywiwyg_editor_render($attribute, $component, $product_data) {
-		echo "<pre>" . print_r($attribute, true) . "</pre>";
-		foreach($attribute->additional_fields as $field) {
+		//foreach($attribute->additional_fields as $field) {
   		//check if this is a wysiwyg editor
-	    if($field->key == 'is_wysiwyg_enabled' && $field->value == 1) {
+	    if($attribute->is_wysiwyg_enabled == 1) {
 	  		/*if(isset($product_data->{$attribute->attribute_code['code']})) {
 	  			$default_text = $form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'];
 	  		}*/
@@ -71,7 +70,7 @@ class product_edit extends product {
 	    		array('#attached'=>array('css' => array(drupal_get_path('module', 'es_webform') . '/css/es_webform_wysiwyg.css'))),
 	  		);
 				return $form_field;
-	  	}
+	  	//}
 		}
 	}
 	
