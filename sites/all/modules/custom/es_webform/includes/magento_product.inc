@@ -204,9 +204,11 @@ class magento_product extends magento {
    * where inventory attributes are stored
    * since they are handled seperatly from
    * attributes and additional_attributes
-   * @param form_state | array
+   * @param form_state | array @TODO form state is used to create input which is used 6 times this is redundant I already have 
+	 * function like this in magento_product_attributes
+	 *
    *  form state for submitted form
-   * @param insert | boolean
+   * @param insert | boolean @TODO THIS IS NOT EVEN USED - Why do we have this 
    *  true if inserting false if updating
    * @return array
    *  returns product data as array for confirmation
@@ -215,21 +217,22 @@ class magento_product extends magento {
    * TODO make a seperate function for getting
    * stock data array
    */
-  public function getProductDataArray($form_state, $insert=false) {
+  public function getProductDataArray($form_state, $node) {
+  	
     $magento_product_attributes = new magento_product_attributes();
     $magento_additional_attributes = array();
     $magento_product_data = array();
-		$input = $form_state['input'];
+		//$input = $form_state['input'];
 		//get webform data for processing input
-		$node = node_load($form_state['input']['product_edit_node_id']);
+		//$node = node_load($form_state['input']['product_edit_node_id']);
 		$webform = $node->webform["components"];
     foreach($webform as $item=>$value) {
       //is this a magento component whether custom (custom options, categories, images etc) or built in
       if(isset($webform[$item]['extra']['magento_attribute_code'])) {
         $mage_id = $magento_product_attributes->get_magento_attribute_id_by_code($webform[$item]['extra']['magento_attribute_code']);
         //if it is a standard catalog attribute default or custom attribute
-        if($attribute_data = $magento_product_attributes->get_stored_magento_attribute_data($mage_id)) {
-	        $attribute = unserialize($attribute_data->data); //get stored attribute data from drupal
+        if($attribute = $magento_product_attributes->get_stored_magento_attribute_data($mage_id)) {
+	        //$attribute = unserialize($attribute_data->data); //get stored attribute data from drupal
 	        if($attribute->frontend_input == "textarea") { //could also check ->additional_fields[0]->is_wysiwyg_enabled
 	          if($this->isCoreMagentoAttribute($attribute->attribute_code['code'])) {//in_array($attribute->attribute_code,$default_magento_attributes)) {
 	              $magento_product_data[$attribute->attribute_code['code']] = $input[$attribute->attribute_code['code']]['value'];
@@ -275,6 +278,8 @@ class magento_product extends magento {
   	}
   }
 	$magento_product_data['additional_attributes'] = $magento_additional_attributes;
+	var_export($magento_product_data);
+	die;
 	return $magento_product_data;
   }
 }
