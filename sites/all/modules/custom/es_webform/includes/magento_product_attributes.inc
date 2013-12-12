@@ -120,9 +120,8 @@ class magento_product_attributes extends mspaceApi {
 			if(isset($node->webform['components'][$item]['extra']['magento_attribute_code'])) {
 				$attribute_code = $node->webform['components'][$item]['extra']['magento_attribute_code'];
 			  $mage_id = $this->get_magento_attribute_id_by_code($attribute_code);
-			  //if it is a standard catalog attribute
-				if($attribute = $this->get_stored_magento_attribute_data($mage_id)) {
-		  		if(isset($value['value']['text']['textarea'])) { //check format to see if textarea or wysiwyg
+				if($attribute = $this->get_stored_magento_attribute_data($mage_id)) { //if it is a standard catalog attribute
+		  		if($attribute->frontend_input == "textarea") { //check format to see if textarea or wysiwyg
 		  		  if(in_array($attribute_code, $this->getDefaultAttributes())) {
 		  		      $data['attributes'][$attribute_code] = $value['value']['text']['textarea']['value']; //used to be ['value']['text']['textarea']['value']
 						} else {
@@ -172,6 +171,87 @@ class magento_product_attributes extends mspaceApi {
 			}
 		return $data;
 	}
+
+  /**
+   * process update/create product data
+   * from a submission array
+   * return data array for update/insert 
+   * api call
+   * 
+   * note the returned array will have
+   * an array called inventory_data 
+   * where inventory attributes are stored
+   * since they are handled seperatly from
+   * attributes and additional_attributes
+   * @param form_state | array @TODO form state is used to create input which is used 6 times this is redundant I already have 
+	 * function like this in magento_product_attributes
+	 *
+   *  form state for submitted form
+   * @param insert | boolean @TODO THIS IS NOT EVEN USED - Why do we have this 
+   *  true if inserting false if updating
+   * @return array
+   *  returns product data as array for confirmation
+   *
+   * TODO Change submission to your array
+   * TODO make a seperate function for getting
+   * stock data array
+   */
+  public function getProductDataArray($input) {	
+		$data = array();
+		$node = node_load($input['product_edit_node_id']);
+    foreach($node->webform["components"] as $item=>$value) {
+      if(isset($node->webform["components"][$item]['extra']['magento_attribute_code'])) { //is this a magento component whether custom (custom options, categories, images etc) or built in
+        $attribute_code = $node->webform['components'][$item]['extra']['magento_attribute_code'];
+        $mage_id = $this->get_magento_attribute_id_by_code($attribute_code);
+        if($attribute = $this->get_stored_magento_attribute_data($mage_id)) { //if it is a standard catalog attribute default or custom attribute
+	        if($attribute->frontend_input == "textarea") { //could also check ->additional_fields[0]->is_wysiwyg_enabled
+	          if(in_array($attribute_code, $this->getDefaultAttributes())) {//in_array($attribute->attribute_code,$default_magento_attributes)) {
+	              $data[$attribute_code] = $input[$attribute_code]['value'];
+	          } else { //custom attribute so put in additional attributes
+	              $data['additional_attributes']['single_data'][] = array('key'=>$attribute_code, 'value'=>$input[$attribute_code]['value']);
+	          }
+	        } else { //for all other types 
+		          if($attribute->frontend_input == "multiselect") {
+		              $selections = array();
+		              foreach($input[$attribute_code] as $select_key=>$select_value) {
+		                $selections[] = $select_value;
+		              } 
+		              if(in_array($attribute_code, $this->getDefaultAttributes())) { //in_array($attribute_code,$default_magento_attributes)) {
+		                $data[$attribute_code] = $selections;
+		              } else {
+		                $data['additional_attributes']['multi_data'][] = array('key'=>$attribute_code, 'value'=>$selections);
+		              }
+		          } else { //textfields, number, should be processed the same
+		              if(in_array($attribute_code, $this->getDefaultAttributes())) {
+		                  $data[$attribute_code] = $input[$attribute_code];
+		              } else {
+		                  $data['additional_attributes']['single_data'][] = array('key'=>$attribute_code, 'value' => $input[$attribute_code]);
+		              }
+		          }
+	        }
+	      //all other attributes must be exlplicitely referenced
+      } //if not then a regular attribute could be category or inventroy
+    } elseif(isset($node->webform["components"][$item]['extra']['inventory_attribute'])) {
+    	 $data['attributes']['inventory_data'][$node->webform["components"][$item]['extra']['inventory_attribute']] = $input[$node->webform["components"][$item]['extra']['inventory_attribute']];
+       if(!isset($data['attributes']['inventory_data']['manage_stock'])) { // automatically set manage stock to true if any inventory attribute is used
+         $data['inventory_data']['manage_stock'] = 1;
+       }
+    } elseif(isset($node->webform["components"][$item]['extra']['magento_categories'])) {      
+	      $categories = array();
+	      foreach($input['categories'] as $cat_key=>$cat_value) {
+	        if($cat_value == 1) {
+	          $categories[] = $cat_key;
+	        }
+	      }
+	      $data['categories'] = $categories;
+  	} else {
+  		
+  	}
+  }
+	//$magento_product_data['additional_attributes'] = $magento_additional_attributes;
+	//$data['additional_attributes'] = $data['additional_attributes'];
+	return $data;
+  }
 	/**
 	 * @return array
 	 * returns an array of all dfault 

@@ -528,7 +528,8 @@ function edit_marketspace_image_callback($form, &$form_state) {
  * send product edit data to magento
  */
 function product_edit_form_submit(&$form, &$form_state) {
-	$product = new magento_product;
+	$magento_product_attributes = new magento_product_attributes;
+	$magento_product = new magento_product;
 	$product_custom_options = new product_custom_options;
   
   //there was no good way so I just look for qty or is_in_stock could possibly search
@@ -542,15 +543,8 @@ function product_edit_form_submit(&$form, &$form_state) {
 	if(isset($form_state['values']['custom_options'])) {
 		$product_custom_options->updateCustomOptions($form_state['values']);
 	}
-	
-	 // echo "<pre>" . print_r($form_state,true) . "</pre>";
-  //die;
-  //drupal_set_message('form_state: alan ' . print_r($form_state,true), 'notice');
-	$data = $product->getProductDataArray($form_state);
-	
-	$result = $product->updateProduct($form_state['input']['product_id'], $data);
-	//$stockData = $product->getProductStockDataArray($form_state);
-	//$resultStock = $product->updateProductStockData($form_state['input']['product_id'], $stockData)
+	$data = $magento_product_attributes->getProductDataArray($form_state['input']);
+	$result = $magento_product->updateProduct($form_state['input']['product_id'], $data);
  
   /*
    * CUSTOM OPTIONS
