@@ -15,15 +15,14 @@ class es_webform_magento_product_attributeTest extends PHPUnit_Framework_TestCas
 		drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);		
 	}
 
-	public function testgetProductDataArray() {
-		$input = $this->getFormStateInputData();
-		$m = new magento_product_attributes();
+	/*public function testcreate_attribute_input() {
+		$m = new product;
 		$result = $m->getProductDataArray($input);
 		$edit_data = $this->getProductEditSubmitData();
 		foreach($edit_data as $key => $value) {
 			$this->assertEquals(trim($edit_data[$key]), trim($result[$key]));
 		}
-	}
+	}*/
 	public function getFormStateInputData() {
 		return array ( 'product_id' => '9', 'product_edit_node_id' => '9', 'name' => 'class A', 'price' => '7.0000', 'categories' => array ( 3 => '1', ), 'description' => array ( 'value' => '
 this is my test 2

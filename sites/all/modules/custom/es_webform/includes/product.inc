@@ -16,59 +16,48 @@ class product {
     asort($options); //sort alphabetically
     return $options;
   }
-  /*
-   * take the magento api catalogProductAttributeInfo
-   * optiosn array (which is an array of objects)
-   * and turn it into an array
-   */
-  private function _convert_attribute_options(Array $options_array) {
-    $form_options = array();
-    foreach($options_array as $item) {
-      $form_options[$item->value] = $item->label;
-    }
-    return $form_options;
-  }
-  /*
+
+  /**
    * create a form input for a given magento 
    * response array
-   * return array 
+   * @param attribute | array
+   * @param form_state | array
+   *  this is only used in multipage forms
+   *  this is never used in product edit or 
+   *  the first page of the form
+   * @return array 
    * @TODO : need to take set default value for editing
    * existing product if there is one
    */
   public function create_attribute_input($attribute, $form_state = null, $component) {
-	  //create base field	
-	  $form_field = array(
+	  $form_field = array( //create base field 
 	    '#type' => $this->_convert_attribute_type($attribute->frontend_input),
 	    '#title' => $attribute->frontend_label,
 	    '#required' => (($attribute->is_required == 1) ? TRUE : FALSE),
 	    '#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
 	  );
-		//add options for select, multi select
-	  if(isset($attribute->options)) {
-	    $form_field['#options'] = $this->_convert_attribute_options($attribute->options);      
+		
+	  if(isset($attribute->options)) { //add options for select, multi select
+	    $form_field['#options'] = $attribute->options;      
 	    if($attribute->frontend_input == "multiselect") {
 	      $form_field['#multiple'] = TRUE;
 	    }
 	  }
-		//wysiwyg fields have this additional fields thing i think...
-		//if(isset($attribute->additional_fields)) {
-			//foreach($attribute->additional_fields as $field) {
-		  	//check if this is a wysiwyg editor
-    if($attribute->is_wysiwyg_enabled == 1) {
+		  	
+    if($attribute->is_wysiwyg_enabled == 1) { //check if this is a wysiwyg editor
   		if(isset($form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'])) {
   			$default_text = $form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'];
   		}
-			//create the fieldset for wysiwyg
   		$form_field = array();
-  		$form_field['text'] = array(
+  		$form_field['text'] = array( //create the fieldset for wysiwyg
   		  '#type' => 'fieldset',
   		  '#title' => t('Editor'),
   		  '#weight' => 5,
   		  '#collapsible' => TRUE,
   		  '#collapsed' => FALSE,
   		);
-      //create wysiwyg editor 
-      $form_field['text'][$attribute->frontend_input] = array(
+      
+      $form_field['text'][$attribute->frontend_input] = array( //create wysiwyg editor 
         '#type' => 'text_format', //http://drupal.org/node/1031160#comment-6256154
         '#format' => 'content_admin',
     		'#title' => $attribute->frontend_label,
@@ -76,13 +65,10 @@ class product {
     		'#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
     		array('#attached'=>array('css' => array(drupal_get_path('module', 'es_webform') . '/css/es_webform_wysiwyg.css'))),
   		);
-			//set default wysiwyg text
+			
   		if(isset($form_state['storage']['submitted'][$component['cid']]['text'][$attribute->frontend_input]['value'])) {
-  			$form_field['text'][$attribute->frontend_input]['#default_value'] = $default_text;
+  			$form_field['text'][$attribute->frontend_input]['#default_value'] = $default_text; //set default wysiwyg text
   		}
-    	//exit; //no reason to go any further if this is found TODO remove if adding more checks for other attributes
-
-		  //}
 		}
 		return $form_field;
 	}
