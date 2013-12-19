@@ -14,15 +14,20 @@ class es_webform_magento_product_attributeTest extends PHPUnit_Framework_TestCas
 		require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
 		drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);		
 	}
-
-	/*public function testcreate_attribute_input() {
-		$m = new product;
-		$result = $m->getProductDataArray($input);
-		$edit_data = $this->getProductEditSubmitData();
-		foreach($edit_data as $key => $value) {
-			$this->assertEquals(trim($edit_data[$key]), trim($result[$key]));
+	/**
+	 * check if serialized attributes have all the elements they are supposed to
+	 */
+	public function testAttributeDeserializeHasCorrectAttributes() {
+		$result = unserialize($this->getSerializedAttribute());
+		//print_r($result);
+		$checkKeys = array("attribute_id", "entity_type_id", "attribute_code", "attribute_model", "backend_model", "backend_type", "backend_table", "frontend_model", "frontend_input", "frontend_label", "frontend_class", "source_model", "is_required", "is_user_defined", "default_value", "is_unique", "note", "frontend_input_renderer", "is_global", "is_visible", "is_searchable", "is_filterable", "is_comparable", "is_visible_on_front", "is_html_allowed_on_front", "is_used_for_price_rules", "is_filterable_in_search", "used_in_product_listing", "used_for_sort_by", "is_configurable", "apply_to", "is_visible_in_advanced_search", "position", "is_wysiwyg_enabled", "is_used_for_promo_rules", "options");
+		foreach($result as $key => $value) {
+			$this->assertTrue(in_array($key, $checkKeys));
 		}
-	}*/
+	}
+	public function getSerializedAttribute() {
+		return 'O:8:"stdClass":36:{s:12:"attribute_id";s:3:"138";s:14:"entity_type_id";s:1:"4";s:14:"attribute_code";a:1:{s:4:"code";s:21:"communitymarket_terms";}s:15:"attribute_model";N;s:13:"backend_model";N;s:12:"backend_type";s:4:"text";s:13:"backend_table";N;s:14:"frontend_model";N;s:14:"frontend_input";s:8:"textarea";s:14:"frontend_label";s:27:"Community MarketSpace Terms";s:14:"frontend_class";N;s:12:"source_model";N;s:11:"is_required";s:1:"0";s:15:"is_user_defined";s:1:"1";s:13:"default_value";N;s:9:"is_unique";s:1:"0";s:4:"note";N;s:23:"frontend_input_renderer";N;s:9:"is_global";s:1:"0";s:10:"is_visible";s:1:"1";s:13:"is_searchable";s:1:"0";s:13:"is_filterable";s:1:"0";s:13:"is_comparable";s:1:"0";s:19:"is_visible_on_front";s:1:"1";s:24:"is_html_allowed_on_front";s:1:"1";s:23:"is_used_for_price_rules";s:1:"0";s:23:"is_filterable_in_search";s:1:"0";s:23:"used_in_product_listing";s:1:"0";s:16:"used_for_sort_by";s:1:"0";s:15:"is_configurable";s:1:"0";s:8:"apply_to";N;s:29:"is_visible_in_advanced_search";s:1:"0";s:8:"position";s:1:"0";s:18:"is_wysiwyg_enabled";s:1:"1";s:23:"is_used_for_promo_rules";s:1:"0";s:7:"options";a:1:{s:0:"";s:0:"";}}';
+	}
 	public function getFormStateInputData() {
 		return array ( 'product_id' => '9', 'product_edit_node_id' => '9', 'name' => 'class A', 'price' => '7.0000', 'categories' => array ( 3 => '1', ), 'description' => array ( 'value' => '
 this is my test 2

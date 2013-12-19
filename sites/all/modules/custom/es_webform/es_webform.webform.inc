@@ -93,7 +93,13 @@ function _webform_render_es_webform($component, $value = NULL, $filter = TRUE, $
   $magento_attribute = new magento_product_attributes();
   $product = new product_edit;//$product = new product();
   $attribute = $magento_attribute->get_stored_magento_attribute_data_by_code($component['extra']['magento_attribute_code']);
-  $form = $product->create_attribute_input($attribute, $form_state, $component);
+	if($attribute) {
+  	$form = $product->create_attribute_input($attribute, $form_state, $component);
+	} else {
+		$form = "";
+		drupal_set_message("could not load attribute please contact support ambaum2@gmail.com this is probably a one time thing", 'notice');
+		watchdog('Could not get attribute', ' component data:<pre>%data</pre>', array('%data'=>print_r($component,true)), WATCHDOG_NOTICE);
+	}
   return $form;
 }
 
