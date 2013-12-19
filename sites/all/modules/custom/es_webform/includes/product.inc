@@ -37,8 +37,8 @@ class product {
 	    '#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
 	  );
 		
-	  if(isset($attribute->options)) { //add options for select, multi select
-	    $form_field['#options'] = $attribute->options;      
+	  if($attribute->frontend_input == "select") { // select is the type for select, multi select, radio etc in magento
+    	$form_field['#options'] = $attribute->options;      
 	    if($attribute->frontend_input == "multiselect") {
 	      $form_field['#multiple'] = TRUE;
 	    }
