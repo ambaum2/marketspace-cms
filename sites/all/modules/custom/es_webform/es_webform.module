@@ -538,7 +538,7 @@ function product_edit_form_submit(&$form, &$form_state) {
   //TODO you can apparently blindly pass the values array without magento giving a problem
   //test for the performance hit
   if(isset($form_state['values']['qty']) || isset($form_state['values']['is_in_stock'])) {
-    $result = $product->updateProductStockData($form_state['input']['product_id'], $form_state['values']);
+    $result = $magento_product->updateProductStockData($form_state['input']['product_id'], $form_state['values']);
   } 
 	if(isset($form_state['values']['custom_options'])) {
 		$product_custom_options->updateCustomOptions($form_state['values']);
