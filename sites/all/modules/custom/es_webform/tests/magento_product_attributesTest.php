@@ -7,6 +7,8 @@ class es_webform_magento_product_attributeTest extends PHPUnit_Framework_TestCas
 	const REMOTE_ADDR = '162.243.110.111';
 	
 	public function __construct() {
+	  error_reporting(E_ALL); 
+    ini_set("display_errors", 1); 
 		$_SERVER['HTTP_HOST'] = basename($this->dpl_dir);
 		$_SERVER['REMOTE_ADDR'] = '127.0.0.1';	
 		define('DRUPAL_ROOT', $this->dpl_dir);
@@ -14,6 +16,10 @@ class es_webform_magento_product_attributeTest extends PHPUnit_Framework_TestCas
 		require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
 		drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);		
 	}
+  public function testProcessMediaData() {
+    $image_data = array('value' => array('image_manager'=>array('product-image-main' => 126, 'product-image-thumbnail' => 127)));
+    
+  }
 	/**
 	 * check if serialized attributes have all the elements they are supposed to
 	 */

@@ -122,12 +122,13 @@ function _webform_display_es_webform($component, $value, $format = 'html') {
  */
 function es_webform_webform_submission_presave($node, &$submission) {
   // Update some component's value before it is saved..
+  echo "<pre>" . print_r($submission, true) . "</pre>";
+  die;
   global $user;
 	$magento_product_attributes = new magento_product_attributes();
   if($submission->is_draft == 0 && isset($node->field_market_space_settings['und'][0])) { //if not a draft and a marketspace form
 	  $default_magento_attributes = $magento_product_attributes->getDefaultAttributes();
 	  $default_magento_stock_attributes = $magento_product_attributes->getDefaultStockAttributes();
-	  $image_fid = 0; 
 		$product_add_data = $magento_product_attributes->createProductAddData($submission, $node); //returns an array with ['additional_attributes'] and ['attributes'] ['media_data]
   	$magento = new magento();
     $magento_media = new magento_media();
@@ -136,7 +137,7 @@ function es_webform_webform_submission_presave($node, &$submission) {
   	$product_add_data['attributes']['websites'] = array(1);
   	!isset($product_add_data['attributes']['status']) ? $product_add_data['attributes']['status'] = '1' : ''; //2 is disabled oddly enough
   	!isset($product_add_data['attributes']['url_key']) ? $product_add_data['attributes']['url_key'] = $product_add_data['attributes']['name'] : '';
-  	//$product_add_data['attributes']['url_path'] = $product_add_data['attributes']['name'];
+  	$product_add_data['attributes']['url_path'] = $product_add_data['attributes']['name'];
   	!isset($product_add_data['attributes']['visibility']) ? $product_add_data['attributes']['visibility'] = '4' : '';
   	!isset($product_add_data['attributes']['price']) ? $product_add_data['attributes']['price'] = 0 : '';
     //this makes no sense to me why its single_data but it is 
@@ -150,8 +151,10 @@ function es_webform_webform_submission_presave($node, &$submission) {
 		watchdog('New Product Submission', ' added product data<pre>%data</pre>', array('%data'=>print_r($product_add_data['attributes'],true)), WATCHDOG_NOTICE);
     $product_id = $magento->create_product($magento->decryptText(variable_get('session_id')), $node->field_market_space_settings['und'][0]['type_code'],
     	$node->field_market_space_settings['und'][0]['attribute_set_id'], $sku, $product_add_data['attributes']);
-    if($image_fid > 0) {
-      $file_output = $magento_media->create_media($product_id, $media_data);  
+    if($product_add_data['media_data']) {
+      foreach($product_add_data['media_data'] as $key => $value) { //add each piece of media to magento
+        $file_output = $magento_media->create_media($product_id, $value);
+      }
     }
     if(isset($product_add_data['attributes']['inventory_data']['manage_stock'])) { //TODO you don't actually need to do this you can add it to the add array - but there are problems getting stock data (no good api function)
       $result = $magento_product->updateProductStockData($product_id, $product_add_data['attributes']['inventory_data']);

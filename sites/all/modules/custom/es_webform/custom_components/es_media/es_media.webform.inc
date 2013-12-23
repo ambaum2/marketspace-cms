@@ -42,14 +42,25 @@ function _webform_edit_es_media($component, $form_state) {
  */
 function _webform_render_es_media($component, $value = NULL, $filter = TRUE, $form_state) {
   global $user;
-  $form['product-image'] = array(
-    '#title' => t('Image'),
+  $form['image_manager'] = array(
+    '#type' => 'fieldset',
+    '#prefix' => '<div id="image-container">',
+    '#suffix' => '</div>',
+  );
+  $form['image_manager']['product-image-main'] = array(
+    '#title' => t('Main Image'),
     '#type' => 'managed_file',
     '#description' => t('Upload an image: '),
     '#process' => array("marketspace_image_upload"),
     '#upload_location' => 'public://u' . $user->uid,
   );
-
+  $form['image_manager']['product-image-thumbnail'] = array(
+    '#title' => t('Thumbnail Image'),
+    '#type' => 'managed_file',
+    '#description' => t('Upload an image: '),
+    '#process' => array("marketspace_image_upload"),
+    '#upload_location' => 'public://u' . $user->uid,
+  );
   return $form;
 }
 function marketspace_image_upload($element, &$form_state, $form) {
