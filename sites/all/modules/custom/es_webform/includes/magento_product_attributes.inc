@@ -152,9 +152,8 @@ class magento_product_attributes extends mspaceApi {
 			 if(!isset($data['attributes']['inventory_data']['manage_stock'])) { // automatically set manage stock to true if any inventory attribute is used
 			   $data['attributes']['inventory_data']['manage_stock'] = 1;
 			   }       
-			} elseif(isset($value['value']['product-image'])) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
-          $data['media_data'] = $this->processMediaData($value['value']['product-image']);
-			 //set_variable('marketspace_image_new_fid_' . $node->nid, ''); //unset this because we don't want it to appear again
+			} elseif(isset($value['value']['image_manager'])) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
+          $data['media_data'] = $this->processMediaData($value['value']['image_manager']);
 			} elseif(isset($value['value']['categories'])) {//this was old check think it fails isset($value['value']['magento_categories'])) {      
 			  $categories = array();
 			  foreach($value['value']['categories'] as $cat_key=>$cat_value) {

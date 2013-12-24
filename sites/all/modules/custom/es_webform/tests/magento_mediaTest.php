@@ -16,10 +16,30 @@ class es_webform_magento_mediaTest extends PHPUnit_Framework_TestCase
     require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
     drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);    
   }
+	public function testAlterWebformJs() {
+		$form_id = "webform_client_form_11";
+		$this->assertTrue(is_numeric(strpos(str_replace("_", " ", $form_id), 'webform')));
+	}
+  public function testGetUserImages() {
+    $query = db_select('file_managed', 'f');  
+    $query->condition('f.uid', 1, '=')
+      ->condition('f.filename', '%%', 'LIKE')
+      ->fields('f', array('fid', 'filename', 'uri'))
+      ->range(0, 10);
+    $result = $query->execute();
+    $json_results = array();
+    //print_r($result->fetchAll());
+    foreach($result as $key => $value) {
+      $json_results[$value->fid] = "<img width='50' height='50' src='" . file_create_url($value->uri) . "' />" . $value->filename;  
+    }
+    $this->assertTrue(is_array($json_results));
+    $this->assertTrue(count($json_results) > 0);
+  }
   public function testProcessMediaData() {
-    $image_data['image_manager'][] = array('image_fid' =>126, 'label' => 'somelabel', 'position'=>10, 'type'=>'main');
-    $image_data['image_manager'][] = array('image_fid' =>127, 'label' => 'some label 2', 'position'=>11, 'type'=>'small_image');
+    $image_data['image_manager']['main-image'] = array('image_fid' =>126, 'label' => 'somelabel', 'position'=>10, 'type'=>'main');
+    $image_data['image_manager']['label-image'] = array('image_fid' =>127, 'label' => 'some label 2', 'position'=>11, 'type'=>'small_image');
     $attributes = new magento_product_attributes;
+    //print_r($image_data);
     $output = $attributes->processMediaData($image_data['image_manager']);
     $this->assertTrue(is_array($output));
   }
