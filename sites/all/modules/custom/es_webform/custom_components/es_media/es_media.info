@@ -1,6 +1,7 @@
 name = Escape Locally Magento Webform Media (image upload/modification)
 description = upload and modify images and set up special rules/restrictions for doing so (max height, width etc)
 core = 7.x
+scripts[] = es_media.js
 dependencies[] = es_webform
 ; Information added by drupal.org packaging script on 2012-11-18
 version = "7.x-1.x-dev"

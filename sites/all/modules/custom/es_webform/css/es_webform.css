@@ -92,3 +92,25 @@ html .cke_editable_themed {background:white;color:black;}
 .es-custom-option-value-container {
 	float:left;
 }
+.ms-element-hide {
+	display:none;
+}
+/* auto complete and image manager styles */
+.ms-autocomplete-image-manager {
+	position:relative; 
+}
+.fieldset-wrapper .ms-autocomplete-image-manager input.form-autocomplete {
+	background-image:none;
+}
+.ms-image-browser-selection-info {
+	position:absolute;
+	left:0px;
+	width:100%;
+	height:70px;
+	background:white;
+}
+.ms-image-browser-selection-info-button {
+	background:red;
+	border-radius: 7px;
+	color:white;
+}

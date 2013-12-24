@@ -109,7 +109,7 @@ class magento_media extends magento {
       'name' => $data->file,
     );
     $magento_media_info = array('file'=>$file, 'label'=>$data->label, 'position'=>$data->position,
-      'types' => array('image', 'thumbnail', 'small_image'), 'exclude' => 0);
+      'types' => array($data->type), 'exclude' => 0);
     return $magento_media_info;
   }
   /**
@@ -141,24 +141,29 @@ class magento_media extends magento {
     }
     return $data;
   }
-  /*
+  /**
    * get data array for images with only an fid
 	 * this data is no good for media Create or 
 	 * update on its own fro the api calls. You'll need
 	 * to pass this into get_magento_media_data 
 	 * to get workable data (content adn mime types)
-	 * 
-	 * returns array
+	 * @param image_data
+   * array of image options for creating in magento
+   * 'image_fid' => int
+   * 'label'=>string, 'position'=>int, 
+   * 'image_type'=>string (main, thumbnail, small_image)
+	 * @return array
    */
-  public function get_marketspace_media_data_by_fid($image_fid, $label = "", $position = 100) {
+  public function get_marketspace_media_data_by_fid($image_data) {
     $data = new stdClass();
     global $user;
-    $this->process_managed_file($image_fid, "marketspace", "user", $user->uid); //we want to save this file although don't necessarily have to
-    $file = file_load($image_fid);
+    $this->process_managed_file($image_data['image_fid'], "marketspace", "user", $user->uid); //we want to save this file although don't necessarily have to
+    $file = file_load($image_data['image_fid']);
     $data->file = $file->filename;
     $data->url = file_create_url($file->uri);  
-    $data->label = $label;
-    $data->position = $position;
+    $data->label = $image_data['label'];
+    $data->position = $image_data['position'];
+    $data->type = $image_data['type'];
     return $data;
   }
   /**

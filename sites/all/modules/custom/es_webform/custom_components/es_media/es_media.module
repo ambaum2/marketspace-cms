@@ -1,17 +1,52 @@
 <?php
 
-
-/**
- * Implements hook_webform_select_options_info().
+/* 
+ * hook_menu
  */
- /*
-function es_media_webform_select_options_info() {
-  /*$options['payment_method'] = array(
-    'title' => t('Payment methods'),
-    'options callback' => 'payment_method_options',
+function es_media_menu() {
+    
+  $items = array();  
+  $items['es_media/user/images'] = array(
+      'page callback' => 'es_media_get_users_images',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content'),
   );
-  return $options; 
-}*/
+  $items['es_media/user/image'] = array(
+      'page callback' => 'es_media_get_user_image',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content'),
+  );
+    return $items;
+  }
+
+function es_media_get_users_images() {
+  global $user;
+    $query = db_select('file_managed', 'f');  
+    $query->condition('f.uid', $user->uid, '=')
+      ->condition('f.filename', '%' . arg(3) . '%', 'LIKE')
+      ->fields('f', array('fid', 'filename', 'uri'))
+      ->range(0, 10);
+    $result = $query->execute();
+    $json_results = array();
+    foreach($result as $key => $value) {
+      $json_results[$value->fid] = "<img width='50' height='50' src='" . file_create_url($value->uri) . "' />" . $value->filename;  
+    }
+    drupal_json_output($json_results);
+}
+
+function es_media_get_user_image() {
+  global $user;
+  $query = db_select('file_managed', 'f');  
+  $query->condition('f.uid', $user->uid, '=')
+    ->condition('f.fid', arg(3), '=')
+    ->fields('f', array('fid', 'filename', 'uri'));
+  $result = $query->execute();
+  $json_results = array();
+  foreach($result as $key => $value) {
+    $json_results[$value->fid] = "<img width='50' height='50' src='" . file_create_url($value->uri) . "' />" . $value->filename;  
+  }
+  drupal_json_output($json_results);
+}
 function es_media_webform_component_info() {
   $components['es_media'] = array(
     'label' => t('Magento Media Upload'),
@@ -25,30 +60,6 @@ function es_media_webform_component_info() {
 
   return $components;
 }
-
-/* add js and css 
- * see webform.module line 1857 webform_client_form
- * function for a good example
- * any webform will be webform_client_form_(nid)
- * so webform_client_form_2
- */
-
-function es_media_form_alter(&$form, $form_state, $form_id){
-  //watchdog('es_magento_custom_options', 'The form id %formid', array('%formid' => $form_id), WATCHDOG_NOTICE, $link = NULL);
-  global $user;
-  if($form_id == 'webform_client_form_6' && $user->uid = 1) { //webform_client_form_6
-  //echo "<pre>" . print_r($form_state,true) . "</pre>";
-		//$form['upload_button']['#ajax']['callback'] = 'es_media_upload';
-    $form['#attached'] = array(
-      //'js' => array(drupal_get_path('module', 'es_magento_custom_options') . '/js/toggle_category.js'),
-      //'css' => array(drupal_get_path('module', 'es_magento_custom_options') . '/css/es-custom-option-forms.css'),
-    );
-   }
-}
-
-//function file_managed_file_submit() {
-//	die;
-//}
 /*
  * permanently save upload. 
  * TODO:- allow for image cropping, scaling etc
@@ -64,3 +75,39 @@ function es_media_upload($form, $form_state) {
   // Record that the module (in this example, user module) is using the file. 
   file_usage_add($file, 'user', 'user', $account->uid);  	
 }
+/**
+ * implements hook_js_alter(&$javascript)
+ * remove uneeded javascript from webform pages
+ * to implement custom code
+ */
+//function es_media_js_alter(&$javascript) {
+	//unset($javascript['misc/ui/jquery.ui.core.min.js']);
+	//unset($javascript['misc/jquery.js']);
+	//unset($javascript['misc/jquery.once.js']);
+	//drupal_add_js(drupal_get_path('module', 'es_webform') .'/js/jquery-ui-10-3-autocomplete.min.js', array('group' => JS_LIBRARY,'weight' => -19));
+	//drupal_add_js(drupal_get_path('module', 'es_webform') .'/js/jquery-1.9.1.js', array('group' => JS_LIBRARY,'weight' => -18.5));	
+	//dpm($javascript);
+	
+//}
+/* add js and css 
+ * see webform.module line 1857 webform_client_form
+ * function for a good example
+ * any webform will be webform_client_form_(nid)
+ * so webform_client_form_2
+ */
+/*function es_media_form_alter(&$form, $form_state, $form_id){
+  global $user;
+  if(is_numeric(strpos(str_replace("_", " ", $form_id), 'webform'))) {
+  	 //drupal_add_js('http://example.com/example.js', 'external');
+		 //drupal_add_js('misc/autocomplete.js', 'file');
+    $form['#attached'] = array(
+      //'js' => array(drupal_get_path('module', 'es_magento_custom_options') . '/js/toggle_category.js'),
+      //'css' => array(drupal_get_path('module', 'es_magento_custom_options') . '/css/es-custom-option-forms.css'),
+    );
+   }
+}*/
+
+//function file_managed_file_submit() {
+//	die;
+//}
+

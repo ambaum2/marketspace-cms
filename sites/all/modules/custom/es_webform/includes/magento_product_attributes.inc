@@ -152,13 +152,8 @@ class magento_product_attributes extends mspaceApi {
 			 if(!isset($data['attributes']['inventory_data']['manage_stock'])) { // automatically set manage stock to true if any inventory attribute is used
 			   $data['attributes']['inventory_data']['manage_stock'] = 1;
 			   }       
-			} elseif(isset($value['value']['product-image'])) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
-			 $image_fid = $value['value']['product-image'];
-			 $magento_media = new magento_media;
-			 if($image_fid > 0) {
-			  $data['media_data'] = $magento_media->get_magento_media_data($magento_media->get_marketspace_media_data_by_fid($image_fid, "none", $position = 100));
-			 }
-			 //set_variable('marketspace_image_new_fid_' . $node->nid, ''); //unset this because we don't want it to appear again
+			} elseif(isset($value['value']['image_manager'])) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
+          $data['media_data'] = $this->processMediaData($value['value']['image_manager']);
 			} elseif(isset($value['value']['categories'])) {//this was old check think it fails isset($value['value']['magento_categories'])) {      
 			  $categories = array();
 			  foreach($value['value']['categories'] as $cat_key=>$cat_value) {
@@ -251,6 +246,26 @@ class magento_product_attributes extends mspaceApi {
 	//$magento_product_data['additional_attributes'] = $magento_additional_attributes;
 	//$data['additional_attributes'] = $data['additional_attributes'];
 	return $data;
+  }
+  /**
+   * process media data
+   * @param mediaData
+   *  an array of image arrays each one should 
+   * be in this form:
+   * array('image_fid' => 79, 'label' => "some label", 
+   * 'position' => 100, 'type' =>string (main, thumbnail, small_image))
+   * @return array
+   *  array of media data for magento
+   */
+  public function processMediaData($mediaData) {
+    $magento_media = new magento_media;
+    $data = array();
+    foreach($mediaData as $key => $value) {
+      if($value['image_fid'] > 0) {
+       $data[] = $magento_media->get_magento_media_data($magento_media->get_marketspace_media_data_by_fid($value));
+      }
+    }
+    return $data;
   }
 	/**
 	 * @return array
