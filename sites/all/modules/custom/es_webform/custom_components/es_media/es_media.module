@@ -9,10 +9,13 @@ function es_media_menu() {
   $items['es_media/user/images'] = array(
       'page callback' => 'es_media_get_users_images',
       'type' => MENU_CALLBACK,
-      //'access callback' => 'user_access','es_webform/myimages/'
       'access arguments' => array('access content'),
   );
-
+  $items['es_media/user/image'] = array(
+      'page callback' => 'es_media_get_user_image',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content'),
+  );
     return $items;
   }
 
@@ -30,6 +33,20 @@ function es_media_get_users_images() {
     }
     drupal_json_output($json_results);
 }
+
+function es_media_get_user_image() {
+  global $user;
+  $query = db_select('file_managed', 'f');  
+  $query->condition('f.uid', $user->uid, '=')
+    ->condition('f.fid', arg(3), '=')
+    ->fields('f', array('fid', 'filename', 'uri'));
+  $result = $query->execute();
+  $json_results = array();
+  foreach($result as $key => $value) {
+    $json_results[$value->fid] = "<img width='50' height='50' src='" . file_create_url($value->uri) . "' />" . $value->filename;  
+  }
+  drupal_json_output($json_results);
+}
 function es_media_webform_component_info() {
   $components['es_media'] = array(
     'label' => t('Magento Media Upload'),
@@ -43,7 +60,21 @@ function es_media_webform_component_info() {
 
   return $components;
 }
-
+/*
+ * permanently save upload. 
+ * TODO:- allow for image cropping, scaling etc
+ */
+function es_media_upload($form, $form_state) {
+ // Load the file via file.fid.
+  watchdog("es_media", "form state %form_state", array('%form_state'=>print_r($form_state,true)),WATCHDOG_NOTICE);
+  $file = file_load($form_state['values']['product-image']);
+  // Change status to permanent.
+  $file->status = FILE_STATUS_PERMANENT;
+  // Save.
+  file_save($file);
+  // Record that the module (in this example, user module) is using the file. 
+  file_usage_add($file, 'user', 'user', $account->uid);  	
+}
 /**
  * implements hook_js_alter(&$javascript)
  * remove uneeded javascript from webform pages
@@ -79,18 +110,4 @@ function es_media_webform_component_info() {
 //function file_managed_file_submit() {
 //	die;
 //}
-/*
- * permanently save upload. 
- * TODO:- allow for image cropping, scaling etc
- */
-function es_media_upload($form, $form_state) {
- // Load the file via file.fid.
-  watchdog("es_media", "form state %form_state", array('%form_state'=>print_r($form_state,true)),WATCHDOG_NOTICE);
-  $file = file_load($form_state['values']['product-image']);
-  // Change status to permanent.
-  $file->status = FILE_STATUS_PERMANENT;
-  // Save.
-  file_save($file);
-  // Record that the module (in this example, user module) is using the file. 
-  file_usage_add($file, 'user', 'user', $account->uid);  	
-}
+

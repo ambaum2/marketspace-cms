@@ -47,19 +47,26 @@ function _webform_render_es_media($component, $value = NULL, $filter = TRUE, $fo
     '#prefix' => '<div id="image-container">',
     '#suffix' => '</div>',
   );
+  $form['product-image'] = array(
+    '#title' => t('Upload New Images'),
+    '#type' => 'managed_file',
+    '#description' => t('Upload images you want to use. Then search for them '),
+    '#process' => array("marketspace_image_upload"),
+    '#upload_location' => 'public://u' . $user->uid,
+  );
   $form['image_manager']['product-image-main'] = array(
     '#type' => 'fieldset',
     '#prefix' => '<div id="image-container-child">',
     '#suffix' => '</div>',
   );
-  _es_media_render_image_form_fields($form['image_manager']['product-image-main']);
+  _es_media_render_image_form_fields($form['image_manager']['product-image-main'], array('label' => "Main Image", 'type' => 'main'));
   
   $form['image_manager']['product-image-thumbnail'] = array(
     '#type' => 'fieldset',
     '#prefix' => '<div id="image-container-child">',
     '#suffix' => '</div>',
   );  
-  _es_media_render_image_form_fields($form['image_manager']['product-image-thumbnail']);
+  _es_media_render_image_form_fields($form['image_manager']['product-image-thumbnail'], array('label' => "Thumbnail Image", 'type' => 'thumbnail'));
   /*$form['image_manager']['product-image-main'] = array(
     '#title' => t('Main Image'),
     '#type' => 'managed_file',
@@ -77,21 +84,17 @@ function _webform_render_es_media($component, $value = NULL, $filter = TRUE, $fo
   return $form;
 }
 
-function _es_media_render_image_form_fields(&$component) {
+function _es_media_render_image_form_fields(&$component, $options) {
   global $user;
   $component['image_fid'] = array(
-    '#title' => t('Image Upload'),
-    '#type' => 'managed_file',
-    '#description' => t('Upload an image: '),
-    '#process' => array("marketspace_image_upload"),
-    '#upload_location' => 'public://u' . $user->uid,
-  );
-  $component['image_browser'] = array(
     '#type' => 'textfield',
-    '#title' => t('Find Your Images'),
+    '#title' => t('<h2>%type</h2>', array('%type'=>$options['label'])),
+    '#description' => t('start typing the name of your image to see it. Then click to choose it.'),
     '#autocomplete_path' => 'es_media/user/images',
-    '#suffix' => '<div class="ms-autocomplete-results"></div>',
+    '#prefix' => '<div class="ms-autocomplete-image-manager">',
+    '#suffix' => '</div>',
     '#attributes' => array('class' => array('ms-image-browser-autocomplete')),
+    '#default_value' => isset($component['image_fid']) ? $component['image_fid'] : '',
   );
   $component['label'] = array(
     '#type' => 'textfield',
@@ -105,8 +108,10 @@ function _es_media_render_image_form_fields(&$component) {
   $component['type'] = array(
     '#type' => 'select',
     '#title' => t(''),
-    '#options' => array('main', 'small_image', 'thumbnail'),//$product->create_attribute_select_options($attributes),
-    //'#default_value' => isset($component['extra']['magento_attribute_code']) ? $component['extra']['magento_attribute_code'] : '',
+    '#prefix' => "<div style='display:none;'>",
+    '#suffix' => "</div>",
+    '#options' => array('main' => 'main', 'small_image' => 'small_image', 'thumbnail' => 'thumbnail'),//$product->create_attribute_select_options($attributes),
+    '#default_value' => $options['type'],//isset($component['extra']['magento_attribute_code']) ? $component['extra']['magento_attribute_code'] : '',
     '#required' => TRUE,
   );
 }

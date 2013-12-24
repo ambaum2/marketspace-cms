@@ -109,7 +109,7 @@ class magento_media extends magento {
       'name' => $data->file,
     );
     $magento_media_info = array('file'=>$file, 'label'=>$data->label, 'position'=>$data->position,
-      'type' => array($data->type), 'exclude' => 0);
+      'types' => array($data->type), 'exclude' => 0);
     return $magento_media_info;
   }
   /**

@@ -42,6 +42,7 @@ class es_webform_magento_mediaTest extends PHPUnit_Framework_TestCase
     //print_r($image_data);
     $output = $attributes->processMediaData($image_data['image_manager']);
     $this->assertTrue(is_array($output));
+		$this->assertTrue(is_array($output[0]['types'])); //image types should be an array - you can have one image serve multiple purposes
   }
   public function testget_marketspace_media_data_by_fid() {
     $media = new magento_media;
@@ -65,6 +66,6 @@ class es_webform_magento_mediaTest extends PHPUnit_Framework_TestCase
     $this->assertGreaterThan(0, strlen($data['file']['content']));
     $this->assertEquals($testData['label'], $data['label']);
     $this->assertEquals($testData['position'], $data['position']);
-    $this->assertEquals($testData['type'], $data['type'][0]);
+    $this->assertEquals($testData['type'], $data['types'][0]);
   }
 }

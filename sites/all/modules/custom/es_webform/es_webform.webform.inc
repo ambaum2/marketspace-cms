@@ -122,8 +122,6 @@ function _webform_display_es_webform($component, $value, $format = 'html') {
  */
 function es_webform_webform_submission_presave($node, &$submission) {
   // Update some component's value before it is saved..
-  echo "<pre>" . print_r($submission, true) . "</pre>";
-  die;
   global $user;
 	$magento_product_attributes = new magento_product_attributes();
   if($submission->is_draft == 0 && isset($node->field_market_space_settings['und'][0])) { //if not a draft and a marketspace form

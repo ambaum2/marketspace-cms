@@ -14,6 +14,9 @@ files[] = includes/product_edit.inc
 files[] = includes/product_custom_options.inc
 files[] = includes/product_custom_options_templates.inc
 files[] = includes/interface_display.inc
+
+;example of media query stylesheets[screen and (max-width: 600px)][] = theStyle600.css 
+stylesheets[screen][] = css/es_webform.css
 core = 7.x
 dependencies[] = webform
 ; Information added by drupal.org packaging script on 2012-11-18
