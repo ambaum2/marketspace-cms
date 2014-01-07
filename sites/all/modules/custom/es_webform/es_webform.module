@@ -228,7 +228,7 @@ function product_edit_form($form, &$form_state) {
             . '</div>',
           '#attached' => array(
             'js' => array(drupal_get_path('module', 'es_webform') . '/js/accordion_tabs.js'),
-            	array(drupal_get_path('module', 'es_webform'), '/js/jquery-ui.js'),
+            //	array(drupal_get_path('module', 'es_webform'), '/js/jquery-ui.js'),
             'css' => array(drupal_get_path('module', 'es_webform') . '/css/es_webform.css'),
           ),
         );
@@ -285,6 +285,7 @@ function product_edit_form($form, &$form_state) {
                 $magento_media = new magento_media;
                 $images = $magento_media->get_all_media($product_id);
                 //tile all images with delete and edit ajax buttons
+                dpm($images);
                 $form[$current_fieldset]['image_manager'] = array(
                   '#type' => 'container',
                   '#tree' => TRUE,
@@ -360,19 +361,20 @@ function product_edit_form($form, &$form_state) {
   								'#markup' => t('!value', array('!value'=>$component['value'])), //$component['form_key']['value'];
   								'#type' => $component['type'],
   							);
-  						} elseif($component['type'] == 'fieldset') {
+  						} elseif($component['type'] == 'fieldset') { //@TODO is this okay? if no active field set nothing gets selected as active
   							if($form_state['active_fieldset_name'] == $component['form_key']) {
 									$tab_state_class = ' product-edit-group-marketspace-tab-active';
 								} else {
 									$tab_state_class = '';
 								}
+								$form[$component['form_key'] . "-header"] = array(
+									'#markup' => "<h2 class='product-edit-group-marketspace-tab" . $tab_state_class . "'>" . $component['name'] . "</h2>",
+								);
   		          $form[$component['form_key']] = array(
   		          	'#type' => $component['type'],
-  	            	'#title' => '',
-  	            	'#prefix' => "<h2 class='product-edit-group-marketspace-tab" . $tab_state_class . "'>" . $component['name'] . "</h2><div class='product-edit-group-marketspace'>",
-  	            	'#suffix' => "</div>",
+  	            	'#attributes' => array('class' => array('product-edit-group-marketspace')),
   	          	);
-							
+								
   							$current_fieldset = $component['form_key'];
   						}
   					}

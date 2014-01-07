@@ -146,7 +146,7 @@ function es_webform_webform_submission_presave($node, &$submission) {
     $product_add_data['attributes']['additional_attributes'] = $product_add_data['additional_attributes'];
     //if sku isset then we have to set the sku variable  - don't know if variable needed 
     !isset($product_add_data['attributes']['sku']) ? $sku = substr(md5($product_add_data['attributes']['name']. time()),0,32) : $sku = $product_add_data['attributes']['sku'];
-		watchdog('New Product Submission', ' added product data<pre>%data</pre>', array('%data'=>print_r($product_add_data['attributes'],true)), WATCHDOG_NOTICE);
+		watchdog('New Product Submission', ' added product data<pre>%data</pre>', array('%data'=>print_r($product_add_data, true)), WATCHDOG_NOTICE);
     $product_id = $magento->create_product($magento->decryptText(variable_get('session_id')), $node->field_market_space_settings['und'][0]['type_code'],
     	$node->field_market_space_settings['und'][0]['attribute_set_id'], $sku, $product_add_data['attributes']);
     if($product_add_data['media_data']) {

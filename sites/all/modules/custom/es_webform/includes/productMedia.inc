@@ -13,7 +13,6 @@ class productMedia extends mspaceApi {
 	public function es_media_render_image_form_fields(&$component, $options, $componentInfo) {
 	  global $user;
 		$image_span = "";
-		drupal_set_message(var_export($componentInfo,true), 'info');
 		if(isset($componentInfo['image_fid'])) {
 			$file = file_load($componentInfo['image_fid']);
 			$image_url = file_create_url($file->uri);

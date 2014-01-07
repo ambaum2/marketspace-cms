@@ -118,9 +118,7 @@ var Drupal = Drupal || {};
       }
       $scrollableElement.once('bootstrap-anchors', function () {
         $scrollableElement.on('click.bootstrap-anchors', 'a[href*="#"]:not([data-toggle],[data-target])', function(e) {
-          console.log(this);
-          //this.scrollTo(e);
-          
+          this.scrollTo(e); 
         });
       });
     },
