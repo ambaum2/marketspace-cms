@@ -16,6 +16,11 @@ function es_media_menu() {
       'type' => MENU_CALLBACK,
       'access arguments' => array('access content'),
   );
+  $items['es_media/user/image/add'] = array(
+      'page callback' => 'es_media_add_image',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content'),
+  );
     return $items;
   }
 
@@ -46,6 +51,10 @@ function es_media_get_user_image() {
     $json_results[$value->fid] = "<img width='50' height='50' src='" . file_create_url($value->uri) . "' />" . $value->filename;  
   }
   drupal_json_output($json_results);
+}
+
+function es_media_add_image() {
+	
 }
 function es_media_webform_component_info() {
   $components['es_media'] = array(

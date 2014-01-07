@@ -40,58 +40,55 @@ function _webform_edit_es_media($component, $form_state) {
  * 
  * for reference 
  */
-function _webform_render_es_media($component, $value = NULL, $filter = TRUE, $form_state) {
+function _webform_render_es_media($component, $value, $filter = TRUE, $form_state) {
   global $user;
-  $form['image_manager'] = array(
+  $form['product-image-add'] = array(
     '#type' => 'fieldset',
     '#prefix' => '<div id="image-container">',
     '#suffix' => '</div>',
   );
-  $form['product-image'] = array(
-    '#title' => t('Upload New Images'),
+  $form['product-image-add']['product-image'] = array(
+    '#title' => t('Upload new images to use them below'),
     '#type' => 'managed_file',
     '#description' => t('Upload images you want to use. Then search for them '),
     '#process' => array("marketspace_image_upload"),
     '#upload_location' => 'public://u' . $user->uid,
   );
-  $form['image_manager']['product-image-main'] = array(
+  $form['image_manager'] = array(
     '#type' => 'fieldset',
-    '#prefix' => '<div id="image-container-child">',
+    '#prefix' => '<div id="image-container">',
     '#suffix' => '</div>',
   );
-  _es_media_render_image_form_fields($form['image_manager']['product-image-main'], array('label' => "Main Image", 'type' => 'main'));
-  
-  $form['image_manager']['product-image-thumbnail'] = array(
-    '#type' => 'fieldset',
-    '#prefix' => '<div id="image-container-child">',
-    '#suffix' => '</div>',
-  );  
-  _es_media_render_image_form_fields($form['image_manager']['product-image-thumbnail'], array('label' => "Thumbnail Image", 'type' => 'thumbnail'));
-  /*$form['image_manager']['product-image-main'] = array(
-    '#title' => t('Main Image'),
-    '#type' => 'managed_file',
-    '#description' => t('Upload an image: '),
-    '#process' => array("marketspace_image_upload"),
-    '#upload_location' => 'public://u' . $user->uid,
-  );
-  $form['image_manager']['product-image-thumbnail'] = array(
-    '#title' => t('Thumbnail Image'),
-    '#type' => 'managed_file',
-    '#description' => t('Upload an image: '),
-    '#process' => array("marketspace_image_upload"),
-    '#upload_location' => 'public://u' . $user->uid,
-  );*/
+	$image_components = _es_media_get_image_components();
+	watchdog('es media', '<pre>%component</pre>', array('%component' => print_r($value, true)), WATCHDOG_NOTICE);
+  foreach($image_components as $key => $image) {
+	  $form['image_manager'][$key] = array(
+	    '#type' => 'fieldset',
+	    '#prefix' => '<div id="image-container-child">',
+	    '#suffix' => '</div>',
+	  );
+		_es_media_render_image_form_fields($form['image_manager'][$key], $image);
+  }
   return $form;
 }
 
 function _es_media_render_image_form_fields(&$component, $options) {
   global $user;
+	$image_span = "";
+	
+	if(isset($component['image_fid'])) {
+		$file = file_load($component['image_fid']);
+		$image_url = file_create_url($file->uri);
+		$image_name = $file->filename;
+		//$image_span = '<span class="ms-image-browser-selection-info"><img height="50" width="50" src="">
+		//	!image_name<input type="button" value="Remove" class="ms-image-browser-selection-info-button"></span>', array('!image_url' => $image_url, '!image_name' => $image_name));
+	}
   $component['image_fid'] = array(
     '#type' => 'textfield',
     '#title' => t('<h2>%type</h2>', array('%type'=>$options['label'])),
     '#description' => t('start typing the name of your image to see it. Then click to choose it.'),
     '#autocomplete_path' => 'es_media/user/images',
-    '#prefix' => '<div class="ms-autocomplete-image-manager">',
+    '#prefix' => t('<div class="ms-autocomplete-image-manager">!image_span', array('!image_span' => $image_span)),
     '#suffix' => '</div>',
     '#attributes' => array('class' => array('ms-image-browser-autocomplete')),
     '#default_value' => isset($component['image_fid']) ? $component['image_fid'] : '',
@@ -114,6 +111,20 @@ function _es_media_render_image_form_fields(&$component, $options) {
     '#default_value' => $options['type'],//isset($component['extra']['magento_attribute_code']) ? $component['extra']['magento_attribute_code'] : '',
     '#required' => TRUE,
   );
+}
+
+function _es_media_get_image_components() {
+	$image_components = array(
+		'product-image-main' => array(
+			'label' => "Main Image",
+			'type' => 'main'
+		),
+		'product-image-thumbnail' => array(
+			'label' => "Thumbnail Image",
+			'type' => 'thumbnail'
+		),
+	);
+	return $image_components;
 }
 function marketspace_image_upload($element, &$form_state, $form) {
   $element = file_managed_file_process($element, $form_state, $form);

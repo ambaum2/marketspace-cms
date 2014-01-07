@@ -16,6 +16,19 @@ class es_webform_magento_mediaTest extends PHPUnit_Framework_TestCase
     require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
     drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);    
   }
+	public function testMediaRenderImage() {
+		$component = array ( '#type' => 'fieldset', '#prefix' => '', '#suffix' => '', 'image_fid' => 12 );	
+		$options = 		array(
+			'label' => 'Main Image',
+			'type' => 'main'
+		);
+		$componentInfo['image_fid'] = 12;
+		$productMedia = new productMedia;
+		$productMedia->es_media_render_image_form_fields($component, $options, $componentInfo);
+		var_export($component);
+		$this->assertTrue(is_array($component));
+		
+	}
 	public function testAlterWebformJs() {
 		$form_id = "webform_client_form_11";
 		$this->assertTrue(is_numeric(strpos(str_replace("_", " ", $form_id), 'webform')));
