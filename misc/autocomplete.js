@@ -114,7 +114,7 @@ Drupal.jsAC.prototype.onkeyup = function (input, e) {
  */
 Drupal.jsAC.prototype.select = function (node) {
   this.input.value = $(node).data('autocompleteValue');
-  $(this.input).trigger('autocompleteSelect', [node]);
+  $(this.input).trigger('autocompleteSelect', [node, this.input.id]);
 };
 
 /**
