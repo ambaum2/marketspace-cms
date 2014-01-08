@@ -286,21 +286,6 @@ function product_edit_form($form, &$form_state) {
                 $productMedia = new productMedia;
                 $images = $magento_media->get_all_media($product_id);
                 $productMedia->createMediaImageContainer($form, $images, array('current_fieldset'=>$current_fieldset));
-                //tile all images with delete and edit ajax buttons
-                /*dpm($images);
-                $form[$current_fieldset]['image_manager'] = array(
-                  '#type' => 'container',
-                  '#tree' => TRUE,
-                );
-                $image_count = 0;
-                foreach($images as $key=>$image) {
-                  $magento_media->render_image_manager_element($form, $key, $image, $current_fieldset, true);
-                  $image_count = $key;
-                }
-                //make add button
-                $magento_media->render_image_manager_element($form, ($image_count+1), null, $current_fieldset, false);*/
-                //have an add image button
-                //$form[$current_fieldset][] = $magento_media->render_marketspace_image_input($images[0]->url);
             } elseif($component['extra']['magento_attribute_code_name'] == 'custom_options') {
         				$product_custom_options = new product_custom_options;
                 $magento_custom_options = new magento_custom_options;
@@ -532,6 +517,9 @@ function edit_marketspace_image_callback($form, &$form_state) {
  * send product edit data to magento
  */
 function product_edit_form_submit(&$form, &$form_state) {
+  //echo "<pre>" . print_r($form_state['input'], true) . "</pre>";
+  var_export($form_state['input']);
+  die;
 	$magento_product_attributes = new magento_product_attributes;
 	$magento_product = new magento_product;
 	$product_custom_options = new product_custom_options;

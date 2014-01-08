@@ -248,7 +248,8 @@ class magento_product_attributes extends mspaceApi {
 	return $data;
   }
   /**
-   * process media data
+   * process media data creates an array that works
+   * with mediaCreate api call. This is for new images
    * @param mediaData
    *  an array of image arrays each one should 
    * be in this form:
@@ -256,6 +257,10 @@ class magento_product_attributes extends mspaceApi {
    * 'position' => 100, 'type' =>string (main, thumbnail, small_image))
    * @return array
    *  array of media data for magento
+   * 
+   * @TODO NEED TO put access control function in here inside
+   * foreach to check if the current user owns the image (users uid
+   * is in the managed file table)
    */
   public function processMediaData($mediaData) {
     $magento_media = new magento_media;

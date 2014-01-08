@@ -142,7 +142,7 @@ class productMedia extends mspaceApi {
 	    '#prefix' => t('<div class="ms-autocomplete-image-manager">', array()),
 	    '#suffix' => '</div>',
 	    '#attributes' => array('class' => array('ms-image-browser-autocomplete')),
-	    //'#default_value' => isset($values['image_fid']) ? $values['image_fid'] : '',
+	    '#default_value' => isset($values['image_fid']) ? $values['image_fid'] : '',
 	  );
 	  $component['label'] = array(
 	    '#type' => 'textfield',
@@ -166,7 +166,11 @@ class productMedia extends mspaceApi {
     $component['current_image'] = array(
       '#type' => 'hidden',
       '#value' => $image->file,
-    );    
+    );
+    $component['original_label'] = array(
+      '#type' => 'hidden',
+      '#value' => $image->label,
+    );
 	}
 
 }

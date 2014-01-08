@@ -103,6 +103,43 @@ class es_webform_magento_mediaTest extends PHPUnit_Framework_TestCase
 		//$this->assertTrue(is_array($component));
 		
 	}
+  /**
+   * determine whether data is for add/delete, 
+   * an update or no action
+   * Add/delete: if an image_fid has been entered
+   * then old image is to be removed and new one 
+   * created for this product
+   * 
+   * update if the label has changed then an update 
+   * needs to be done
+   * 
+   * otherwise do nothing
+   */
+  public function testProcessMediaEdit() {
+    $input = $this->getProductEditTestData();
+    $actions_total = array('updates' => 0, 'add_deletes' => 0, 'nothing' => 0);
+    foreach($input['image_manager'] as $key => $value) {
+      foreach($value as $k => $val) {
+        if($val['image_fid'] > 0) {
+          //this is an add/delete
+          $actions_total['add_deletes'] = $actions_total['add_deletes'] + 1;
+        } elseif($val['label'] != $val['original_label']) {
+          //this is an update
+          $actions_total['updates'] = $actions_total['updates'] + 1;
+        } else {
+          //do nothing
+          $actions_total['nothing'] = $actions_total['nothing'] + 1;
+        }
+      }
+    }
+    $this->assertEquals(2, $actions_total['add_deletes']);
+    $this->assertEquals(1, $actions_total['updates']);
+    $this->assertEquals(4, $actions_total['nothing']);
+  }
+  
+  /** 
+   * MAGENTO Media
+   */
 	public function testAlterWebformJs() {
 		$form_id = "webform_client_form_11";
 		$this->assertTrue(is_numeric(strpos(str_replace("_", " ", $form_id), 'webform')));
@@ -198,6 +235,22 @@ class es_webform_magento_mediaTest extends PHPUnit_Framework_TestCase
     }
     return $object;
   }
+
+  public function getProductEditTestData() {
+    return array( 'product_id' => '18', 'product_edit_node_id' => '11', 'name' => 'My Image Product Test 1/7 10:43 am', 'categories' => array ( 37 => '1', 36 => NULL, 42 => NULL, 38 => NULL, 39 => NULL, 40 => NULL, 41 => NULL, ), 'status' => '1', 'price' => '3.0000', 'special_price' => '3.0000', 'special_from_date' => '2014-06-01 00:00:00', 'special_to_date' => '2014-01-22 00:00:00', 'tax_class_id' => '2', 'image_manager' => array ( 0 => array ( 0 => array ( 'image_fid' => '42', 'label' => 'asdfa', 'position' => '1', 'type' => 'image', 'current_image' => '/c/o/cocktail_orange_sm.jpg_1.jpg', 'original_label' => 'asdfa', ), 2 => array ( 'image_fid' => '', 'label' => 'updated label', 'position' => '3', 'type' => 'small_image', 'current_image' => '/J/e/Jellyfish.jpg.jpg', 'original_label' => 'asdfda', ), 1 => array ( 'image_fid' => '', 'label' => 'asdfdsaf', 'position' => '2', 'type' => 'thumbnail', 'current_image' => '/s/t/stock-photo-group-of-a-young-women-in-the-restaurant-96961214.jpg.jpg', 'original_label' => 'asdfdsaf', ), ), 1 => array ( 3 => array ( 'image_fid' => '', 'label' => 'asdf', 'position' => '4', 'type' => 'none', 'current_image' => '/H/y/Hydrangeas.jpg.jpg', 'original_label' => 'asdf', ), 4 => array ( 'image_fid' => '38', 'label' => 'asdfdsaf', 'position' => '5', 'type' => 'none', 'current_image' => '/m/e/message-24-ok.png_1.png', 'original_label' => 'asdfdsaf', ), 5 => array ( 'image_fid' => '', 'label' => 'asdfsda', 'position' => '6', 'type' => 'none', 'current_image' => '/e/-/e-marketplace_icon_1.png.png', 'original_label' => 'asdfsda', ), ), 2 => array ( 6 => array ( 'image_fid' => '', 'label' => 'asdfdsaf', 'position' => '7', 'type' => 'none', 'current_image' => '/s/t/stock-photo-young-family-mother-father-and-daughters-is-eating-hamburger-or-fast-food-at-home-114522649.jpg.jpg', 'original_label' => 'asdfdsaf', ), ), ), 'short_description' => array ( 'value' => '
+
+asdfasdfsdafsdafdas
+', 'format' => 'content_admin', ), 'description' => array ( 'value' => '
+
+asdfsdafds
+', 'format' => 'content_admin', ), 'qty' => '300.0000', 'is_in_stock' => '1', 'seller_terms_refund' => array ( 'value' => '
+
+adfafdsafdfsdaf
+', 'format' => 'content_admin', ), 'communitymarket_terms' => array ( 'value' => '
+
+asdfdasfdafadsfsa
+', 'format' => 'content_admin', ), 'op' => 'Submit', 'form_build_id' => 'form-_MdDBQHYIkMAgpkA_sSXHJJtiUY8chkBQEuVKyBhXwc', 'form_token' => '-VRayt9NSzkcRYIyYgCZw5GnStsm_sdnJzCWmDdtQgQ', 'form_id' => 'product_edit_form', );  
+}
   public function getImagesTestData() {
     return array (
   0 =>
