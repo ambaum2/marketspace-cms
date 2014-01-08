@@ -122,12 +122,17 @@ function _es_media_get_image_components() {
 			'type' => 'thumbnail',
 			'position' => 2,
 		),
+    'product-image-small-image' => array(
+      'label' => "Catalog Image",
+      'type' => 'small_image',
+      'position' => 3,
+    ),
 	);
-	for($i=1; $i < 6; $i++) {
+	for($i=1; $i < 4; $i++) {
 		$image_components['product-image-small-' . $i] = array(
 			'label' => "Main " . $i,
-			'type' => 'small_image',
-			'position' => $i + 2,
+			'type' => 'thumbnail',
+			'position' => $i + 3,
 		);
 	}
 	return $image_components;
