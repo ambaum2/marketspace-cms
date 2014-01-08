@@ -104,7 +104,7 @@ function _es_media_render_image_form_fields(&$component, $options) {
     '#title' => t(''),
     '#prefix' => "<div style='display:none;'>",
     '#suffix' => "</div>",
-    '#options' => array('' => 'none', 'image' => 'image', 'small_image' => 'small_image', 'thumbnail' => 'thumbnail'),//$product->create_attribute_select_options($attributes),
+    '#options' => array('none' => '', 'image' => 'image', 'small_image' => 'small_image', 'thumbnail' => 'thumbnail'),//$product->create_attribute_select_options($attributes),
     '#default_value' => $options['type'],//isset($component['extra']['magento_attribute_code']) ? $component['extra']['magento_attribute_code'] : '',
     '#required' => TRUE,
   );
