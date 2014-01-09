@@ -117,11 +117,18 @@ class es_webform_magento_mediaTest extends PHPUnit_Framework_TestCase
    */
   public function testProcessMediaEdit() {
     $input = $this->getProductEditTestData();
+    $image_add_fields = array('image_fid', 'type', 'position', 'label');
+    $magento_media = new magento_media;
     $actions_total = array('updates' => 0, 'add_deletes' => 0, 'nothing' => 0);
     foreach($input['image_manager'] as $key => $value) {
       foreach($value as $k => $val) {
         if($val['image_fid'] > 0) {
           //this is an add/delete
+          //new image
+          $create_image_data = $magento_media->get_marketspace_media_data_by_fid($image_data);
+          foreach($create_image_data as $d) {
+            //$this->assertTrue(isset())
+          }
           $actions_total['add_deletes'] = $actions_total['add_deletes'] + 1;
         } elseif($val['label'] != $val['original_label']) {
           //this is an update
@@ -136,6 +143,7 @@ class es_webform_magento_mediaTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(1, $actions_total['updates']);
     $this->assertEquals(4, $actions_total['nothing']);
   }
+
   
   /** 
    * MAGENTO Media

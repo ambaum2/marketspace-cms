@@ -518,8 +518,6 @@ function edit_marketspace_image_callback($form, &$form_state) {
  */
 function product_edit_form_submit(&$form, &$form_state) {
   //echo "<pre>" . print_r($form_state['input'], true) . "</pre>";
-  var_export($form_state['input']);
-  die;
 	$magento_product_attributes = new magento_product_attributes;
 	$magento_product = new magento_product;
 	$product_custom_options = new product_custom_options;

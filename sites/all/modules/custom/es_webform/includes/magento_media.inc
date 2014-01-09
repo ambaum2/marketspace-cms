@@ -150,8 +150,9 @@ class magento_media extends magento {
 	 * @param image_data
    * array of image options for creating in magento
    * 'image_fid' => int
-   * 'label'=>string, 'position'=>int, 
-   * 'image_type'=>string (main, thumbnail, small_image)
+   * 'label'=>string, 
+   * 'position'=>int, 
+   * 'type'=>string (image, thumbnail, small_image)
 	 * @return array
    */
   public function get_marketspace_media_data_by_fid($image_data) {
@@ -217,7 +218,6 @@ class magento_media extends magento {
 		  // When a module is managing a file, it must manage the usage count.
 		  // Here we increment the usage count with file_usage_add().
 		  file_usage_add($file, $module, $type, $id);
-		
 		  // Save the fid of the file so that the module can reference it later.
 		  variable_set('marketspace_image_fid', $file->fid);
 		  //drupal_set_message(t('The image @image_name was uploaded and saved with an ID of @fid and will be displayed using the style @style.', array('@image_name' => $file->filename, '@fid' => $file->fid, '@style' => $style)));
