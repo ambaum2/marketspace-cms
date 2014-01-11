@@ -117,21 +117,28 @@ class es_webform_magento_mediaTest extends PHPUnit_Framework_TestCase
    */
   public function testProcessMediaEdit() {
     $input = $this->getProductEditTestData();
-    $image_add_fields = array('image_fid', 'type', 'position', 'label');
+    $image_add_fields = array('file', 'url', 'type', 'position', 'label');
     $magento_media = new magento_media;
     $actions_total = array('updates' => 0, 'add_deletes' => 0, 'nothing' => 0);
     foreach($input['image_manager'] as $key => $value) {
       foreach($value as $k => $val) {
         if($val['image_fid'] > 0) {
           //this is an add/delete
-          //new image
-          $create_image_data = $magento_media->get_marketspace_media_data_by_fid($image_data);
-          foreach($create_image_data as $d) {
-            //$this->assertTrue(isset())
+          //delete first wrap in a try catch
+          //$magento_media->remove_media_by_product_id($product_id, $val['current_image']);
+          //add new image now that the other is gone
+          $create_image_data = $magento_media->get_marketspace_media_data_by_fid($val);
+          foreach($image_add_fields as $field) {
+            $this->assertTrue(isset($create_image_data->$field)); //where all fields at least set
           }
+          $create_image_magento_data = $magento_media->get_magento_media_data($create_image_data); //tested in testget_magento_media_data   
+          //$magento_media->create_media($product_id, $create_image_magento_data);
           $actions_total['add_deletes'] = $actions_total['add_deletes'] + 1;
         } elseif($val['label'] != $val['original_label']) {
           //this is an update
+          $data = array('label' => $val['label']);
+          $file_name = $val['file'];
+          //$return = $magento_media->update_media_by_file_name_and_product_id($product_id, $file_name, $data);
           $actions_total['updates'] = $actions_total['updates'] + 1;
         } else {
           //do nothing
@@ -148,6 +155,16 @@ class es_webform_magento_mediaTest extends PHPUnit_Framework_TestCase
   /** 
    * MAGENTO Media
    */
+   
+  
+  public function testupdate_media_by_file_name_and_product_id() {
+    $magento_media = new magento_media;
+    $product_id = 7;
+    $file_name = "/m/e/message-24-ok.png.png";
+    $data = array("label" => "Alan Rand " . rand());
+    $return = $magento_media->update_media_by_file_name_and_product_id($product_id, $file_name, $data);
+    $this->assertEquals(1, $return);
+  }
 	public function testAlterWebformJs() {
 		$form_id = "webform_client_form_11";
 		$this->assertTrue(is_numeric(strpos(str_replace("_", " ", $form_id), 'webform')));

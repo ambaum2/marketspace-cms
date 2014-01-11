@@ -68,7 +68,25 @@ class magento_media extends magento {
        throw $e;
     }
   }
-  
+  /**
+   * update product media data
+   * 
+   * @param product_id | integer 
+   *  product id of product for this custom option in magento
+   * @param data | array
+   *  keyed array of media data
+   * @return boolean 
+   *  true if worked false otherwise
+   */
+  public function update_media_by_file_name_and_product_id($product_id, $file_name, $data) {
+    $proxy = new SoapClient(variable_get("magento_api_wsdl"));
+    try {    
+       $result = $proxy->catalogProductAttributeMediaUpdate($this->session_key, $product_id, $file_name, $data);
+       return $result;
+    } catch (exception $e) {
+       throw $e;
+    }
+  }  
   /**
    * remove product media
    * @param product_id | integer 
