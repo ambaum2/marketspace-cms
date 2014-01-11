@@ -114,3 +114,11 @@ html .cke_editable_themed {background:white;color:black;}
 	border-radius: 7px;
 	color:white;
 }
+
+#image-container .form-required {
+	display:none;
+}
+#edit-image-manager .ms-image-placeholder-image {
+	height: 120px;
+	width: 120px;
+}

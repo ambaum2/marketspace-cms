@@ -87,6 +87,7 @@ function _es_media_render_image_form_fields(&$component, $options) {
     '#autocomplete_path' => 'es_media/user/images',
     '#prefix' => '<div class="ms-autocomplete-image-manager">',
     '#suffix' => '</div>',
+    '#required' => $options['required'],
     '#attributes' => array('class' => array('ms-image-browser-autocomplete')),
     '#default_value' => isset($component['image_fid']) ? $component['image_fid'] : '',
   );
@@ -116,23 +117,26 @@ function _es_media_get_image_components() {
 			'label' => "Upper Left Image",
 			'type' => 'image',
 			'position' => 1,
+			'required' => true,
 		),
 		'product-image-thumbnail' => array(
 			'label' => "Thumbnail Image",
 			'type' => 'thumbnail',
 			'position' => 2,
+			'required' => true,
 		),
-    'product-image-small-image' => array(
+    /*'product-image-small-image' => array(
       'label' => "Catalog Image",
       'type' => 'small_image',
       'position' => 3,
-    ),
+    ),*/
 	);
-	for($i=1; $i < 4; $i++) {
+	for($i=1; $i < 5; $i++) {
 		$image_components['product-image-small-' . $i] = array(
 			'label' => "Main " . $i,
 			'type' => 'none',
 			'position' => $i + 3,
+			'required' => false,
 		);
 	}
 	return $image_components;

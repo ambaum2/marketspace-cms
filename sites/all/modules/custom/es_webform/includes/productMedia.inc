@@ -16,6 +16,17 @@ class productMedia extends mspaceApi {
       '#type' => 'container',
       '#tree' => TRUE,
     );
+    dpm($images);
+    //assume there are at least two images and add 6-count(images)
+    for($i=count($images); $i <= 5; $i++) {
+      $blank = new stdClass();
+      $blank->url = "";
+      $blank->position = $i + 2;
+      $blank->file = "";
+      $blank->label = "";
+      
+      $images[$i] = $blank;
+    }
     foreach($images as $key=>$image) {
       if($key % 3 == 0) {
         $rowNumber = ($key / 3);
@@ -36,6 +47,7 @@ class productMedia extends mspaceApi {
       
       $this->createMediaImageFormFields($form[$options['current_fieldset']]['image_manager'][$rowNumber][$key], $image, $settings);
     }
+    //for($i = 0; $i < count($images))
   }
   
   
@@ -132,7 +144,8 @@ class productMedia extends mspaceApi {
 	public function createMediaImageFormFields(&$component, $image, $settings, $values = null) {
 	  global $user;
     $component['image_thumb'] = array(
-      '#markup' => t('<h2>%type</h2><img src="!src" width="auto" height="120px" />', array('%type'=>$settings['image_input_label'], '!src' => $image->url)),
+      '#markup' => ($image->url != "" ? t('<h2>%type</h2><img src="!src" width="auto" height="120px" />', array('%type'=>$settings['image_input_label'], '!src' => $image->url)) 
+        : t('<h2>%type</h2><div class="ms-image-placeholder-image"></div>', array('%type'=>$settings['image_input_label']))),
     );
 	  $component['image_fid'] = array(
 	    '#type' => 'textfield',

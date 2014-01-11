@@ -118,12 +118,14 @@ class magento_media extends magento {
     foreach($data as $key => $value) {
       foreach($value as $k => $image) {
         if($image['image_fid'] > 0) { //add/delete image
-          $this->remove_media_by_product_id($product_id, $image['current_image']);
+          if($image['current_image'] != "") { //if changing an image do this (if none exists then skip delete and just add the image)
+            $this->remove_media_by_product_id($product_id, $image['current_image']);
+          }
           //add new image now that the other is gone
           $create_image_data = $this->get_marketspace_media_data_by_fid($image);
           $create_image_magento_data = $this->get_magento_media_data($create_image_data); //tested in testget_magento_media_data   
           $this->create_media($product_id, $create_image_magento_data);
-        } elseif($image['label'] != $image['original_label']) {  //this is an update
+        } elseif($image['label'] != $image['original_label'] && $image['current_image'] != "") {  //this is an update
           $data = array('label' => $image['label']);
           $return = $this->update_media_by_file_name_and_product_id($product_id, $image['current_image'], $data);
         } else {
