@@ -16,7 +16,6 @@ class productMedia extends mspaceApi {
       '#type' => 'container',
       '#tree' => TRUE,
     );
-    dpm($images);
     //assume there are at least two images and add 6-count(images)
     for($i=count($images); $i <= 5; $i++) {
       $blank = new stdClass();
