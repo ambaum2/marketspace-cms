@@ -140,7 +140,7 @@ class magento_product_attributes extends mspaceApi {
 	              }
 							} else {
 	              if(in_array($attribute_code, $this->getDefaultAttributes())) {
-								    $data['attributes'][$attribute_code] =	$value['value'][0];
+								    $data['attributes'][$attribute_code] = $value['value'][0];
 	              } else {
 	                  $data['additional_attributes']['single_data'][] = array('key'=>$attribute_code, 'value' => $value['value'][0]);
 	              }

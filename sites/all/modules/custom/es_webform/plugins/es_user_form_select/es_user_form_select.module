@@ -33,7 +33,7 @@ function es_user_form_select_block_view($delta = '') {
         $output .= "<div class='product-edit-group-marketspace row'>";
         foreach($webform_ids as $key=>$webform) {
           $node = node_load($webform->entity_id);
-          $output .= "<div class='marketspace-image-thumbnail-container col-md-2 col-sm-4 col-xs-6'><div class='thumbnail' <a href='node/" . $node->nid . "'><img src='" 
+          $output .= "<div class='marketspace-image-thumbnail-container col-md-2 col-sm-4 col-xs-6'><div class='thumbnail'><a href='node/" . $node->nid . "'><img src='" 
             . file_create_url(file_build_uri($node->field_thumbnail['und'][0]['filename'])) 
             . "' width='100px' />";
           $output .= "<h4>" . $node->title . "</h4></a></div></div>";
