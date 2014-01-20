@@ -82,7 +82,7 @@ class magento_product_category extends magento {
           "#title" => $item->name,
           "#prefix" => "<div class='category_select_"
             . $item->id . " parent_category_" . $item->parent_id 
-            . "' style='margin-left:" . (($item->level)*10) . "px;'>",
+            . "' style='margin-left:" . (($item->level)*6) . "px;'>",
           //"#parents" => array("submitted","profile_information_header", "venue_sweets_categories","categories",$item->id),
           "#suffix" => "</div>",
           "#default_value" => $default_value,
@@ -95,7 +95,7 @@ class magento_product_category extends magento {
           "#title" => $item->name,
           "#prefix" => "<div class='category_select_"
             . $item->id . " parent_category_" . $item->parent_id 
-            . "' style='margin-left:" . (($item->level)*25) . "px;'>",
+            . "' style='margin-left:" . (($item->level)*6) . "px;'>",
           "#suffix" => "</div>",
           "#default_value" => $default_value,
           '#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',

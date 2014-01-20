@@ -90,21 +90,18 @@ function _webform_render_es_category($component, $value = NULL, $filter = TRUE, 
   $product = new product();
   $category = new magento_product_category();
   $path2 = "";
-  //if(in_array('authenticated_user',$user->roles)) {
-    //get the selected categories from admin 
-    if(isset($form_state['values']['submitted'][$component['cid']]['categories'])) {
-      $selected_values = $form_state['values']['submitted'][$component['cid']]['categories'];
-    } else {
-      $selected_values = array(); //set to empty if none set
-    }
-    $the_path = array_searchRecursive( "Array", $component, $strict=false, $path=array(), $path2);
-    $checked_categories = explode(",",$path2);
-    $categories = $category->get_categories($checked_categories,$excluded_categories = array(2));
-    //render category checkboxes
-    isset($_POST['form_build_id']) ? $form_build_id = $_POST['form_build_id'] : $form_build_id = "";
-    $category->create_category_checkboxes($categories, $category_select_element, $component, true, $selected_values);
-    return $category_select_element;
-  //}
+  if(isset($form_state['values']['submitted'][$component['cid']]['categories'])) {
+    $selected_values = $form_state['values']['submitted'][$component['cid']]['categories'];
+  } else {
+    $selected_values = array(); //set to empty if none set
+  }
+  $the_path = array_searchRecursive( "Array", $component, $strict=false, $path=array(), $path2);
+  $checked_categories = explode(",",$path2);
+  $categories = $category->get_categories($checked_categories,$excluded_categories = array(2));
+  //render category checkboxes
+  isset($_POST['form_build_id']) ? $form_build_id = $_POST['form_build_id'] : $form_build_id = "";
+  $category->create_category_checkboxes($categories, $category_select_element, $component, true, $selected_values);
+  return $category_select_element;
 }
 
 function _webform_display_es_category($component, $value, $format = 'html') {
