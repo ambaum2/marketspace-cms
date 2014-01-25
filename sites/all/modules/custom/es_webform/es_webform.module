@@ -372,7 +372,7 @@ function product_edit_form($form, &$form_state) {
           '#type' => 'submit',
           '#value' => t('Submit'),
         );
-				
+				$form['#submit'][] = "product_edit_form_submit";
       	return $form;
       } elseif(count($node_webform_id) > 1) {
       	drupal_set_message(t('Too many forms matching this product Error: more than one attribute set'), 'error');
@@ -521,6 +521,7 @@ function product_edit_form_submit(&$form, &$form_state) {
 	$magento_product = new magento_product;
 	$product_custom_options = new product_custom_options;
   $magento_media = new magento_media;
+  
   //there was no good way so I just look for qty or is_in_stock could possibly search
   //through values array
   //TODO - search through values array and look for stock attribute in key
@@ -535,7 +536,6 @@ function product_edit_form_submit(&$form, &$form_state) {
 	$data = $magento_product_attributes->getProductDataArray($form_state['input']);
   $result = $magento_media->process_media_product_edit($form_state['input']['image_manager'], $form_state['input']['product_id']);
 	$result = $magento_product->updateProduct($form_state['input']['product_id'], $data);
- 
   /*
    * CUSTOM OPTIONS
    */

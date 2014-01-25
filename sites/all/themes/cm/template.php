@@ -9,8 +9,10 @@ function cm_process_page(&$vars, $hooks){
   //krumo($vars);
   $excluded_menu_items = array('File browser');
   for($i=0; $i < count($vars['tabs']['#primary']); $i++) {
-    if($vars['tabs']['#primary'][$i]['#link']['title'] == 'File browser') {
-      unset($vars['tabs']['#primary'][$i]);
+    if(isset($vars['tabs']['#primary'][$i])) {
+      if($vars['tabs']['#primary'][$i]['#link']['title'] == 'File browser') {
+        unset($vars['tabs']['#primary'][$i]);
+      }
     }
   }
 }

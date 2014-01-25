@@ -7,7 +7,7 @@
 /**
  * Overrides theme_breadcrumb().
  */
-function bootstrap_status_messages($variables) {
+function cm_status_messages($variables) {
   $display = $variables['display'];
   $output = '';
 
@@ -31,7 +31,7 @@ function bootstrap_status_messages($variables) {
   );
 
   foreach (drupal_get_messages($display) as $type => $messages) {
-  	if($status_class[$type] != 'danger') {
+  	//if($status_class[$type] != 'danger') {
 	    $class = (isset($status_class[$type])) ? ' alert-' . $status_class[$type] : '';
 	    $output .= "<div class=\"alert alert-block$class\">\n";
 	    $output .= "  <a class=\"close\" data-dismiss=\"alert\" href=\"#\">&times;</a>\n";
@@ -53,6 +53,6 @@ function bootstrap_status_messages($variables) {
 	
 	    $output .= "</div>\n";
 		}
-  }
+  //}
   return $output;
 }

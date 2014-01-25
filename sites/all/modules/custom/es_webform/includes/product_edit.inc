@@ -23,7 +23,7 @@ class product_edit extends product {
             );
     				drupal_add_library('system','ui.datepicker');
   				  drupal_add_js('jQuery(document).ready(function(){jQuery( ".dwg-datepicker" ).datepicker({
-  				      dateFormat: "dd-mm-yy",
+  				      dateFormat: "mm/dd/yy",
   				      autoSize: true
   				    });});', 'inline'); 
   					$element['#attributes'] = array(
