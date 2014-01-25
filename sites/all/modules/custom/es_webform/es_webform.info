@@ -15,7 +15,7 @@ files[] = includes/product_edit.inc
 files[] = includes/product_custom_options.inc
 files[] = includes/product_custom_options_templates.inc
 files[] = includes/interface_display.inc
-
+files[] = includes/Product_Category.inc
 ;example of media query stylesheets[screen and (max-width: 600px)][] = theStyle600.css 
 stylesheets[screen][] = css/es_webform.css
 core = 7.x

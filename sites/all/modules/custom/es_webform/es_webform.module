@@ -267,7 +267,8 @@ function product_edit_form($form, &$form_state) {
             }
   				} elseif(isset($component['extra']['magento_attribute_code_name'])) {
   					if($component['extra']['magento_attribute_code_name'] == 'categories') {
-  						$category = new magento_product_category;
+  						//$category = new magento_product_category;
+  						$category = new Product_Category;
   						$value_path = "";
   				    $the_path = array_searchRecursive("Array", $component, $strict=false, $path=array(), $value_path);
   				    $checked_categories = explode(",",$value_path);
@@ -276,9 +277,9 @@ function product_edit_form($form, &$form_state) {
   							$selected_categories[$cat] = 1;
   						}
   						//TODO use a different more abstract function for category rendering - this is messy
-  						//categories in input formstate are at: submitted[profile_information_header][venue_sweets_categories][categories]
   				    $categories = $category->get_categories($checked_categories, $excluded_categories = array(2));
-  						$category->create_category_checkboxes($categories, $form, $component, true, $selected_categories);
+              $categories = $category->getSortedCategories($categories);
+  						$category->create_category_checkboxes($categories, $form[$current_fieldset], $component, true, $selected_categories);
   						//$form[$current_fieldset]['categories'] = $form['categories']; //should probably clean this up so we can avoid the unset and this
   						//unset($form['categories']);
   					} elseif($component['extra']['magento_attribute_code_name'] == 'product_image') {
