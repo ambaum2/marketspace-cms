@@ -50,22 +50,6 @@ class magento_product_category extends magento {
    * $item->level, $item->parent_id, $item->id
    */
   private function category_level_create(&$form, $item, $type, $component, $frontend = false, $selected_values) {
-    $parents = array();
-    $parents[] = $item->id;
-    $this->get_all_parents($item->id, $parents);//get tree of parents plus this id
-    $checkbox_array_string = "['categories']";
-		$checkboxes_array_string = "['categories']";
-    $parents_count = (count($parents) - 1);
-    for($i=$parents_count;$i >= 0; $i--) {
-  		if($i == 0) {
-  			$checkbox_array_string .= "['i". $parents[$i] . "']"; //put an i in last index (for id)
-  		} else {
-      	$checkbox_array_string .= '['. $parents[$i] . ']';
-			}
-    }
-    for($i=$parents_count;$i >= 0; $i--) {
-      $checkboxes_array_string .= '['. $parents[$i] . ']';
-    }
     if($frontend) {
       //set default value
       //TODO: check if user is editing a product and if so get that value from database
@@ -103,6 +87,22 @@ class magento_product_category extends magento {
           );    //"#field_prefix" => "<a class='child_category_select'><img src='http://aaortho.net/js/spacer.gif' /></a>"
       }
     } else { //backend display - is this still needed?
+        $parents = array();
+        $parents[] = $item->id;
+        $this->get_all_parents($item->id, $parents);//get tree of parents plus this id
+        $checkbox_array_string = "['categories']";
+        $checkboxes_array_string = "['categories']";
+        $parents_count = (count($parents) - 1);
+        for($i=$parents_count;$i >= 0; $i--) {
+          if($i == 0) {
+            $checkbox_array_string .= "['i". $parents[$i] . "']"; //put an i in last index (for id)
+          } else {
+            $checkbox_array_string .= '['. $parents[$i] . ']';
+          }
+        }
+        for($i=$parents_count;$i >= 0; $i--) {
+          $checkboxes_array_string .= '['. $parents[$i] . ']';
+        }
       if($type == "parent") {
         eval('$form' . $checkbox_array_string . '=array(
           "#type" => "checkbox",
@@ -136,8 +136,7 @@ class magento_product_category extends magento {
   
   public function category_selector_add($content, $element) {
     if($element['#id'] != "edit-extra-magento-categories-experience-travel-packages-111") { 
-    echo "<pre>" . print_r($element,true) . "</pre>";
-    die;
+    //echo "<pre>" . print_r($element,true) . "</pre>";
     }
   }
   /*
@@ -291,6 +290,7 @@ class magento_product_category extends magento {
       if(count($excluded_categories) > 0) {
         $query->condition('id',$excluded_categories, 'NOT IN');
       }
+      $query->orderBy('level', 'ASC')->orderBy('position', 'ASC');
     $result = $query->execute();
     if($result) {
       return $result;

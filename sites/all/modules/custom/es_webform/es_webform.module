@@ -279,8 +279,8 @@ function product_edit_form($form, &$form_state) {
   						//categories in input formstate are at: submitted[profile_information_header][venue_sweets_categories][categories]
   				    $categories = $category->get_categories($checked_categories, $excluded_categories = array(2));
   						$category->create_category_checkboxes($categories, $form, $component, true, $selected_categories);
-  						$form[$current_fieldset]['categories'] = $form['categories']; //should probably clean this up so we can avoid the unset and this
-  						unset($form['categories']);
+  						//$form[$current_fieldset]['categories'] = $form['categories']; //should probably clean this up so we can avoid the unset and this
+  						//unset($form['categories']);
   					} elseif($component['extra']['magento_attribute_code_name'] == 'product_image') {
                 $magento_media = new magento_media;
                 $productMedia = new productMedia;
@@ -521,7 +521,7 @@ function product_edit_form_submit(&$form, &$form_state) {
 	$magento_product = new magento_product;
 	$product_custom_options = new product_custom_options;
   $magento_media = new magento_media;
-  
+  echo "<pre>" . print_r($form_state, true) . "</pre>"; 
   //there was no good way so I just look for qty or is_in_stock could possibly search
   //through values array
   //TODO - search through values array and look for stock attribute in key
@@ -534,6 +534,8 @@ function product_edit_form_submit(&$form, &$form_state) {
 		$product_custom_options->updateCustomOptions($form_state['values']);
 	}
 	$data = $magento_product_attributes->getProductDataArray($form_state['input']);
+  echo "<pre>" . print_r($data, true) . "</pre>";
+  die;
   $result = $magento_media->process_media_product_edit($form_state['input']['image_manager'], $form_state['input']['product_id']);
 	$result = $magento_product->updateProduct($form_state['input']['product_id'], $data);
   /*

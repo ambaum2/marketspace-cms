@@ -22,8 +22,8 @@ function _webform_defaults_es_category() {
  * Implements _webform_edit_[component]().
  */
 function _webform_edit_es_category($component) {
-  $magento = new magento();
-  $product = new product();
+  //$magento = new magento();
+  //$product = new product();
   $category = new magento_product_category();
   $webform = node_load($component['nid']);
   if(isset($webform->field_market_space_settings['und'][0]['attribute_set_id'])) {
@@ -60,23 +60,23 @@ function _webform_edit_es_category($component) {
  
 function array_searchRecursive( $needle, $haystack, $strict=false, $path=array(), &$path2="" )
 {
-    if( !is_array($haystack) ) {
-        return false;
-    }
-    foreach( $haystack as $key => $val ) {          
-        if(strstr($key, "i") && $val == 1) {
-          strlen($path2) > 0 ? $path2 .= "," . str_replace("i", "", $key) 
-            : $path2 .= str_replace("i", "", $key);         
-        }
-        if( is_array($val) && $subPath = array_searchRecursive($needle, $val, $strict, $path, $path2) ) {
-            $path = array_merge($path, array($key), $subPath);
-            return $path;
-        } elseif( (!$strict && $val == $needle) || ($strict && $val === $needle) ) {
-            $path[] = $key;
-            return $path;
-        }
-    }
+  if( !is_array($haystack) ) {
     return false;
+  }
+  foreach( $haystack as $key => $val ) {          
+    if(strstr($key, "i") && $val == 1) {
+      strlen($path2) > 0 ? $path2 .= "," . str_replace("i", "", $key) 
+        : $path2 .= str_replace("i", "", $key);         
+    }
+    if( is_array($val) && $subPath = array_searchRecursive($needle, $val, $strict, $path, $path2) ) {
+      $path = array_merge($path, array($key), $subPath);
+      return $path;
+    } elseif( (!$strict && $val == $needle) || ($strict && $val === $needle) ) {
+      $path[] = $key;
+      return $path;
+    }
+  }
+  return false;
 }
 
 /**
@@ -86,8 +86,8 @@ function array_searchRecursive( $needle, $haystack, $strict=false, $path=array()
  */
 function _webform_render_es_category($component, $value = NULL, $filter = TRUE, $form_state) {
   global $user;
-  $magento = new magento();
-  $product = new product();
+  //$magento = new magento();
+  //$product = new product();
   $category = new magento_product_category();
   $path2 = "";
   if(isset($form_state['values']['submitted'][$component['cid']]['categories'])) {
