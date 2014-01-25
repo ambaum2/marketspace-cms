@@ -7,7 +7,6 @@ class product_edit extends product {
 		 */	
 	  public function create_attribute_input($attribute, $form_state = null, $component, $product_data = null) {
 	  	$element = parent::create_attribute_input($attribute, $form_state, $component);
-      
       try {
   			$attribute_type = parent::_convert_attribute_type($attribute->frontend_input);
   			switch($attribute_type) {
