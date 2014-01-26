@@ -454,7 +454,6 @@ function add_custom_option($form, &$form_state) {
  * code
  */
 function option_value_callback($form, &$form_state) {
-	//watchdog('ajax attempted', '%num_count count and <pre>%form</pre><br />',array('%form' => print_r($form_state,true), '%num_count'=>22 . ' val ' . 1),WATCHDOG_NOTICE);
   if(isset($form_state['triggering_element'])) {
     if($form_state['triggering_element']['#value'] == "Add Value") {
       //$option_num = count($form_state['input']['custom_options']);
@@ -468,50 +467,16 @@ function option_value_callback($form, &$form_state) {
 			} else {
 				$value_num = 0;
 			}
-      //watchdog('option value callback add value', '%num_count count and <pre>%form</pre><br />',array('%form' => print_r($form_state,true), '%num_count'=>$attributes->parent_id . ' val ' . $value_num),WATCHDOG_NOTICE);
       return $form['custom_options'][(int)$attributes->parent_id]['values'][$value_num];
-    //delete custom option
     }  elseif($form_state['triggering_element']['#value'] == "Delete") {
-      //isset($form_state['num_custom_options']) ? $form_state['num_custom_options'] =  $form_state['num_custom_options'] + 1: $form_state['num_custom_options'] = 1; //TODO:-this is undefined initially so may want conditional
       $xml = str_replace(array('<!--','-->'),'',$form_state['triggering_element']['#prefix']);
       $attributes = simplexml_load_string($xml);
       watchdog('custom option delete HIT!', '%numcount attr id <pre>%attr_id</pre> : xml <pre>%xml</pre> ', array('%numcount'=>3,
       '%xml' => print_r($form_state,true), '%attr_id' => print_r($attributes,true)),WATCHDOG_NOTICE);
-      //$form_state['rebuild'] = TRUE;
 			return $form['custom_options'][(int)$attributes->parent_id]['values'];//[(int)$attributes->id];
     }
   }
   
-}
-/*
- * ajax functions for image edit, delete,
- * and add. These have to be seperated from magento
- * attribute operations since the api for product
- * create does not include them
- * TODO: - will add similar callback for upsells, 
- * custom options, and bundled products.
- */
-function edit_marketspace_image_callback($form, &$form_state) {
-  watchdog('image-edit', "form state parent %parent ___ form <pre>%form_state</pre>", array("form_state" => print_r($form_state,true), '%parent' => $form_state['triggering_element']['#array_parents'][0]),WATCHDOG_NOTICE);
-  $magento_media = new magento_media;
-  if(isset($form_state['triggering_element']['#prefix']) && isset($form_state['input']['product_id'])) {
-    $product_id = $form_state['input']['product_id'];
-    $xml = str_replace(array('<!--','-->'),'',$form_state['triggering_element']['#prefix']);
-    $image_attributes = simplexml_load_string($xml); 
-    if($form_state['triggering_element']['#value'] == "Edit") {
-        $data = $magento_media->get_marketspace_media_data($form_state['input'], $image_attributes, false);
-        $image_data = $magento_media->get_magento_media_data($data);
-        $result = $magento_media->update_media_by_product_id($product_id, $image_data);
-    } elseif($form_state['triggering_element']['#value'] == "Delete") {
-      watchdog('image-edit', "INFO <pre>%form_state</pre> <br />result ", array("form_state" => print_r($image_attributes,true)),WATCHDOG_NOTICE);
-      $result = $magento_media->remove_media_by_product_id($product_id, $image_attributes->file);
-    } elseif($form_state['triggering_element']['#value'] == "Add") {
-        $data = $magento_media->get_marketspace_media_data($form_state['input'], $image_attributes, true);
-        $image_data = $magento_media->get_magento_media_data($data);
-        $result = $magento_media->create_media($product_id, $image_data);
-    }
-  }
-  return null;
 }
 
 /*
@@ -522,12 +487,6 @@ function product_edit_form_submit(&$form, &$form_state) {
 	$magento_product = new magento_product;
 	$product_custom_options = new product_custom_options;
   $magento_media = new magento_media;
-  echo "<pre>" . print_r($form_state, true) . "</pre>"; 
-  //there was no good way so I just look for qty or is_in_stock could possibly search
-  //through values array
-  //TODO - search through values array and look for stock attribute in key
-  //TODO you can apparently blindly pass the values array without magento giving a problem
-  //test for the performance hit
   if(isset($form_state['values']['qty']) || isset($form_state['values']['is_in_stock'])) {
     $result = $magento_product->updateProductStockData($form_state['input']['product_id'], $form_state['values']);
   } 
@@ -535,39 +494,15 @@ function product_edit_form_submit(&$form, &$form_state) {
 		$product_custom_options->updateCustomOptions($form_state['values']);
 	}
 	$data = $magento_product_attributes->getProductDataArray($form_state['input']);
-  echo "<pre>" . print_r($data, true) . "</pre>";
-  die;
   $result = $magento_media->process_media_product_edit($form_state['input']['image_manager'], $form_state['input']['product_id']);
 	$result = $magento_product->updateProduct($form_state['input']['product_id'], $data);
-  /*
-   * CUSTOM OPTIONS
-   */
 	//check for custom options save new completed ones and update current ones
 	if($result) {
 		drupal_set_message(t("Product has been updated."), 'notice');
 	} else {
 		drupal_set_message(t("Product update failed."), 'error');
 	}
- 	//echo "<pre>" . print_r($data,true) . "</pre>";
-	//die;
-  //$form_state['redirect'] = 'user';
 }
-/**
- * Implements hook_webform_select_options_info().
- */
-/*function es_webform_webform_select_options_info() {
-  $options['payment_method'] = array(
-    'title' => t('Payment methods'),
-    'options callback' => 'payment_method_options',
-  );
-  $options['payment_status'] = array(
-    'title' => t('Payment statuses'),
-    'options callback' => 'payment_status_options',
-  );
-
-  return $options;
-}*/
-
 /**
  * Implements hook_webform_component_info().
  */

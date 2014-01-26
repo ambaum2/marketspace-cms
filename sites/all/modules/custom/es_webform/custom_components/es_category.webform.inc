@@ -86,9 +86,7 @@ function array_searchRecursive( $needle, $haystack, $strict=false, $path=array()
  */
 function _webform_render_es_category($component, $value = NULL, $filter = TRUE, $form_state) {
   global $user;
-  //$magento = new magento();
-  //$product = new product();
-  $category = new magento_product_category();
+  $category = new Product_Category;
   $path2 = "";
   if(isset($form_state['values']['submitted'][$component['cid']]['categories'])) {
     $selected_values = $form_state['values']['submitted'][$component['cid']]['categories'];
@@ -98,6 +96,7 @@ function _webform_render_es_category($component, $value = NULL, $filter = TRUE, 
   $the_path = array_searchRecursive( "Array", $component, $strict=false, $path=array(), $path2);
   $checked_categories = explode(",",$path2);
   $categories = $category->get_categories($checked_categories,$excluded_categories = array(2));
+  $categories = $category->getSortedCategories($categories);
   //render category checkboxes
   isset($_POST['form_build_id']) ? $form_build_id = $_POST['form_build_id'] : $form_build_id = "";
   $category->create_category_checkboxes($categories, $category_select_element, $component, true, $selected_values);
