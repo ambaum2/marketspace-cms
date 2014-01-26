@@ -22,8 +22,7 @@ function _webform_defaults_es_category() {
  * Implements _webform_edit_[component]().
  */
 function _webform_edit_es_category($component) {
-  //$magento = new magento();
-  //$product = new product();
+  $magento = new magento();
   $category = new magento_product_category();
   $webform = node_load($component['nid']);
   if(isset($webform->field_market_space_settings['und'][0]['attribute_set_id'])) {
