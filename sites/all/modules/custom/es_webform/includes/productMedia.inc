@@ -16,6 +16,15 @@ class productMedia extends mspaceApi {
       '#type' => 'container',
       '#tree' => TRUE,
     );
+	  $form[$options['current_fieldset']]['image_manager']['image_add'] = array(
+	    '#type' => 'markup',
+	    '#prefix' => '<div id="image-container"><button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">Image Manager</button>
+	    	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div style="width:850px;" class="modal-dialog">
+	    	<div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button></div>
+	    	<iframe src="/?q=imce" frameborder="0" style="border: 1px solid #eee; width: 99%; height: 520px" class="imce-frame"></iframe>
+	    	</div></div></div>',
+	    '#suffix' => '</div>',
+	  );
     //assume there are at least two images and add 6-count(images)
     for($i=count($images); $i <= 5; $i++) {
       $blank = new stdClass();
@@ -184,5 +193,18 @@ class productMedia extends mspaceApi {
       '#value' => $image->label,
     );
 	}
-
+	/**
+	 * generate a hex code from string
+	 * @param string
+	 * @return array
+	 * array of a 
+	 */
+	public function getRgbHexColor($string) {
+	  $checksum = md5($initial);
+	  return ( array(
+	    "R" => hexdec(substr($checksum, 0, 2)),
+	    "G" => hexdec(substr($checksum, 2, 2)),
+	    "B" => hexdec(substr($checksum, 4, 2))
+	  ));
+	}  
 }

@@ -151,12 +151,19 @@ class es_webform_magento_mediaTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(4, $actions_total['nothing']);
   }
 
-  
+	public function testtoColorCode($initial){
+	  $checksum = md5($initial);
+	  print_r( array(
+	    "R" => hexdec(substr($checksum, 0, 2)),
+	    "G" => hexdec(substr($checksum, 2, 2)),
+	    "B" => hexdec(substr($checksum, 4, 2))
+	  ));
+	}  
   /** 
    * MAGENTO Media
    */
    
-  
+/*  
   public function testupdate_media_by_file_name_and_product_id() {
     $magento_media = new magento_media;
     $product_id = 7;
@@ -204,6 +211,7 @@ class es_webform_magento_mediaTest extends PHPUnit_Framework_TestCase
     $imageTestData->type = 'main';
     $this->assertEquals($imageTestData, $data);
   }
+ 
   public function testget_magento_media_data() {
     $media = new magento_media;
     $testData = array('image_fid' => 128, 'label' => "", 'position' => 100, 'type' => 'main');
@@ -217,6 +225,7 @@ class es_webform_magento_mediaTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($testData['position'], $data['position']);
     $this->assertEquals($testData['type'], $data['types'][0]);
   }
+ */
   public function getImageObjectTestData($type) {
     switch ($type) {
       case 'small_image':
