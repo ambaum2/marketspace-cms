@@ -75,7 +75,7 @@ class productMedia extends mspaceApi {
       case 'image':
         $weight = 1;
         break;
-      case 'small_image':
+      case 'thumbnail':
         $weight = 2;
         break;
       default:
@@ -115,7 +115,7 @@ class productMedia extends mspaceApi {
         $label = "Upper Left Image";
         break;
       case 'small_image':
-        $label = "Catalog Image";
+        $label = "Thumbnail Image";
         break;
       case 'thumbnail':
         $label = "Thumbnail Image";
@@ -134,7 +134,15 @@ class productMedia extends mspaceApi {
    *  string of type
    */
   public function getImageType($image) {
-    (isset($image->types[0])) ? $imageType = $image->types[0]  : $imageType = "none";
+    if(isset($image->types[0])) {
+      $imageType = $image->types[0];
+      if($imageType == 'small_image') {
+        $imageType = 'thumbnail';
+      }
+    } else {
+      $imageType = "none";
+    }
+    
     return $imageType;
   }
 	/**
