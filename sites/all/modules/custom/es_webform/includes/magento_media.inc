@@ -206,7 +206,9 @@ class magento_media extends magento {
     global $user;
     $this->process_managed_file($image_data['image_fid'], "marketspace", "user", $user->uid); //we want to save this file although don't necessarily have to
     $file = file_load($image_data['image_fid']);
-    $data->file = $file->filename;
+    $file_name = str_replace(array('.jpg', '.png', '.gif'), "", $file->filename);
+		($image_data['type'] == 'thumbnail' || $image_data['type'] == 'small_image') 
+			? $data->file = $file_name . '_' . $image_data['type'] : $data->file = $file_name;
     $data->url = file_create_url($file->uri);  
     $data->label = $image_data['label'];
     $data->position = $image_data['position'];
