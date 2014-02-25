@@ -73,7 +73,7 @@
  * @ingroup themeable
  */
 ?>
-<header id="navbar" style="background:url(<?php !empty($logo) ? print $logo : ''; ?>)" role="banner" class="<?php print $navbar_classes; ?>">
+<header id="navbar" style="background:url(<?php !empty($logo) ? print $logo : ''; ?>) repeat-x #ffffff" role="banner" class="img-responsive <?php print $navbar_classes; ?>">
     <div class="header" >
       <div class="navbar-header">
         <?php if ($logo): ?>
