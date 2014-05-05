@@ -60,7 +60,7 @@ class product {
       $form_field['text'][$attribute->frontend_input] = array( //create wysiwyg editor 
         '#type' => 'text_format', //http://drupal.org/node/1031160#comment-6256154
         '#format' => 'content_admin',
-    		'#title' => $attribute->frontend_label,
+    		'#title' => $component['name'],
     		'#required' => (($attribute->is_required == 1) ? TRUE : FALSE),
     		'#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
     		array('#attached'=>array('css' => array(drupal_get_path('module', 'es_webform') . '/css/es_webform_wysiwyg.css'))),

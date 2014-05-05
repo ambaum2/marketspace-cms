@@ -65,9 +65,9 @@ class product_edit extends product {
 	  		$form_field = array();
 	      //create wysiwyg editor 
 	      $form_field = array(
-	        '#type' => 'text_format', //http://drupal.org/node/1031160#comment-6256154
-	        '#format' => 'content_admin',
-	    		'#title' => $attribute->frontend_label,
+                '#type' => 'text_format', //http://drupal.org/node/1031160#comment-6256154
+                '#format' => 'content_admin',
+	    		'#title' => $component['name'],
 	    		'#required' => (($attribute->is_required == 1) ? TRUE : FALSE),
 	    		'#default_value' => isset($product_data->{$attribute->attribute_code['code']}) ? $product_data->{$attribute->attribute_code['code']} : '',
 	    		'#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
