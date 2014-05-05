@@ -32,7 +32,7 @@ class product {
   public function create_attribute_input($attribute, $form_state = null, $component) {
 	  $form_field = array( //create base field 
 	    '#type' => $this->_convert_attribute_type($attribute->frontend_input),
-	    '#title' => $attribute->frontend_label,
+	    '#title' => $component['name'],
 	    '#required' => (($attribute->is_required == 1) ? TRUE : FALSE),
 	    '#description' => isset($component['extra']['description']) ? $component['extra']['description'] : '',
 	  );
