@@ -207,7 +207,7 @@ function es_webform_fields_field_widget_info() {
  */
 function es_webform_fields_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
 	//$magento = new magento_product_types_sets;
-	$mspaceApi = new mspaceApi;
+	$mspaceApi = new MS_Api;
   $attribute_set = isset($items[$delta]['attribute_set_id']) ? $items[$delta]['attribute_set_id'] : '';
 	$product_type = isset($items[$delta]['product_type']) ? $items[$delta]['product_type'] : '';
   $type_code = isset($items[$delta]['type_code']) ? $items[$delta]['type_code'] : '';
@@ -216,23 +216,23 @@ function es_webform_fields_field_widget_form(&$form, &$form_state, $field, $inst
     '#title' => "Select Product Type",
     '#default_value' => $type_code,
     '#description' => t('Select one attribute set that this form will pull its attributes from'),
-    '#options' => $mspaceApi->apiTokenCall('product/v1/type/'),
+    '#options' => $mspaceApi->apiTokenCall('/mspaceapi/product/v1/type/'),
   );
   $element['attribute_set_id'] = array(          
     '#type' => 'select',
     '#title' => "Select Attribute Set",
     '#default_value' => $attribute_set,
     '#description' => t('Select one attribute set that this form will pull its attributes from'),
-    '#options' => $mspaceApi->apiTokenCall('product/v1/attributeSet/'),
+    '#options' => $mspaceApi->apiTokenCall('/mspaceapi/product/v1/attributeSet/'),
   );
 	//drupal_set_message(print_r($magento->convertProductAttributesToOptionsArray($magento->getAllAttributeSets()), true), 'notice');
-	//drupal_set_message(print_r($mspaceApi->apiTokenCall('product/v1/attribute/type/options/code/product_type'), true), 'notice');
+	//drupal_set_message(print_r($MS_Api->apiTokenCall('product/v1/attribute/type/options/code/product_type'), true), 'notice');
   $element['product_type'] = array(          
     '#type' => 'select',
     '#title' => "Select Product Classification",
     '#default_value' => $product_type,
     '#description' => t('Select one attribute set that this form will pull its attributes from'),
-    '#options' => $mspaceApi->apiTokenCall('product/v1/attribute/type/options/code/product_type'),
+    '#options' => $mspaceApi->apiTokenCall('/mspaceapi/product/v1/attribute/type/options/code/product_type'),
     //@TODO - need to build an rpc for getting product type attribute '#options' => $magento->convertProductAttributesToOptionsArray($magento->getAllAttributeSets()),
   );
   return $element;

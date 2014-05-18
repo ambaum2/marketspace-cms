@@ -1,6 +1,6 @@
 <?php
 
-class productMedia extends mspaceApi {
+class productMedia extends MS_Api {
     
   /**
    * create the porduct edit media manager

@@ -1,6 +1,6 @@
 <?php
 
-class magento_product_attributes extends mspaceApi {
+class magento_product_attributes extends MS_Api {
     
    /*
    * insert new data into webform_es_attribute
