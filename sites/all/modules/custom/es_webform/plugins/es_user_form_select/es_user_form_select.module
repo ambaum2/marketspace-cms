@@ -20,7 +20,7 @@ function es_user_form_select_block_view($delta = '') {
     $taxonomy = taxonomy_vocabulary_machine_name_load($marketspace_forms);
     $terms = taxonomy_get_tree($taxonomy->vid);
   	//foreach tree query webform nodes
-  	$output = "<h1>Choose a Product To Add</h1>";
+  	$output = "<h3>Choose a Product To Add</h3>";
   	foreach($terms as $key=>$term) {
       $item = taxonomy_term_load($term->tid);      
       //get webforms by tid
