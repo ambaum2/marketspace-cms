@@ -188,7 +188,7 @@ function product_edit_form($form, &$form_state) {
             $product_obj->qty = $stock_data_obj[0]->qty;
           }
         $form['product-edit-form'] = array(
-          '#markup' => '<div>' . t('Product Edit Form')
+          '#markup' => '<div>' . t('<span class="label label-default">%webform_type</span>', array('%webform_type' => $node_webform_id[0]->title))
             . '</div>',
           '#attached' => array(
             'js' => array(drupal_get_path('module', 'es_webform') . '/js/accordion_tabs.js'),

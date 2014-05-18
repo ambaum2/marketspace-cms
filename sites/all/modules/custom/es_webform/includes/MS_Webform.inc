@@ -17,6 +17,9 @@ class MS_Webform {
             ->condition('field_market_space_settings_attribute_set_id', (int)$attribute_set_id)
             ->condition('field_market_space_settings_product_type', (int)$product_classification)
             ->condition('field_market_space_settings_type_code', $product_type);
+        $query->leftJoin('node', 'n', 'a.entity_id = n.nid');
+        $query->fields('n', array('title'));
+        $query->condition('n.type', 'webform');
         $node_webform = $query->execute()->fetchAll();
         return $node_webform;
     }
