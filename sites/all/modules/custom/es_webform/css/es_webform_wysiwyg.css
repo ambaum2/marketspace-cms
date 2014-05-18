@@ -1,2 +1,11 @@
 .filter-wrapper {display:none;}
-.ckeditor_links {display:none;}
+.ckeditor_links {
+    display:none;
+    font-size: 0px;
+}
+/*
+    CK Editor styles
+*/
+.cke_path {
+    display: none;
+}
