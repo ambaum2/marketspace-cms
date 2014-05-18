@@ -18,7 +18,7 @@ class productMedia extends MS_Api {
     );
 	  $form[$options['current_fieldset']]['image_manager']['image_add'] = array(
 	    '#type' => 'markup',
-	    '#prefix' => '<div id="image-container"><button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">Image Manager</button>
+	    '#prefix' => '<div id="image-container"><button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">Image Library</button>
 	    	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div style="width:850px;" class="modal-dialog">
 	    	<div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button></div>
 	    	<iframe src="/?q=imce" frameborder="0" style="border: 1px solid #eee; width: 99%; height: 520px" class="imce-frame"></iframe>
