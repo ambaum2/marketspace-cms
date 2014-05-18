@@ -1,20 +1,14 @@
 <?php
 
-class marketSpaceDashboard {
-	
-	public function renderProductGrid() {
-		$magento = new magento_product;
-    global $user;
+class MS_Render {
+	public $Uid;
 
-		$complexFilter = array(
-	    'complex_filter' => array(
-	        array(
-	            'key' => 'marketspace_owner',
-	            'value' => array('key' => 'in', 'value' => $user->uid)
-	        )
-	    )
-		);
-		$products = $magento->getAllUsersProducts($complexFilter);
+    /**
+     * @return array
+     */
+    public function renderProductGrid() {
+        $api = new MS_Api();
+        $products = $api->apiTokenCall("/ms-api/product/users/{$this->Uid}/lists/ProductType", false);
 		return $products;
 	}
   /*

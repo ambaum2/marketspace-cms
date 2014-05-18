@@ -2,155 +2,118 @@
 /* 
  * hook_menu
  */
-   function es_webform_menu() {
-   	
-	$items = array();
-  $items['manage-products'] = array(
-      'page callback' => 'getDashboard',
+function es_webform_menu() {
+    $items = array();
+    $items['manage-products'] = array(
+      'page callback' => 'RenderManageProducts',
       'type' => MENU_CALLBACK,
       //'access callback' => 'user_access',
       'access arguments' => array('access content'),
-  );
-  $items['manage-products/product_edit'] = array(
+    );
+    $items['manage-products/product_edit'] = array(
       'page callback' => 'getProductEdit',
       'type' => MENU_CALLBACK,
       'title' => "Product Edit",
       //'access callback' => 'user_access',
       'access arguments' => array('access content'),
-  );    
-  $items['product-add-manager'] = array(
+    );
+    $items['product-add-manager'] = array(
       'page callback' => 'getAddManager',
       'type' => MENU_CALLBACK,
       //'access callback' => 'user_access',
       'access arguments' => array('access content'),
-  );
-  //admin settings form (es_webform_admin is the settings form function)
-  $items['admin/config/system/marketspace-settings'] = array(
-    'title' => 'Marketspace settings',
-    'description' => 'Setup Marketspace Configuration',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('es_webform_admin'),
-    'access arguments' => array('administer site configuration'),
-    'type' => MENU_NORMAL_ITEM,
-   );
-  /* test urls are below */
-  $items['json-test'] = array(
-      'page callback' => 'getDataFromMagento',
-      'type' => MENU_CALLBACK,
-      //'access callback' => 'user_access',
-      'access arguments' => array('access content'),
-  );
-  $items['reports'] = array(
+    );
+    //admin settings form (es_webform_admin is the settings form function)
+    $items['admin/config/system/marketspace-settings'] = array(
+        'title' => 'Marketspace settings',
+        'description' => 'Setup Marketspace Configuration',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('es_webform_admin'),
+        'access arguments' => array('administer site configuration'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+    $items['reports'] = array(
       'page callback' => 'getProductEdit',
       'type' => MENU_CALLBACK,
       //'access callback' => 'user_access',
       'access arguments' => array('access content'),
-  );
-  $items['oauth-mage'] = array(
-      'page callback' => 'magentoOauthTest',
-      'type' => MENU_CALLBACK,
-      //'access callback' => 'user_access',
-      'access arguments' => array('access content'),
-  ); 
+    );
     return $items;
-  }
+}
 /* 
  * admin settings form
  * 
  */
- function es_webform_admin() {
-  $form = array();
+function es_webform_admin() {
+    $form = array();
 
-  $form['magento_base_url'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Base Url of magento site'),
-    '#default_value' => variable_get('magento_base_url', 'http://communitymarketspace.com/index.php/'),
-    '#size' => 80,
-    '#maxlength' => 400,
-    '#description' => t("Base url plus src and type variables"),
-    '#required' => TRUE,
-  );
-  $form['magento_api_wsdl'] = array(
-    '#type' => 'textfield',
-    '#default_value' => variable_get('magento_api_wsdl', "http://communitymarketspace.com/index.php/api/v2_soap?wsdl"),
-    '#title' => t('base wsdl for magento site'),
-    '#description' => t("disable tab it is annoying"),
-    '#size' => 80,
-    '#maxlength' => 400,
-    '#description' => t("Base url plus src and type variables"),
-    '#required' => TRUE,
-  );
-  return system_settings_form($form);
+    $form['magento_base_url'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Base Url of magento site'),
+        '#default_value' => variable_get('magento_base_url', 'https://communitymarketspace.com/index.php/'),
+        '#size' => 80,
+        '#maxlength' => 400,
+        '#description' => t("Base url plus src and type variables"),
+        '#required' => TRUE,
+    );
+    $form['magento_base_media_url'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Base Media Url of magento products'),
+        '#default_value' => variable_get('magento_base_media_url', 'https://communitymarketspace.com/media/catalog/product'),
+        '#size' => 80,
+        '#maxlength' => 400,
+        '#description' => t("Base url plus path to products"),
+        '#required' => TRUE,
+    );
+    $form['magento_api_wsdl'] = array(
+        '#type' => 'textfield',
+        '#default_value' => variable_get('magento_api_wsdl', "https://communitymarketspace.com/index.php/api/v2_soap?wsdl"),
+        '#title' => t('base wsdl for magento site'),
+        '#description' => t("disable tab it is annoying"),
+        '#size' => 80,
+        '#maxlength' => 400,
+        '#description' => t("Base url plus src and type variables"),
+        '#required' => TRUE,
+    );
+    return system_settings_form($form);
 }
-	function getAddManager() {
-		$output = "";
-		return $output;
-	}
-	function magentoOauthTest() {
-		$magento = new magento_product_rest;
-		$magento->getProducts();
-		return "content";
-	}  
-  /*
-   * get and process json data from
-   * magento
-   */
-  function getDataFromMagento() {
-  /*
-   * as drupal I need to encrypt the data with hmac sha1 or sha256
-   * with a private key so that my request is secure
-   * 
-   * as drupal I need to encrypt with a timestamp so
-   * that my request is less vulnerable to replay attacks
-   */
-   
-  /* TODO: as drupal I need to set a hash in the mysql database 
-   * so that magento can determine if the request is 
-   * real
-   */
-   
-  /* as drupal I need to send a curl request 
-   * over tls so it is secure
-   */
-   
-   
-    
-  }
-	function getReportsDashboard() {
-		//get reports header
-		
-		//load highchartsjs
-		
-		//get data from magento
-		
-		//generate hight charts
-		
-		return $output;
-	}
-	/*
-	 * render dashboard
-	 */
-	function getDashboard() {
-		$dashboard = new marketSpaceDashboard;
-		$magento = new magento;
-		$products = $dashboard->renderProductGrid();
-		$output = "<ul class = 'marketspace_dashboard_grid'>";
-		foreach($products as $product) {
-		  $product_info = $product->product_id . "," . $product->set . "," . $product->type;
-			$output .= "<li><a href='manage-products/product_edit?info=" . urlencode($product_info)
-				. "'>" . $product->name . "</a></li>";
-		}
-		$output = $output . "</ul>";
-		return $output;
-	}   
 
-  /*
-   * render product edit
-   */
-  function getProductEdit() {
-    return drupal_get_form('product_edit_form');
-    
-  }  
+    /**
+     * @return array
+     */
+    function es_webform_theme($existing, $type, $theme, $path) {
+        $items = array();
+        $items['ms-manage-products'] = array(
+            'path' => drupal_get_path('theme', 'cm') . '/templates',
+            'template' => 'manage-products',
+            'variables' => array(
+                'junk' => 123,
+            ),
+        );
+        return $items;
+    }
+
+    /**
+     * displays the manage products page template
+     */
+    function RenderManageProducts() {
+		global $user;
+        $dashboard = new MS_Render;
+        $dashboard->Uid = $user->uid;
+		$products = $dashboard->renderProductGrid();
+		return theme('ms-manage-products', array('ms_products_list' => $products));
+	}
+
+    function getAddManager() {
+        $output = "";
+        return $output;
+    }
+/*
+ * render product edit
+ */
+    function getProductEdit() {
+        return drupal_get_form('product_edit_form');
+    }
 
 function product_edit_form($form, &$form_state) {
     /*
@@ -159,6 +122,7 @@ function product_edit_form($form, &$form_state) {
      * attribute set
      */
     $product = new magento_product;
+    $MS_Webform = new MS_Webform();
     $product_edit = new product_edit;
     $magento = new magento;
     $magento_product_attributes = new magento_product_attributes;
@@ -183,7 +147,7 @@ function product_edit_form($form, &$form_state) {
       $product_data = explode(",", $product_string);
      
   		//get webform nid by attribute set attribute
-  		$node_webform_id = $product->getWebformIdByAttributeSetAndType($product_data[1], $product_data[2]);
+  		$node_webform_id = $MS_Webform->GetWebformId($product_data[1], $product_data[2], $product_data[3]);
   		if(count($node_webform_id) == 1) { //make sure just one webform	TODO:- may want to have multiple
   			$product_id = $product_data[0];
   			$node = node_load($node_webform_id[0]->entity_id);
