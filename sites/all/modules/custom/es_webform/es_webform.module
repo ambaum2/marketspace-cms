@@ -98,9 +98,10 @@ function es_webform_admin() {
      */
     function RenderManageProducts() {
 		global $user;
-        $dashboard = new MS_Render;
+        $dashboard = new MS_Render_Manage_Products();
+        $dashboard->Method = 'ProductGrid';
         $dashboard->Uid = $user->uid;
-		$products = $dashboard->renderProductGrid();
+		$products = $dashboard->render();
 		return theme('ms-manage-products', array('ms_products_list' => $products));
 	}
 

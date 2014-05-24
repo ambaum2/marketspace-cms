@@ -23,4 +23,20 @@ class MS_Webform {
         $node_webform = $query->execute()->fetchAll();
         return $node_webform;
     }
+
+    /**
+     * get nodes by tid vs
+     *  field_data_field_form_category
+     */
+    public function getWebformsByTidAndFormCategory($tid) {
+        $query = db_select('field_data_field_form_category', 'a')
+            ->fields('a',array('entity_id'))
+            ->condition('field_form_category_tid', (int)$tid);
+        $node_webforms = $query->execute()->fetchAll();
+        if(count($node_webforms) > 0) {
+            return $node_webforms;
+        } else {
+            return false;
+        }
+    }
 }

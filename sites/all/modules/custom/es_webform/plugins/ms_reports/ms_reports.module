@@ -1,0 +1,54 @@
+<?php
+
+/*
+ * hook_menu
+ */
+function ms_reports_menu() {
+    $items = array();
+    $items['products-reports'] = array(
+        'page callback' => 'RenderReportsDashboard',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
+
+    return $items;
+}
+
+/**
+ * @return array
+ */
+function ms_reports_theme($existing, $type, $theme, $path) {
+    $items = array();
+    $items['ms-manage-products-reports'] = array(
+        'path' => drupal_get_path('theme', 'cm') . '/templates',
+        'template' => 'products-reports',
+        'variables' => array(
+            'junk' => 123,
+        ),
+    );
+    return $items;
+}
+
+function RenderReportsDashboard() {
+    global $user;
+    $dashboard = new MS_Render_Reports();
+    $dashboard->Uid = $user->uid;
+    $dashboard->Method = "ReportsGrid";
+    $products = $dashboard->render();
+    $active_item = isset($_GET['id']) ? $_GET['id'] : '';
+    $dashboard->Method = "ProductChart";
+    $dashboard->Products = $active_item;
+    $report = $dashboard->render();
+    $report_json = json_encode($report);
+    drupal_add_js("jQuery(function () { jQuery('#ms-sales-chart').highcharts($report_json);});",
+        array('type' => 'inline', 'scope' => 'footer', 'weight' => 5)
+    );
+    return theme(
+        'ms-manage-products-reports',
+        array(
+            'ms_products_reports_list' => $products,
+            'ms_active_product_id' => $active_item,
+            'ms_product_report_json' => $report,
+        )
+    );
+}

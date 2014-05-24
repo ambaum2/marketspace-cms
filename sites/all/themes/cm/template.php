@@ -10,7 +10,7 @@
  * @param $hooks
  */
 function cm_process_page(&$vars, $hooks){
-    if (in_array(arg(1), array('manage-products'))) {
+    if (in_array(arg(1), array('manage-products', 'products-reports'))) {
         // name will be "manage-products.tpl.php".
         $vars['theme_hook_suggestions'][] = '' . arg(1);
     }

@@ -24,7 +24,7 @@ function es_user_form_select_block_view($delta = '') {
   	foreach($terms as $key=>$term) {
       $item = taxonomy_term_load($term->tid);      
       //get webforms by tid
-      $interface = new MS_Render;
+      $interface = new MS_Webform();
       $webform_ids = $interface->getWebformsByTidAndFormCategory($item->tid);
       if($webform_ids) {
         $output .= "<h2 class='product-edit-group-marketspace-tab marketspace-dashboard-tab'><img class='market-space-tab-image' src='"
