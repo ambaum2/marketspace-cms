@@ -73,9 +73,46 @@
  * @ingroup themeable
  */
 ?>
-
-
 <div class="main-container container">
+<header id="navbar" style="background:url(<?php !empty($logo) ? print $logo : ''; ?>) repeat-x #ffffff" role="banner" class="img-responsive <?php print $navbar_classes; ?>">
+    <div class="header" >
+        <div class="navbar-header">
+            <?php if ($logo): ?>
+                <!--<a class="logo navbar-btn pull-left" href="<?php print $front_page; ?>" title="<?php print t('Home'); ?>">
+          <img class="img-responsive" src="<?php print $logo; ?>" alt="<?php print t('Home'); ?>" />
+        </a>-->
+            <?php endif; ?>
+
+            <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+
+        <?php if (!empty($primary_nav) || !empty($secondary_nav) || !empty($page['navigation'])): ?>
+            <div class="row">
+                <div class="navbar-collapse collapse">
+                    <nav role="navigation">
+                        <?php if (!empty($primary_nav)): ?>
+                            <?php print render($primary_nav); ?>
+                        <?php endif; ?>
+                        <?php if (!empty($secondary_nav)): ?>
+                            <?php print render($secondary_nav); ?>
+                        <?php endif; ?>
+                        <?php if (!empty($page['navigation'])): ?>
+                            <?php print render($page['navigation']); ?>
+                        <?php endif; ?>
+                    </nav>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</header>
+
+
 
     <header role="banner" id="page-header">
         <?php if (!empty($site_slogan)): ?>
@@ -91,7 +128,8 @@
                 <?php print render($page['sidebar_first']); ?>
             </aside>  <!-- /#sidebar-first -->
         <?php endif; ?>
-
+            <?php print theme('links__menu_product_reports', array('links' => $ms_product_reports_nav, 'attributes' => array('id' => 'ms-products-reports-menu',
+                'class' => array('nav', 'nav-pills')))); ?>
         <section<?php //print $content_column_class; ?>>
             <?php if (!empty($page['highlighted'])): ?>
                 <div class="highlighted jumbotron"><?php print render($page['highlighted']); ?></div>
@@ -115,30 +153,12 @@
             <?php endif; ?>
             <?php print render($page['content']); ?>
         </section>
-        <div class="row">
-            <div class="col-md-4 col-sm-4">
-                <?php foreach($ms_products_reports_list as $key => $item) : ?>
-                    <div class="list-group">
 
-                            <a href="products-reports?id=<?php print $item->product_id; ?>" class="list-group-item <?php $ms_active_product_id == $item->product_id ? print 'active' : '' ?>">
-                                    <img width="64px" class="img-responsive" src="<?php print variable_get('magento_base_media_url') . $item->thumbnail; ?>" alt="<?php print $item->name; ?>" />
-                                <div class="caption">
-                                    <h4><?php print $item->name; ?></h4>
-                                </div>
-                            </a>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-            <div class="col-md-8 col-sm-8">
-                <div style='min-width: 310px; height: 400px; margin: 0 auto' id="ms-sales-chart"></div>
-            </div>
-        </div>
         <?php if (!empty($page['sidebar_second'])): ?>
             <aside class="col-sm-3" role="complementary">
                 <?php print render($page['sidebar_second']); ?>
             </aside>  <!-- /#sidebar-second -->
         <?php endif; ?>
-
     </div>
 </div>
 <footer class="footer container">

@@ -4,6 +4,10 @@ class MS_Render_Reports implements iMS_Render {
     public $Api;
     public $Products;
     public $Method;
+    /** @var $ListType String */
+    public $ListType;
+    /** @var $ListTypeParameters String */
+    public $ListTypeParameters;
     function __construct() {
         if(!isset($Api)) {
             $this->Api = new MS_Api();
@@ -28,7 +32,7 @@ class MS_Render_Reports implements iMS_Render {
             if(empty($this->Uid))
                 throw new Exception("Uid not set");
 
-            $products = $this->Api->apiTokenCall("/ms-api/reports/owners/{$this->Uid}/orders/types/AllOrders/all", false);
+            $products = $this->Api->apiTokenCall("/ms-api/reports/owners/{$this->Uid}/orders/types/{$this->ListType}/{$this->ListTypeParameters}", false);
         } catch(Exception $e) {
             throw new Exception($e->getMessage());
         }

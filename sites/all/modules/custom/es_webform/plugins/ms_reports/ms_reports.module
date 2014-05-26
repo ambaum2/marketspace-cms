@@ -6,11 +6,15 @@
 function ms_reports_menu() {
     $items = array();
     $items['products-reports'] = array(
-        'page callback' => 'RenderReportsDashboard',
+        'page callback' => 'RenderReportsChartsDashboard',
         'type' => MENU_CALLBACK,
         'access arguments' => array('access content'),
     );
-
+    $items['products-reports-grid'] = array(
+        'page callback' => 'RenderReportsGridDashboard',
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access content'),
+    );
     return $items;
 }
 
@@ -19,21 +23,27 @@ function ms_reports_menu() {
  */
 function ms_reports_theme($existing, $type, $theme, $path) {
     $items = array();
-    $items['ms-manage-products-reports'] = array(
+    $items['product_reports_charts_block'] = array(
         'path' => drupal_get_path('theme', 'cm') . '/templates',
-        'template' => 'products-reports',
+        'template' => 'products-reports-charts-block',
         'variables' => array(
             'junk' => 123,
         ),
     );
+    $items['products_reports_grid_block'] = array(
+        'path' => drupal_get_path('theme', 'cm') . '/templates',
+        'template' => 'products-reports-grid-block',
+    );
     return $items;
 }
 
-function RenderReportsDashboard() {
+function RenderReportsChartsDashboard() {
     global $user;
     $dashboard = new MS_Render_Reports();
     $dashboard->Uid = $user->uid;
     $dashboard->Method = "ReportsGrid";
+    $dashboard->ListType = "AllOrders";
+    $dashboard->ListTypeParameters = "all";
     $products = $dashboard->render();
     $active_item = isset($_GET['id']) ? $_GET['id'] : '';
     $dashboard->Method = "ProductChart";
@@ -44,11 +54,27 @@ function RenderReportsDashboard() {
         array('type' => 'inline', 'scope' => 'footer', 'weight' => 5)
     );
     return theme(
-        'ms-manage-products-reports',
+        'product_reports_charts_block',
         array(
             'ms_products_reports_list' => $products,
             'ms_active_product_id' => $active_item,
             'ms_product_report_json' => $report,
+        )
+    );
+}
+
+function RenderReportsGridDashboard() {
+    global $user;
+    $dashboard = new MS_Render_Reports();
+    $dashboard->Uid = $user->uid;
+    $dashboard->Method = "ReportsGrid";
+    $dashboard->ListType = "AllOrdersDetails";
+    $dashboard->ListTypeParameters = "all";
+    $products = $dashboard->render();
+    return theme(
+        'products_reports_grid_block',
+        array(
+            'ms_products_reports_list' => $products,
         )
     );
 }

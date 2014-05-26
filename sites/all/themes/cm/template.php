@@ -9,11 +9,14 @@
  * @param $vars
  * @param $hooks
  */
-function cm_process_page(&$vars, $hooks){
-    if (in_array(arg(1), array('manage-products', 'products-reports'))) {
+function cm_preprocess_page(&$vars){
+    if (in_array(arg(0), array('manage-products', 'products-reports', 'products-reports-grid'))) {
         // name will be "manage-products.tpl.php".
-        $vars['theme_hook_suggestions'][] = '' . arg(1);
+       $vars['theme_hook_suggestions'][] = str_replace(array('-'), '_', arg(0));
     }
+    //$vars['ms_product_reports_nav_2'] = menu_tree(variable_get('ms_product_reports_links_source', 'menu-product-reports'));
+    $vars['ms_product_reports_nav'] = menu_navigation_links('menu-product-reports');
+
     $excluded_menu_items = array('File browser');
     for($i=0; $i < count($vars['tabs']['#primary']); $i++) {
         if(isset($vars['tabs']['#primary'][$i])) {
