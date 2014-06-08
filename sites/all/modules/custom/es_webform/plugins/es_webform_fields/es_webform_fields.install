@@ -22,17 +22,63 @@
  * @ingroup field_example
  */
 function es_webform_fields_field_schema($field) {
-  $columns = array(
-    'type_code' => array('type'=>'varchar', 'length'=>64, 'not null' => TRUE),
-    'attribute_set_id' => array('type'=>'varchar', 'length' => 64, 'not null' => TRUE),
-    'product_type' => array('type'=>'varchar', 'length' => 64, 'not null' => TRUE),
-    'preset_attributes' => array('type'=>'text', 'not null' => FALSE),
-  );
-  $indexes = array(
-    'type_code' => array('type_code'),
-  );
-  return array(
-    'columns' => $columns,
-    'indexes' => $indexes,
-  );
+    $columns = array(
+        'type_code' => array('type'=>'varchar', 'length'=>64, 'not null' => TRUE),
+        'attribute_set_id' => array('type'=>'varchar', 'length' => 64, 'not null' => TRUE),
+        'product_type' => array('type'=>'varchar', 'length' => 64, 'not null' => TRUE),
+        'preset_attributes' => array('type'=>'text', 'not null' => FALSE),
+        'weight' => array('type'=>'int', 'size' => 'normal', 'default' => 0, 'description' => 'weight of webform - in relation to other webforms within this taxonomy', 'not null' => FALSE),
+    );
+    $indexes = array(
+        'type_code' => array('type_code'),
+    );
+    return array(
+        'columns' => $columns,
+        'indexes' => $indexes,
+    );
+}
+
+/**
+ * get all fields this field is
+ * used in
+ * @return array
+ */
+function es_webform_fields_get_all_fields() {
+    $types = array_keys(es_webform_fields_field_info()); // field types defined in mymodule
+    $fields = array();
+    foreach (field_info_fields() as $field) {
+        if (in_array($field['type'], $types)) {
+            $fields = array(array(
+                'table' => _field_sql_storage_tablename($field),
+                'revision_table' => _field_sql_storage_revision_tablename($field),
+                'field_name' => $field['field_name'],
+            ));
+        }
+    }
+    return $fields;
+}
+/**
+ * add weight field for ordering webforms
+ * within a taxonomy
+ * info on schema fields https://drupal.org/node/150215
+ */
+function es_webform_fields_update_7200(&$sandbox) {
+    $spec = array(
+        'description' => 'weight of webform - in relation to other webforms within this taxonomy (small to large 1, 2, 3, etc)',
+        'type' => 'int',
+        'size' => 'normal',
+        'not null' => FALSE,
+    );
+
+    $fields = es_webform_fields_get_all_fields();
+    foreach($fields as $field) {
+        $field_name = $field['field_name'] .'_weight';
+        $data_table_name = $field['table'];
+        $revision_table_name = $field['revision_table'];
+
+        db_add_field($data_table_name, $field_name, $spec);
+        db_add_field($revision_table_name, $field_name, $spec);
+    }
+
+    return print_r($fields, true);
 }
