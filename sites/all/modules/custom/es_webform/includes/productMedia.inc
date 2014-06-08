@@ -121,7 +121,7 @@ class productMedia extends MS_Api {
         $label = "Thumbnail Image";
         break;
       default:
-        $label = "Main " . ($key - 2);
+        $label = "Main " . ($key - 1);
         break;
     }
     return $label;
