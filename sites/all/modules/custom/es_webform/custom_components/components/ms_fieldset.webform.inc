@@ -62,10 +62,16 @@ function _webform_render_ms_fieldset($component, $value = NULL, $filter = FALSE)
     $help_text = (!empty($component['extra']['help_video_embed'])) ?
         '&nbsp;<button type="button" class="btn btn-warning btn-lg pull-right" data-toggle="modal" data-target=".ms-detail-modal-' . $component['cid'] . '">
         <span class="glyphicon glyphicon-thumbs-up"></span>&nbsp; Help Me</button>
-        <div class="modal fade ms-detail-modal-'. $component['cid'] . '" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content well">
-                    '. $component['extra']['help_video_embed'] . '
+        <div class="ms-modal modal fade ms-detail-modal-'. $component['cid'] . '" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">'. $component['name'] .' Help</h4>
+                    </div>
+                    <div class="modal-body">
+                        '. $component['extra']['help_video_embed'] . '
+                    </div>
                 </div>
             </div>
         </div>' : '';

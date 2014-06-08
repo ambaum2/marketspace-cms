@@ -122,3 +122,8 @@ html .cke_editable_themed {background:white;color:black;}
 	height: 120px;
 	width: 120px;
 }
+
+/** help me and modals **/
+.modal-dialog {
+    display: table;
+}
