@@ -314,7 +314,7 @@ function product_edit_form($form, &$form_state) {
   								'#markup' => t('!value', array('!value'=>$component['value'])), //$component['form_key']['value'];
   								'#type' => $component['type'],
   							);
-  						} elseif($component['type'] == 'fieldset') { //@TODO is this okay? if no active field set nothing gets selected as active
+  						} elseif($component['type'] == 'fieldset' || $component['type'] == 'ms_fieldset') { //@TODO is this okay? if no active field set nothing gets selected as active
   							if($form_state['active_fieldset_name'] == $component['form_key']) {
 									$tab_state_class = ' product-edit-group-marketspace-tab-active';
 								} else {
