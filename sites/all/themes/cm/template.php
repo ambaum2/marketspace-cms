@@ -10,9 +10,9 @@
  * @param $hooks
  */
 function cm_preprocess_page(&$vars){
-    if (in_array(arg(0), array('manage-products', 'products-reports', 'products-reports-grid'))) {
+    if (in_array(arg(0), array('manage-products', 'ms-reports'))) {
         // name will be "manage-products.tpl.php".
-       $vars['theme_hook_suggestions'][] = str_replace(array('-'), '_', arg(0));
+        $vars['theme_hook_suggestions'][] = str_replace(array('-'), '_', arg(1));
     }
     //$vars['ms_product_reports_nav_2'] = menu_tree(variable_get('ms_product_reports_links_source', 'menu-product-reports'));
     $vars['ms_product_reports_nav'] = menu_navigation_links('menu-product-reports');

@@ -2,7 +2,7 @@
     <div class="col-md-4 col-sm-4">
         <?php foreach($ms_products_reports_list as $key => $item) : ?>
             <div class="list-group">
-                <a href="products-reports?id=<?php print $item->product_id; ?>" class="list-group-item <?php $ms_active_product_id == $item->product_id ? print 'active' : '' ?>">
+                <a href="<?php print current_path(); ?>?id=<?php print $item->product_id; ?>" class="list-group-item <?php $ms_active_product_id == $item->product_id ? print 'active' : '' ?>">
                     <img width="64px" class="img-responsive" src="<?php print variable_get('magento_base_media_url') . $item->thumbnail; ?>" alt="<?php print $item->name; ?>" />
                     <div class="caption">
                         <h4><?php print $item->name; ?></h4>

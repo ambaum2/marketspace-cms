@@ -472,16 +472,29 @@ function product_edit_form_submit(&$form, &$form_state) {
  * Implements hook_webform_component_info().
  */
 function es_webform_webform_component_info() {
-  $components['es_webform'] = array(
-    'label' => t('Magento Attribute'),
-    'description' => t('Lets users pay before being able to submit a webform.'),
-    'features' => array(
-      'default_value' => FALSE,
-      'required' => TRUE,
-    ),
-    'file' => 'es_webform.webform.inc',
-  );
-
+    $components['es_webform'] = array(
+        'label' => t('Magento Attribute'),
+        'description' => t('Lets users pay before being able to submit a webform.'),
+        'features' => array(
+          'default_value' => FALSE,
+          'required' => TRUE,
+        ),
+        'file' => 'es_webform.webform.inc',
+    );
+    $components['ms_fieldset'] = array(
+        'label' => t('Marketspace Fieldset'),
+        'description' => t('Adds more options to the built in webform fieldset'),
+        'description' => t('Fieldsets allow you to organize multiple fields into groups.'),
+        'features' => array(
+            'csv' => FALSE,
+            'default_value' => FALSE,
+            'required' => FALSE,
+            'conditional' => FALSE,
+            'group' => TRUE,
+            'title_inline' => FALSE,
+        ),
+        'file' => 'custom_components/components/ms_fieldset.webform.inc',
+    );
   return $components;
 }
 

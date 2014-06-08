@@ -5,12 +5,12 @@
  */
 function ms_reports_menu() {
     $items = array();
-    $items['products-reports'] = array(
+    $items['ms-reports/products-reports'] = array(
         'page callback' => 'RenderReportsChartsDashboard',
         'type' => MENU_CALLBACK,
         'access arguments' => array('access content'),
     );
-    $items['products-reports-grid'] = array(
+    $items['ms-reports/products-reports-grid'] = array(
         'page callback' => 'RenderReportsGridDashboard',
         'type' => MENU_CALLBACK,
         'access arguments' => array('access content'),
@@ -27,12 +27,15 @@ function ms_reports_theme($existing, $type, $theme, $path) {
         'path' => drupal_get_path('theme', 'cm') . '/templates',
         'template' => 'products-reports-charts-block',
         'variables' => array(
-            'junk' => 123,
+            'ms-template-type' => 'reports',
         ),
     );
     $items['products_reports_grid_block'] = array(
         'path' => drupal_get_path('theme', 'cm') . '/templates',
         'template' => 'products-reports-grid-block',
+        'variables' => array(
+            'ms-template-type' => 'reports',
+        ),
     );
     return $items;
 }
