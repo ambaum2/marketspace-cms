@@ -230,83 +230,69 @@ function product_edit_form($form, &$form_state) {
             if($inventory_type == 'select') {
               $form[$current_fieldset][$component['extra']['inventory_attribute']]['#options'] = array(1 => 'In Stock', 0 => 'Out Of Stock');
             }
-  				} elseif(isset($component['extra']['magento_attribute_code_name'])) {
-  					if($component['extra']['magento_attribute_code_name'] == 'categories') {
-  						//$category = new magento_product_category;
-  						$category = new Product_Category;
-  						$value_path = "";
-  				    $the_path = array_searchRecursive("Array", $component, $strict=false, $path=array(), $value_path);
-  				    $checked_categories = explode(",",$value_path);
-  						$selected_categories = array();
-  						foreach($product_obj->{$component['extra']['magento_attribute_code_name']} as $key=>$cat) {
-  							$selected_categories[$cat] = 1;
-  						}
-  						//TODO use a different more abstract function for category rendering - this is messy
-  				    $categories = $category->get_categories($checked_categories, $excluded_categories = array(2));
-              $categories = $category->getSortedCategories($categories);
-  						$category->create_category_checkboxes($categories, $form[$current_fieldset], $component, true, $selected_categories);
-  						//$form[$current_fieldset]['categories'] = $form['categories']; //should probably clean this up so we can avoid the unset and this
-  						//unset($form['categories']);
-  					} elseif($component['extra']['magento_attribute_code_name'] == 'product_image') {
-                $magento_media = new magento_media;
-                $productMedia = new productMedia;
-                $images = $magento_media->get_all_media($product_id);
-                $productMedia->createMediaImageContainer($form, $images, array('current_fieldset'=>$current_fieldset));
-            } elseif($component['extra']['magento_attribute_code_name'] == 'custom_options') {
-        				$product_custom_options = new product_custom_options;
-                $magento_custom_options = new magento_custom_options;
-								$options = $product_custom_options->getAllCustomOptions();
-								$form[$current_fieldset]['#tree'] = TRUE;
-								$form[$current_fieldset]['#prefix'] = $form[$current_fieldset]['#prefix'] . "<div id='custom-options-wrapper'>";
-								$form[$current_fieldset]['#suffix'] = $form[$current_fieldset]['#suffix'] . "</div>";
-								
-								$custom_options_count = 0;
-								//make api call
-								$magento_product_options = $magento_custom_options->get_product_custom_options($product_id);
-								//then add all magento options to new options count
-								//STEP 1: add existing magento custom options
-								if(count($magento_product_options) > 0) {
-  								foreach($magento_product_options as $key=>$option) { //option_id, title, type, sort_order, is_require
-  								  $this_option = $magento_custom_options->get_custom_option_info($option->option_id);
-                    $this_option->id = $option->option_id;
-                    //dpm($this_option); //additional_fields[0]->price, price_type, sku, max_characters
-                    //@TODO- put a delete checkbox instead of a delete button for existing magento options
-                    //gray out option on click and say marked for delete save to apply changes
-  								  $form[$current_fieldset][$key] = $product_custom_options->renderOptionInfoForm($options, $key, $form_state, $this_option); 
-  								}
+            } elseif(isset($component['extra']['magento_attribute_code_name'])) {
+                if($component['extra']['magento_attribute_code_name'] == 'categories') {
+                    $category = new Product_Category;
+                    $value_path = "";
+                    $the_path = array_searchRecursive("Array", $component, $strict=false, $path=array(), $value_path);
+                    $checked_categories = explode(",",$value_path);
+                    $selected_categories = array();
+                    foreach($product_obj->{$component['extra']['magento_attribute_code_name']} as $key=>$cat) {
+                        $selected_categories[$cat] = 1;
+                    }
+                    //TODO use a different more abstract function for category rendering - this is messy
+                    $categories = $category->get_categories($checked_categories, $excluded_categories = array(2));
+                    $categories = $category->getSortedCategories($categories);
+                    $category->create_category_checkboxes($categories, $form[$current_fieldset], $component, true, $selected_categories);
+                } elseif($component['extra']['magento_attribute_code_name'] == 'product_image') {
+                    $magento_media = new magento_media;
+                    $productMedia = new productMedia;
+                    $images = $magento_media->get_all_media($product_id);
+                    $productMedia->createMediaImageContainer($form, $images, array('current_fieldset'=>$current_fieldset));
+                } elseif($component['extra']['magento_attribute_code_name'] == 'custom_options') {
+                    $product_custom_options = new product_custom_options;
+                    $magento_custom_options = new magento_custom_options;
+                    $options = $product_custom_options->getAllCustomOptions();
+                    $form[$current_fieldset]['#tree'] = TRUE;
+                    $form[$current_fieldset]['#prefix'] = $form[$current_fieldset]['#prefix'] . "<div id='custom-options-wrapper'>";
+                    $form[$current_fieldset]['#suffix'] = $form[$current_fieldset]['#suffix'] . "</div>";
+
+                    $custom_options_count = 0;
+                    $magento_product_options = $magento_custom_options->get_product_custom_options($product_id);
+                    if(count($magento_product_options) > 0) {
+                        foreach($magento_product_options as $key=>$option) { //option_id, title, type, sort_order, is_require
+                            $this_option = $magento_custom_options->get_custom_option_info($option->option_id);
+                            $this_option->id = $option->option_id;
+                            //@TODO- put a delete checkbox instead of a delete button for existing magento options
+                            $form[$current_fieldset][$key] = $product_custom_options->renderOptionInfoForm($options, $key, $form_state, $this_option);
+                        }
+                    }
+                    //check for new added options but not sent to magento
+                    if(isset($form_state['input']['custom_options'])) { //add pending add options to magento options
+                        $custom_options_count = $custom_options_count + count($form_state['input']['custom_options']);
+                    }
+                    if(isset($form_state['input']['custom_options'])) {
+                        foreach($form_state['input']['custom_options'] as $key=>$option) {
+                            $form[$current_fieldset][$key] = $product_custom_options->renderOptionInfoForm($options, $key, $form_state, null);
+                        }
+                    }
+                    //set custom option count to one to reflect the need for an extra option
+                    if(isset($form_state['triggering_element']['#value'])) {
+                    if ($form_state['triggering_element']['#value'] == 'Add Custom Option') {
+                            $form[$current_fieldset][($custom_options_count)] = $product_custom_options->renderOptionInfoForm($options, $custom_options_count, $form_state, null);
+                        }
+                    }
+                    $form[$current_fieldset]['add_custom_option'] = array(
+                        '#type' => 'button',
+                        '#value' => t('Add Custom Option'),
+                        '#ajax' => array(
+                            'method' => 'before',
+                            'callback' => 'add_custom_option',//'ajax_example_add_more_callback', es_webform_add_new add_custom_option
+                            'wrapper' => 'edit-custom-options-add-custom-option',//'edit-custom-options-' . ($custom_options_count),
+                        ),
+                        '#prefix' => '<!--<attributes><id>'. $custom_options_count . '</id></attributes>-->',
+                    );
                 }
-								//check for new added options but not sent to magento
-								if(isset($form_state['input']['custom_options'])) { //add pending add options to magento options
-									$custom_options_count = $custom_options_count + count($form_state['input']['custom_options']);
-								} 
-			
-								//STEP 2: Newly added custom options in drupal that are in form_state
-								// but not saved in magento - excludes the option that appears after clicking add (Step 3)
-								if(isset($form_state['input']['custom_options'])) {
-									foreach($form_state['input']['custom_options'] as $key=>$option) {
-										$form[$current_fieldset][$key] = $product_custom_options->renderOptionInfoForm($options, $key, $form_state, null);
-									}
-								}
-								//Step 3: display new custom option add element if 
-								//add custom option button clicked if so 
-								//set custom option count to one to reflect the need for an extra option
-								if(isset($form_state['triggering_element']['#value'])) {
-  							  if ($form_state['triggering_element']['#value'] == 'Add Custom Option') {
-  							    $form[$current_fieldset][($custom_options_count)] = $product_custom_options->renderOptionInfoForm($options, $custom_options_count, $form_state, null);
-  									//watchdog('form info', '%num_count count and <pre>%form</pre><br />',array('%form' => print_r($form_state,true), '%num_count'=>$custom_options_count),WATCHDOG_NOTICE);
-  							  }
-                }
-							  $form[$current_fieldset]['add_custom_option'] = array(
-							    '#type' => 'button',
-							    '#value' => t('Add Custom Option'),
-							    '#ajax' => array(
-							    	'method' => 'before',
-							      'callback' => 'add_custom_option',//'ajax_example_add_more_callback', es_webform_add_new add_custom_option
-							      'wrapper' => 'edit-custom-options-add-custom-option',//'edit-custom-options-' . ($custom_options_count),
-							    ),
-							    '#prefix' => '<!--<attributes><id>'. $custom_options_count . '</id></attributes>-->',
-							  );
-						}
           } else { //not a regular attribute could be categories, custom attributes, images etc
           	if($component['type'] != 'pagebreak') {
   						if($component['type'] == 'markup') {

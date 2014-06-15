@@ -154,7 +154,7 @@ class magento_product_attributes extends MS_Api {
 			   }       
 			} elseif(isset($value['value']['image_manager'])) { //probably want to handle all other types media, categories, custom attributes etc with $node->webform['components'][$item]['extra']['magento_attribute_code_name'] == "categories" or whatever type it is
           $data['media_data'] = $this->processMediaData($value['value']['image_manager']);
-			} elseif(isset($value['value']['categories'])) {//this was old check think it fails isset($value['value']['magento_categories'])) {      
+			} elseif(isset($value['value']['categories'])) {//this was old check think it fails isset($value['value']['magento_categories'])) {
 			  $categories = array();
 			  foreach($value['value']['categories'] as $cat_key=>$cat_value) {
 			    if($cat_value == 1) {

@@ -1,0 +1,34 @@
+<?php
+
+
+/**
+ * Implements hook_webform_component_info().
+ */
+function ms_categories_webform_component_info() {
+  $components['ms_categories'] = array(
+    'label' => t('Marketspace Category Select'),
+    'description' => t('Lets users select magento categories.'),
+    'features' => array(
+      'default_value' => FALSE,
+      'required' => TRUE,
+    ),
+    'file' => 'ms_categories.webform.inc',
+  );
+
+  return $components;
+}
+
+/* add js and css 
+ * see webform.module line 1857 webform_client_form
+ * function for a good example
+ * any webform will be webform_client_form_(nid)
+ * so webform_client_form_2
+ */
+/*function ms_categories_form_alter(&$form, $form_state, $form_id){
+  if($form_id == 'ms_categories') {
+    $form['#attached'] = array(
+      'js' => array(drupal_get_path('module', 'ms_categories') . '/js/toggle_category.js'),
+      'css' => array(drupal_get_path('module', 'ms_categories') . '/css/custom_components.css'),
+    );
+   }
+}*/

@@ -1,0 +1,7 @@
+name = Marketspace Webform Category Component
+description = webform magento category selector component
+core = 7.x
+dependencies[] = es_webform
+; Information added by drupal.org packaging script on 2012-11-18
+version = "7.x-1.x-dev"
+core = "7.x"

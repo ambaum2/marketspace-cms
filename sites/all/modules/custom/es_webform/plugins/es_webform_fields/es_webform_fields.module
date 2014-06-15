@@ -212,7 +212,7 @@ function es_webform_fields_field_widget_form(&$form, &$form_state, $field, $inst
     $product_type = isset($items[$delta]['product_type']) ? $items[$delta]['product_type'] : '';
     $type_code = isset($items[$delta]['type_code']) ? $items[$delta]['type_code'] : '';
     $weight = isset($items[$delta]['weight']) ? $items[$delta]['weight'] : '';
-    dpm($element);
+
     $element['weight'] = array(
         '#type' => 'textfield',
         '#title' => "Ordering",
