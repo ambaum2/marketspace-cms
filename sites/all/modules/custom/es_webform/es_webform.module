@@ -232,18 +232,31 @@ function product_edit_form($form, &$form_state) {
             }
             } elseif(isset($component['extra']['magento_attribute_code_name'])) {
                 if($component['extra']['magento_attribute_code_name'] == 'categories') {
-                    $category = new Product_Category;
-                    $value_path = "";
-                    $the_path = array_searchRecursive("Array", $component, $strict=false, $path=array(), $value_path);
-                    $checked_categories = explode(",",$value_path);
-                    $selected_categories = array();
-                    foreach($product_obj->{$component['extra']['magento_attribute_code_name']} as $key=>$cat) {
-                        $selected_categories[$cat] = 1;
+                    $category_list = array();
+
+                    foreach($node->webform['components'][$component['cid']]['extra']['magento_categories'] as $key => $value) {
+                        if($value == 1)
+                            $category_list[] = $key;
                     }
-                    //TODO use a different more abstract function for category rendering - this is messy
-                    $categories = $category->get_categories($checked_categories, $excluded_categories = array(2));
-                    $categories = $category->getSortedCategories($categories);
-                    $category->create_category_checkboxes($categories, $form[$current_fieldset], $component, true, $selected_categories);
+                    $category_list_string = implode(',', $category_list);
+                    $Api = new MS_Api();
+                    $categories = $Api->apiTokenCall("/ms-api/categories/tree/lists/filtered/Nested/1/10/$category_list_string", false);
+                    $form[$current_fieldset]['categories'] = array(
+                        '#type' => 'checkboxes',
+                        //'#attributes' => array('class' => array('btn-group'), 'data-toggle' => 'buttons'),
+                        // => array('ms_categories_remove_markup'),
+                    );
+                    foreach($categories as $key => $category) {
+                        //$categories_checkboxes[$category->category_id] = $category->name;
+                        $form[$current_fieldset]['categories'][$category->category_id] = array(
+                            '#type' => 'checkbox',
+                            '#title' => t($category->name),
+                            '#prefix' => '<div style="margin-left:'. $category->level * 10 . 'px;">',
+                            '#suffix' => '</div>',
+                            '#default_value' => in_array($category->category_id, $product_obj->{$component['extra']['magento_attribute_code_name']})
+                                    ? 1 : '',
+                        );
+                    }
                 } elseif($component['extra']['magento_attribute_code_name'] == 'product_image') {
                     $magento_media = new magento_media;
                     $productMedia = new productMedia;
