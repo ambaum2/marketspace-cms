@@ -1,0 +1,13 @@
+diff --git a/sites/all/modules/contrib/webform/webform.module b/sites/all/modules/contrib/webform/webform.module
+index d806684..7ae8bbf 100644
+--- a/sites/all/modules/contrib/webform/webform.module
++++ b/sites/all/modules/contrib/webform/webform.module
+@@ -2158,7 +2158,7 @@ function _webform_client_form_add_component($node, $component, $component_value,
+   elseif ($component['page_num'] == $page_num || $filter == FALSE) {
+     // Add this user-defined field to the form (with all the values that are always available).
+     $data = isset($submission->data[$cid]['value']) ? $submission->data[$cid]['value'] : NULL;
+-    if ($element = webform_component_invoke($component['type'], 'render', $component, $data, $filter)) {
++    if ($element = webform_component_invoke($component['type'], 'render', $component, $data, $filter, $form_state)) {
+       // Ensure the component is added as a property.
+       $element['#webform_component'] = $component;
+ 
