@@ -155,7 +155,7 @@ class magento_media extends magento {
       'name' => $data->file,
     );
     $magento_media_info = array('file'=>$file, 'label'=>$data->label, 'position'=>$data->position,
-      'types' => array($data->type), 'exclude' => 0);
+      'types' => $data->type, 'exclude' => 0);
     return $magento_media_info;
   }
   /**
@@ -212,7 +212,11 @@ class magento_media extends magento {
     $data->url = file_create_url($file->uri);  
     $data->label = $image_data['label'];
     $data->position = $image_data['position'];
-    $data->type = $image_data['type'];
+    if($image_data['type'] == 'thumbnail') {
+        $data->type = array('thumbnail', 'small_image');
+    } else {
+        $data->type = array($image_data['type']);
+    }
     return $data;
   }
   /**
