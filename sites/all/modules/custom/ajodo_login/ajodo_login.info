@@ -1,6 +1,0 @@
-name=ajodo login test
-description = testing ajodo automatic login
-; Includes
-files[] = admin_menu.inc
-
-core = 7.x
