@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * hook_menu
+ */
+function ms_crm_menu() {
+    $items = array();
+    $items['admin/config/system/crm-settings'] = array(
+        'title' => 'Marketspace CRM settings Constant Contact',
+        'description' => 'Setup Marketspace CRM Configuration',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('ms_crm_admin_settings'),
+        'access arguments' => array('administer site configuration'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+    return $items;
+}
+
+/**
+ * admin settings form for constant contact
+ */
+function ms_crm_admin_settings() {
+    $form = array();
+    $form['ms_crm_constant_contact_key'] = array(
+        '#type' => 'password',
+        '#title' => t('Constant Contact Api Key'),
+        '#default_value' => variable_get('ms_crm_constant_contact_key', ''),
+        '#size' => 80,
+        '#maxlength' => 400,
+        '#description' => t("The key - sign in here <a href='%url'>mashery</a> to get it", array('%url' => 'https://constantcontact.mashery.com/io-docs')),
+        '#required' => TRUE,
+    );
+    $form['ms_crm_constant_contact_token'] = array(
+        '#type' => 'password',
+        '#title' => t('Constant Contact Api Token'),
+        '#default_value' => variable_get('ms_crm_constant_contact_token', ''),
+        '#size' => 80,
+        '#maxlength' => 400,
+        '#description' => t("I guess/hope this is static. Could not find and endpoint to grab one..Weak api???
+            The token - sign in here <a href='%url'>mashery</a> to get it", array('%url' => 'https://constantcontact.mashery.com/io-docs')),
+        '#required' => TRUE,
+    );
+    $form['ms_crm_constant_contact_secret'] = array(
+        '#type' => 'password',
+        '#title' => t('Constant Contact Api Secret'),
+        '#default_value' => variable_get('ms_crm_constant_contact_secret', ''),
+        '#size' => 80,
+        '#maxlength' => 400,
+        '#description' => t("I guess this is static.
+            The token - sign in here <a href='%url'>mashery</a> to get it", array('%url' => 'https://constantcontact.mashery.com/io-docs')),
+        '#required' => TRUE,
+    );
+    $form['ms_crm_constant_contact_endpoint'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Api Endpoint'),
+        '#default_value' => variable_get('ms_crm_constant_contact_endpoint', ''),
+        '#size' => 80,
+        '#maxlength' => 400,
+        '#description' => t("The enpdoint should be full url with version - sign in here <a href='%url'>mashery</a> to get it", array('%url' => 'https://constantcontact.mashery.com/io-docs')),
+        '#required' => TRUE,
+    );
+    $form['ms_crm_constant_contact_appname'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Name of App - may not be important'),
+        '#default_value' => variable_get('ms_crm_constant_contact_appname', ''),
+        '#size' => 80,
+        '#maxlength' => 400,
+        '#description' => t("The app name - sign in here <a href='%url'>mashery</a> to get it", array('%url' => 'https://constantcontact.mashery.com/io-docs')),
+        '#required' => TRUE,
+    );
+    return system_settings_form($form);
+}
