@@ -70,3 +70,11 @@ function ms_crm_admin_settings() {
     );
     return system_settings_form($form);
 }
+
+/**
+ * hard code this form for now
+ * @todo dynamically create using webform as the setup
+ */
+function ms_crm_seller_signup() {
+
+}
