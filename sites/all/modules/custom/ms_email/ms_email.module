@@ -1,0 +1,42 @@
+<?php
+/**
+* hook_menu
+*/
+function ms_email_menu() {
+    $items = array();
+    $items['admin/config/system/ms-email-settings'] = array(
+        'title' => 'Marketspace Email settings',
+        'description' => 'Setup Marketspace Email Configuration',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('ms_email_admin_settings'),
+        'access arguments' => array('administer site configuration'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+    return $items;
+}
+
+/**
+* admin settings form for constant contact
+*/
+function ms_email_admin_settings() {
+    $form = array();
+    $new_user_registration_body = variable_get('ms_email_new_user_registration_body', array('value' => '', 'format' => NULL));
+    $form['ms_email_new_user_registration_body'] = array(
+        '#type' => 'text_format',
+        '#title' => t('Registration Email Body'),
+        '#default_value' => $new_user_registration_body['value'],
+        '#description' => t("Use replace patterns for variables: %one-time-sign-in-url, %email, %password", array('%url' => 'https://constantcontact.mashery.com/io-docs')),
+        '#required' => TRUE,
+    );
+
+    $form['ms_email_new_user_registration_subject'] = array(
+        '#type' => 'textfield',
+        '#title' => t('New Registration Email Subject'),
+        '#default_value' => variable_get('ms_email_new_user_registration_subject', 'New User Registration for %email'),
+        '#description' => t("Use replace patterns for variables", array('%url' => 'https://constantcontact.mashery.com/io-docs')),
+        '#size' => 60,
+        '#maxlength' => 128,
+        '#required' => TRUE,
+    );
+    return system_settings_form($form);
+}

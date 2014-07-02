@@ -1,0 +1,12 @@
+name = Marketspace Emails
+description = custom email control
+files[] = includes/MS_User_Email.inc
+files[] = includes/MS_Email.inc
+files[] = includes/MS_Mail.inc
+
+;example of media query stylesheets[screen and (max-width: 600px)][] = theStyle600.css
+;stylesheets[screen][] = css/es_webform.css
+core = 7.x
+; Information added by drupal.org packaging script on 2012-11-18
+version = "7.x-1.x-dev"
+core = "7.x"
