@@ -39,7 +39,7 @@ class TestApi extends PHPUnit_Framework_TestCase
         }
     }
     public function testGetEventRecipients() {
-        $cc = new MS_Constant_Contact();
+        $cc = new MS_Constant_Contact_Admins();
         $email_addresses = $cc->GetEventRecipients();
         print_r($email_addresses);
     }

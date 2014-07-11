@@ -5,6 +5,7 @@ files[] = includes/MS_Constant_Contact_Users.inc
 files[] = includes/iMS_CRM.inc
 files[] = includes/iMS_Api.inc
 files[] = includes/MS_Individuals_Contacts.inc
+files[] = includes/MS_Constant_Contact_Contacts_Fields.inc
 files[] = includes/MS_CRM_Api.inc
 ;example of media query stylesheets[screen and (max-width: 600px)][] = theStyle600.css
 ;stylesheets[screen][] = css/es_webform.css

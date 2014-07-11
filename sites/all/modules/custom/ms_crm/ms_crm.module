@@ -5,6 +5,7 @@
  */
 function ms_crm_menu() {
     $items = array();
+
     $items['admin/config/system/crm-settings'] = array(
         'title' => 'Marketspace CRM settings Constant Contact',
         'description' => 'Setup Marketspace CRM Configuration',
@@ -72,9 +73,32 @@ function ms_crm_admin_settings() {
 }
 
 /**
+ * Implements hook_webform_component_info().
+ */
+function ms_crm_webform_component_info() {
+    $components['ms_crm_cc'] = array(
+        'label' => t('Constant Contact Element'),
+        'description' => t('constant contact contact creation elements'),
+        'features' => array(
+            'group' => FALSE,
+        ),
+        'file' => 'components/ms_constant_contact.webform.inc',
+    );
+    return $components;
+}
+/**
  * hard code this form for now
  * @todo dynamically create using webform as the setup
  */
 function ms_crm_seller_signup() {
 
+}
+
+
+function ms_crm_webform_submission_presave($node, &$submission) {
+
+    var_export($submission);
+    //echo "<pre>submission" . print_r($submission, true) . "</pre>";
+    echo "<pre>post" . print_r($_POST,true) . "</pre>";
+    die;
 }

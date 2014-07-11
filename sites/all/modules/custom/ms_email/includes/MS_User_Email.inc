@@ -22,10 +22,10 @@ class MS_User_Email {
      * register local seller if username does not
      * exist. Send a registration email
      */
-    public function RegisterLocalSellerUser() {
-        if(!$this->UserNameExists()) {
-            $this->CreateLocalSeller();
-            $this->sendRegistrationEmail();
+    public static function RegisterLocalSellerUser() {
+        if(!self::UserNameExists()) {
+            self::CreateLocalSeller();
+            self::sendRegistrationEmail();
         }
     }
 
