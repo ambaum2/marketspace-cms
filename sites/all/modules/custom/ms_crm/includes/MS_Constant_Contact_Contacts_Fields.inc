@@ -125,7 +125,8 @@ class MS_Constant_Contact_Contacts_Fields {
             $_GET['mandatory'] = $form_state['values']['mandatory'];
             $_GET['name'] = $form_state['values']['name'];
         }
-        return webform_menu_component_load($cid, $nid, $type);
+        $component = webform_menu_component_load($cid, $nid, $type);
+        return $component;
     }
     /**
      * checks if a component is a constant contact
@@ -184,7 +185,8 @@ class MS_Constant_Contact_Contacts_Fields {
 
     public function GetSettingsFields(iMS_Constant_Contact_Field $sf) {
         foreach($sf->settingsFields as $key => $field) {
-            $form[$field] = $sf->{$field};
+            $getter = 'get' . $field;
+            $form[$field] = $sf->{$getter}($field);
             $form = $this->SetSettingsFieldDefault($field, $form);
         }
         return $form;
@@ -209,11 +211,47 @@ interface iMS_Constant_Contact_Field {
     public function GetSettingsFields();
     public function GetDisplayFields();
 }
+
 class MS_CC_Settings_Field_Text_Field extends MS_Constant_Contact_Contacts_Fields implements iMS_Constant_Contact_Field {
     public $displayFields = array();
     public $settingsFields = array('maxlength');
     public $settingsMatchup = array();
     public $component;
+    public $maxlength;
+
+    /**
+     * set max length no params yet
+     */
+    public function setMaxlength()
+    {
+        $field = array(
+            '#type' => 'textfield',
+            '#title' => 'Max Length',
+            '#size' => 50,
+            '#maxlength' => 5
+        );
+        $this->maxlength = $field;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMaxlength()
+    {
+        return $this->maxlength;
+    }
+
+    /**
+     * dynamically create the generic text field
+     * @param null $field_name
+     * @param $component
+     */
+    public function __construct($field_name, $component) {
+        $this->displayFields = array($field_name);
+        $this->setMaxlength();
+        $this->setSettingsMatchup($field_name);
+        $this->component = $component;
+    }
 
     /**
      * @param $field_name
@@ -223,25 +261,6 @@ class MS_CC_Settings_Field_Text_Field extends MS_Constant_Contact_Contacts_Field
     {
         $this->settingsMatchup = array($field_name => array('#size'=>'maxlength'));
     } /** @var array map a settings field back to a display field */
-
-    /**
-     * dynamically create the generic text field
-     * @param null $field_name
-     * @param $component
-     */
-    public function __construct($field_name, $component) {
-        $this->displayFields = array($field_name);
-        $this->setSettingsMatchup($field_name);
-        $this->component = $component;
-    }
-
-
-    public $maxlength = array(
-        '#type' => 'textfield',
-        '#title' => 'Max Length',
-        '#size' => 50,
-        '#maxlength' => 5
-    );
 
     public function GetSettingsFields(iMS_Constant_Contact_Field $field = null) {
         return parent::GetSettingsFields($this);
@@ -262,14 +281,7 @@ class MS_CC_Settings_Field_Email_Addresses extends MS_Constant_Contact_Contacts_
     public $settingsFields = array('address');
     public $settingsMatchup = array();
     public $component;
-    /**
-     * @param $field_name
-     * @internal param array $settingsMatchup
-     */
-    public function setSettingsMatchup($field_name)
-    {
-        $this->settingsMatchup = array($field_name => array('#size'=>'maxlength'));
-    } /** @var array map a settings field back to a display field */
+    public $address;
 
     /**
      * dynamically create the generic text field
@@ -280,19 +292,43 @@ class MS_CC_Settings_Field_Email_Addresses extends MS_Constant_Contact_Contacts_
         $this->displayFields = array($field_name);
         $this->setSettingsMatchup($field_name);
         $this->component = $component;
+        $this->setAddress();
     }
 
+    /**
+     * set the address no params yet
+     */
+    public function setAddress()
+    {
+        $field = array(
+            '#type' => 'textfield',
+            '#title' => 'List Id',
+            '#size' => 50,
+            '#ajax' => array(
+                'callback' => 'ms_crm_cc_settings',
+                'method' => 'replace',
+                'wrapper' => 'cc_field_settings_form',
+            ),
+        );
+        $this->address = $field;
+    }
 
-    public $address = array(
-        '#type' => 'textfield',
-        '#title' => 'List Id',
-        '#size' => 50,
-        '#ajax' => array(
-            'callback' => 'ms_crm_cc_settings',
-            'method' => 'replace',
-            'wrapper' => 'cc_field_settings_form',
-        ),
-    );
+    /**
+     * @return mixed
+     */
+    public function getAddress()
+    {
+        return $this->address;
+    }
+
+    /**
+     * @param $field_name
+     * @internal param array $settingsMatchup
+     */
+    public function setSettingsMatchup($field_name)
+    {
+        $this->settingsMatchup = array($field_name => array('#size'=>'maxlength'));
+    } /** @var array map a settings field back to a display field */
 
     public function GetSettingsFields(iMS_Constant_Contact_Field $field = null) {
         return parent::GetSettingsFields($this);
@@ -309,20 +345,13 @@ class MS_CC_Settings_Field_Email_Addresses extends MS_Constant_Contact_Contacts_
     }
 }
 
-class MS_CC_Settings_Field_Email_Lists extends MS_Constant_Contact_Contacts_Fields implements iMS_Constant_Contact_Field {
+class MS_CC_Settings_Field_Lists extends MS_Constant_Contact_Contacts_Fields implements iMS_Constant_Contact_Field {
     public $displayFields = array();
     public $settingsFields = array('lists');
     public $settingsMatchup = array();
     public $component;
     public $form_state;
-    /**
-     * @param $field_name
-     * @internal param array $settingsMatchup
-     */
-    public function setSettingsMatchup($field_name)
-    {
-        $this->settingsMatchup = array($field_name => array('#size'=>'maxlength'));
-    } /** @var array map a settings field back to a display field */
+    public $lists;
 
     /**
      * dynamically create the generic text field
@@ -333,19 +362,56 @@ class MS_CC_Settings_Field_Email_Lists extends MS_Constant_Contact_Contacts_Fiel
         $this->displayFields = array($field_name);
         $this->setSettingsMatchup($field_name);
         $this->component = $component;
+        $this->setLists();
     }
 
+    /**
+     * set lists property
+     */
+    public function setLists()
+    {
+        $field['lists_add'] = array(
+            '#type' => 'button',
+            '#size' => 50,
+            '#value' => t('Add List'),
+            '#ajax' => array(
+                'callback' => 'ms_crm_cc_settings_sub_field',
+                'method' => 'replace',
+                'wrapper' => 'ms_cc_settings_list',
+            ),
+        );
+        $field['lists'] = array(
+            '#type' => 'container',
+            '#attributes' => array(
+                'id' => array(
+                    'ms_cc_settings_list',
+                ),
+            ),
+        );
 
-    public $lists = array(
-        '#type' => 'textfield',
-        '#title' => 'List Id',
-        '#size' => 50,
-        '#ajax' => array(
-            'callback' => 'ms_crm_cc_settings',
-            'method' => 'replace',
-            'wrapper' => 'cc_field_settings_form',
-        ),
-    );
+        $this->lists = $field;
+    }
+
+    public function AddList() {
+
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getLists()
+    {
+        return $this->lists;
+    }
+
+    /**
+     * @param $field_name
+     * @internal param array $settingsMatchup
+     */
+    public function setSettingsMatchup($field_name)
+    {
+        $this->settingsMatchup = array($field_name => array('#size'=>'maxlength'));
+    } /** @var array map a settings field back to a display field */
 
     /**
      * @param $value
@@ -374,6 +440,7 @@ class MS_CC_Settings_Field_Addresses extends MS_Constant_Contact_Contacts_Fields
     public $settingsFields = array('addressTypes');
     public $settingsMatchup = array();
     public $component;
+    public $addressTypes;
 
     public $addresses = array(
         '#type' => 'container',
@@ -389,6 +456,32 @@ class MS_CC_Settings_Field_Addresses extends MS_Constant_Contact_Contacts_Fields
         $this->displayFields = array($field_name);
         $this->setSettingsMatchup($field_name);
         $this->component = $component;
+        $this->setAddressTypes();
+    }
+
+    /**
+     * set address property
+     */
+    public function setAddressTypes()
+    {
+        $field = array(
+            '#type' => 'select',
+            '#multiple' => true,
+            '#title' => 'Address Types',
+            '#options' => array(
+                0 => 'Business',
+                1 => 'Personal',
+            )
+        );
+        $this->addressTypes = $field;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAddressTypes()
+    {
+        return $this->addressTypes;
     }
 
     /**
@@ -399,16 +492,6 @@ class MS_CC_Settings_Field_Addresses extends MS_Constant_Contact_Contacts_Fields
     {
         $this->settingsMatchup = array($field_name => array('#size'=>'maxlength'));
     }
-
-    public $addressTypes = array(
-        '#type' => 'select',
-        '#multiple' => true,
-        '#title' => 'Address Types',
-        '#options' => array(
-            0 => 'Business',
-            1 => 'Personal',
-        )
-   );
 
     public function GetSettingsFields(iMS_Constant_Contact_Field $component = null) {
 

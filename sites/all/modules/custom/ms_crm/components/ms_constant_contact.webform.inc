@@ -33,7 +33,9 @@ function _webform_edit_ms_crm_cc($component) {
     $form['extra']['field_type'] = array(
         '#type' => 'select',
         '#title' => t('Type of Field'),
+        '#required' => true,
         '#options' => array(
+            '' => t("None"),
             'addresses' => t("Addresses"),
             'lists' => t('Lists'),
             'cell_phone' => t('Cell Phone'),
@@ -67,6 +69,11 @@ function _webform_edit_ms_crm_cc($component) {
     if(isset($component['extra']['field_type']) && isset($component['cid'])
         && !isset($_POST['_triggering_element_name'])) { //do not build the settings form if this is an ajax request
         $field = new MS_Constant_Contact_Contacts_Fields($component['extra']['field_type'], $component);
+    } elseif(isset($_POST['_triggering_element_name'])) {
+        $field = new MS_Constant_Contact_Contacts_Fields($_POST['extra']['field_type'], $component);
+    }
+
+    if($field) {
         $f = $field->GetSettingsForm();
         $form['extra']['cc']['settings'] = $f;
     }
@@ -85,17 +92,33 @@ function ms_crm_cc_settings(&$form, &$form_state) {
     $commands = array();
     $element_key = $form_state['triggering_element']['#value'];
     try {
-        $component = MS_Constant_Contact_Contacts_Fields::BuildComponent($form_state);
+        /*$component = MS_Constant_Contact_Contacts_Fields::BuildComponent($form_state);
         $field = new MS_Constant_Contact_Contacts_Fields($element_key, $component, $form_state);
         $f = $field->GetSettingsForm();
         $form['extra']['cc']['settings'] = $f;
-        $element = form_builder($form_state['input']['form_id'], $form, $form_state);
+        $unprocessed_form = $form;
+        empty($form_state['manadatory']) ?  $form_state['manadatory'] = 0 : '';
+        //$form = form_builder($form_state['input']['form_id'], $form, $form_state);
+        $element = form_builder($form_state['input']['form_id'], $form['extra']['cc'], $form_state);
+        form_set_cache($form['#build_id'], $unprocessed_form, $form_state); //you MUST set the cache or the form form_state['values'] never gets set right see the end of drupal_process_form in form.inc
         $html = drupal_render($element);
-        $commands[] = ajax_command_replace('#ms_cc_form', $html);
-        return array('#type' => 'ajax', '#commands' => $commands);
+        $commands[] = ajax_command_replace('#cc_field_settings_form', $html);
+        return array('#type' => 'ajax', '#commands' => $commands);*/
+        return $form['extra']['cc'];
     } catch(Exception $e) {
         watchdog('cc_settings', "<pre>%form_state</pre>", array('%form_state' => print_r($form, true)), WATCHDOG_INFO);
     }
+}
+
+/**
+ * Callback for settings form fields
+ *
+ * Selects and returns the fieldset with the names in it.
+ */
+function ms_crm_cc_settings_sub_field(&$form, &$form_state) {
+    watchdog('cc_settings_subfield', "<pre>%form_state</pre>", array('%form_state' => print_r($form_state, true)), WATCHDOG_INFO);
+    return $form;
+    //return $form['names_fieldset'];
 }
 /**
  * Implements _webform_render_component().
