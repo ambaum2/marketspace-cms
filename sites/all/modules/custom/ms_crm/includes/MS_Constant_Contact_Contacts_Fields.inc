@@ -19,7 +19,7 @@ class MS_Constant_Contact_Contacts_Submission {
         $result = array();
         foreach ($this->submission->data as $cid => $values) {
             foreach ($values['value'] as $delta => $value) {
-                if(is_array($value)) {
+                if(is_array($value) && isset($value[''])) {
                     foreach($value as $k => $item) {
                         if(is_array($value)) {
                             foreach($value as $l => $v) {
@@ -34,7 +34,6 @@ class MS_Constant_Contact_Contacts_Submission {
                 }
             }
         }
-
         return $result;
     }
 }
@@ -46,45 +45,105 @@ class MS_Constant_Contact_Contacts_Fields {
     public $namespace;
     public $component; /** @var $component array */
 
-
-    /**
-     * @param null $key
-     * @param null $component
-     * @param null $form
-     * @param null $form_state
-     * @internal param null $cid
-     */
-    public function __construct($key = null, $component = null, $form = null, $form_state = null) {
-        if (!empty($form)) {
-            $this->form = $form;
-        }
-
-        if (!empty($form_state)) {
-            $this->form_state = $form_state;
-        }
-
-        if(!empty($key) && class_exists(trim(strtolower("MS_CC_Settings_Field_" . $key)))) {
-            $class = trim(strtolower("MS_CC_Settings_Field_" . $key));
-            $this->fieldType = new $class;
-        } else {
-            $this->fieldType = new MS_CC_Settings_Field_Text_Field($key, $component);
-        }
-        if(!empty($key)) {
-            $this->namespace = $key;
-        }
-
-        if (!empty($component)) {
-            $this->component = $component;
+    function __construct()
+    {
+        $a = func_get_args();
+        $i = func_num_args();
+        if (method_exists($this,$f='__construct'.$i)) {
+            call_user_func_array(array($this,$f),$a);
         }
     }
 
     /**
+     * call if component does not exist
+     * @todo I'm not sure if this is ever actually needed
+     * @param null $key
+     * @internal param null $component
+     */
+    function __construct1($key) {
+        if(!empty($key)) {
+            $this->namespace = $key;
+        }
+        if (!empty($component)) {
+            $this->component = $component;
+        }
+
+        $this->InitializeSettingsField($this->namespace);
+    }
+    /**
+     * call if component already exists
+     * @param null $key
+     * @param null $component
+     */
+    function __construct2($key, $component) {
+        if(!empty($key)) {
+            $this->namespace = $key;
+        }
+        if (!empty($component)) {
+            $this->component = $component;
+        }
+
+        $this->InitializeSettingsField($this->namespace, $this->component);
+    }
+
+    /**
+     * call if component needs form and form state.
+     * usually useful for ajax or default value processing
+     * @param $key
+     * @param $component
+     * @param $form_state
+     */
+    function __construct3($key, $component, $form_state) {
+        $this->namespace = $key;
+        $this->component = $component;
+        $this->form_state = $form_state;
+        $this->InitializeSettingsField($this->namespace, $this->component);
+    }
+
+    /**
+     * initializes the constructors
+     */
+    private function InitializeSettingsField($key, $component) {
+        if(!empty($key) && class_exists(trim(strtolower("MS_CC_Settings_Field_" . $key)))) {
+            $class = trim(strtolower("MS_CC_Settings_Field_" . $key));
+            $this->fieldType = new $class($key, $component);
+        } else {
+            $this->fieldType = new MS_CC_Settings_Field_Text_Field($key, $component);
+        }
+    }
+
+    /**
+     * build a component for ajax requests
+     */
+    public static function BuildComponent($form_state) {
+        $cid = !empty($form_state['values']['cid']) ? $form_state['values']['cid'] : 'new'; //either an id or "new" if new component
+        $nid = !empty($form_state['values']['nid']) ? $form_state['values']['nid'] : arg(1);
+        $type = !empty($form_state['values']['type']) ? $form_state['values']['type'] : arg(5); //the component type
+        if($cid == 'new') { //in ajax $_GET is [q] => system/ajax so no url info will be available to new components. this is unnecessary if the component already exists
+            $_GET['pid'] = $form_state['values']['pid'];
+            $_GET['weight'] = $form_state['values']['weight'];
+            $_GET['mandatory'] = $form_state['values']['mandatory'];
+            $_GET['name'] = $form_state['values']['name'];
+        }
+        return webform_menu_component_load($cid, $nid, $type);
+    }
+    /**
      * checks if a component is a constant contact
      * component
      * @param $cid
+     * @param $nid
+     * @return bool
      */
-    public function IsConstantContactComponent($cid) {
-
+    public function IsConstantContactComponent($cid, $nid) {
+        $result = false;
+        $component = db_query("
+            select c.type from mspacecms.webform_component as c
+            where c.nid = $nid and c.cid = $cid
+        ")->fetchObject();
+        if($component->type == 'ms_crm_cc') {
+            $result = true;
+        }
+        return $result;
     }
 
     /**
@@ -96,9 +155,10 @@ class MS_Constant_Contact_Contacts_Fields {
      */
     public function GetSettingsFieldDefault($field_key) {
         $result = false;
-        if(!empty($this->component)) {
+
+        if(isset($this->component['extra']['cc']['settings'][$field_key])) {
             /** @var $result mixed */
-            $result = $this->form_state->webform['components'][$this->cid]['extra']['cc']['settings'][$field_key];
+            $result = $this->component['extra']['cc']['settings'][$field_key];
         }
         return $result;
     }
@@ -113,6 +173,7 @@ class MS_Constant_Contact_Contacts_Fields {
         if($value = $this->GetSettingsFieldDefault($field_key)) {
             $element[$field_key]['#default_value'] = $value;
         }
+        return $element;
     }
     /**
      * @return mixed
@@ -122,10 +183,9 @@ class MS_Constant_Contact_Contacts_Fields {
     }
 
     public function GetSettingsFields(iMS_Constant_Contact_Field $sf) {
-        $form = array();
         foreach($sf->settingsFields as $key => $field) {
             $form[$field] = $sf->{$field};
-            $this->SetSettingsFieldDefault($field, $form);
+            $form = $this->SetSettingsFieldDefault($field, $form);
         }
         return $form;
     }
@@ -143,43 +203,11 @@ class MS_Constant_Contact_Contacts_Fields {
         }
         return $form;
     }
-    /**
-     * @return null
-     */
-    public function getFormState()
-    {
-        if(!empty($this->form_state)) {
-            $result = $this->form_state;
-        } else {
-            $result = false;
-        }
-        return $result;
-    }
-
-    /**
-     * get current form state if it is
-     * set or false
-     * @return null
-     */
-    public static function GetFormStateInfo() {
-        return self::getFormState();
-    }
 }
 
 interface iMS_Constant_Contact_Field {
     public function GetSettingsFields();
     public function GetDisplayFields();
-
-    /**
-     *  after form is submitted you must check
-     *  if component is a constant contact component
-     *  and if so you need to store the values in an
-     * array in the correct format so they are valid
-     * on json encode
-     * @param $value
-     * @return mixed
-     */
-    public function GetFormStateValue($value);
 }
 class MS_CC_Settings_Field_Text_Field extends MS_Constant_Contact_Contacts_Fields implements iMS_Constant_Contact_Field {
     public $displayFields = array();
@@ -199,6 +227,7 @@ class MS_CC_Settings_Field_Text_Field extends MS_Constant_Contact_Contacts_Field
     /**
      * dynamically create the generic text field
      * @param null $field_name
+     * @param $component
      */
     public function __construct($field_name, $component) {
         $this->displayFields = array($field_name);
@@ -214,13 +243,6 @@ class MS_CC_Settings_Field_Text_Field extends MS_Constant_Contact_Contacts_Field
         '#maxlength' => 5
     );
 
-    /**
-     * @param $value
-     */
-    public function GetFormStateValue($value) {
-        // TODO: Implement GetFormStateValue() method.
-    }
-
     public function GetSettingsFields(iMS_Constant_Contact_Field $field = null) {
         return parent::GetSettingsFields($this);
     }
@@ -235,12 +257,64 @@ class MS_CC_Settings_Field_Text_Field extends MS_Constant_Contact_Contacts_Field
          return $element;
     }
 }
-class MS_CC_Settings_Field_email_addresses extends MS_Constant_Contact_Contacts_Fields implements iMS_Constant_Contact_Field {
+class MS_CC_Settings_Field_Email_Addresses extends MS_Constant_Contact_Contacts_Fields implements iMS_Constant_Contact_Field {
+    public $displayFields = array();
+    public $settingsFields = array('address');
+    public $settingsMatchup = array();
+    public $component;
+    /**
+     * @param $field_name
+     * @internal param array $settingsMatchup
+     */
+    public function setSettingsMatchup($field_name)
+    {
+        $this->settingsMatchup = array($field_name => array('#size'=>'maxlength'));
+    } /** @var array map a settings field back to a display field */
+
+    /**
+     * dynamically create the generic text field
+     * @param null $field_name
+     * @param null $component
+     */
+    public function __construct($field_name, $component) {
+        $this->displayFields = array($field_name);
+        $this->setSettingsMatchup($field_name);
+        $this->component = $component;
+    }
+
+
+    public $address = array(
+        '#type' => 'textfield',
+        '#title' => 'List Id',
+        '#size' => 50,
+        '#ajax' => array(
+            'callback' => 'ms_crm_cc_settings',
+            'method' => 'replace',
+            'wrapper' => 'cc_field_settings_form',
+        ),
+    );
+
+    public function GetSettingsFields(iMS_Constant_Contact_Field $field = null) {
+        return parent::GetSettingsFields($this);
+    }
+
+    public function GetDisplayFields(iMS_Constant_Contact_Field $field = null) {
+        $element[$this->component['extra']['field_type']] = array(
+            '#type' => 'textfield',
+            '#title' => $this->component['name'],
+            '#required' => $this->component['mandatory'],
+            '#size' => 20,
+        );
+        return $element;
+    }
+}
+
+class MS_CC_Settings_Field_Email_Lists extends MS_Constant_Contact_Contacts_Fields implements iMS_Constant_Contact_Field {
     public $displayFields = array();
     public $settingsFields = array('lists');
     public $settingsMatchup = array();
     public $component;
-
+    public $form_state;
     /**
      * @param $field_name
      * @internal param array $settingsMatchup
@@ -266,7 +340,11 @@ class MS_CC_Settings_Field_email_addresses extends MS_Constant_Contact_Contacts_
         '#type' => 'textfield',
         '#title' => 'List Id',
         '#size' => 50,
-
+        '#ajax' => array(
+            'callback' => 'ms_crm_cc_settings',
+            'method' => 'replace',
+            'wrapper' => 'cc_field_settings_form',
+        ),
     );
 
     /**
@@ -290,16 +368,37 @@ class MS_CC_Settings_Field_email_addresses extends MS_Constant_Contact_Contacts_
         return $element;
     }
 }
+
 class MS_CC_Settings_Field_Addresses extends MS_Constant_Contact_Contacts_Fields implements iMS_Constant_Contact_Field {
     public $displayFields = array('addresses');
     public $settingsFields = array('addressTypes');
     public $settingsMatchup = array();
+    public $component;
 
     public $addresses = array(
         '#type' => 'container',
         '#title' => 'Addresses',
         '#tree' => true,
     );
+    /**
+     * dynamically create the generic text field
+     * @param null $field_name
+     * @param null $component
+     */
+    public function __construct($field_name, $component) {
+        $this->displayFields = array($field_name);
+        $this->setSettingsMatchup($field_name);
+        $this->component = $component;
+    }
+
+    /**
+     * @param $field_name
+     * @internal param array $settingsMatchup
+     */
+    public function setSettingsMatchup($field_name)
+    {
+        $this->settingsMatchup = array($field_name => array('#size'=>'maxlength'));
+    }
 
     public $addressTypes = array(
         '#type' => 'select',
@@ -308,11 +407,11 @@ class MS_CC_Settings_Field_Addresses extends MS_Constant_Contact_Contacts_Fields
         '#options' => array(
             0 => 'Business',
             1 => 'Personal',
-        ),
-        '#description' => "Currently the api only allows two addresses max - 1 business and 1 personal"
+        )
    );
 
     public function GetSettingsFields(iMS_Constant_Contact_Field $component = null) {
+
         return parent::GetSettingsFields($this);
     }
 

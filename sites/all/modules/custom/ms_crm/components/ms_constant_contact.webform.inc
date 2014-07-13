@@ -56,24 +56,20 @@ function _webform_edit_ms_crm_cc($component) {
             'wrapper' => 'cc_field_settings_form',
         ),
     );
-    //$field = new ms_crm_cc_Contacts_Field($form_state['triggering_element']['#value'], $form, $form_state);
+
     $form['extra']['cc'] = array(
         '#type' => 'fieldset',
         '#title' => t('Field Settings'),
         '#tree' => true,
         '#attributes' => array('id' => array('cc_field_settings_form')),
-        //'#ssuffix' => '<div id="ms-constant-contact-field-settings"><div id="cc_field_settings_form"></div>' . $html . '</div>'
     );
 
-    if(isset($component['extra']['field_type']) && isset($component['cid'])) {
-        $class_name = 'first_name';
-        $field = new MS_Constant_Contact_Contacts_Fields($class_name);
+    if(isset($component['extra']['field_type']) && isset($component['cid'])
+        && !isset($_POST['_triggering_element_name'])) { //do not build the settings form if this is an ajax request
+        $field = new MS_Constant_Contact_Contacts_Fields($component['extra']['field_type'], $component);
         $f = $field->GetSettingsForm();
         $form['extra']['cc']['settings'] = $f;
-        //$form['component_id']
     }
-
-    //$form['#theme'] = 'cc_settings_form';
     return $form;
 }
 
@@ -89,10 +85,11 @@ function ms_crm_cc_settings(&$form, &$form_state) {
     $commands = array();
     $element_key = $form_state['triggering_element']['#value'];
     try {
-        $field = new MS_Constant_Contact_Contacts_Fields($element_key);
+        $component = MS_Constant_Contact_Contacts_Fields::BuildComponent($form_state);
+        $field = new MS_Constant_Contact_Contacts_Fields($element_key, $component, $form_state);
         $f = $field->GetSettingsForm();
         $form['extra']['cc']['settings'] = $f;
-        $element = form_builder($form_state['#form_id'], $form, $form_state);
+        $element = form_builder($form_state['input']['form_id'], $form, $form_state);
         $html = drupal_render($element);
         $commands[] = ajax_command_replace('#ms_cc_form', $html);
         return array('#type' => 'ajax', '#commands' => $commands);
@@ -106,7 +103,7 @@ function ms_crm_cc_settings(&$form, &$form_state) {
 function _webform_render_ms_crm_cc($component, $value = NULL, $filter = FALSE) {
 //    $node = isset($component['nid']) ? node_load($component['nid']) : NULL;
 //    $cid = $component['cid'];
-    $cc_field = new MS_Constant_Contact_Contacts_Fields($component['extra']['field_type'], $component, null, null);
+    $cc_field = new MS_Constant_Contact_Contacts_Fields($component['extra']['field_type'], $component);
     $element = $cc_field->fieldType->GetDisplayFields();
     return $element;
 }
