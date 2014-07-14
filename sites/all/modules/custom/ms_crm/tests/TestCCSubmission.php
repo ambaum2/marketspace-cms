@@ -19,7 +19,7 @@ class TestCCSubmission extends PHPUnit_Framework_TestCase
         $submission = $this->getTestData();
         $node = node_load($submission->nid);
         $cc = new MS_Constant_Contact_Contacts_Submission($submission, $node);
-        $result = $cc->GetSubmissionJson();
+        $result = $cc->GetSubmission();
         $this->assertEquals(2, count($result));
         print_r($result);
     }

@@ -18,7 +18,7 @@ class MS_Individuals_Contacts implements iMS_CRM {
         '409' => 'email address %email_address already exists',
         '500' => 'internal server error please try again',
     );
-    public function __construct(iMS_Api $contactsRepository, $uri = null, $params = null) {
+    public function __construct(iMS_Api $contactsRepository = null, $uri = null, $params = null) {
         if(!isset($contactsRepository)) {
             $this->contactsRepository = new MS_CRM_Api();
         } else {
@@ -49,8 +49,9 @@ class MS_Individuals_Contacts implements iMS_CRM {
         } else {
             throw new Exception('No data for adding a contact sent');
         }
+
         try {
-        $result = $this->contactsRepository->PostRequest($this->uri . $this->queryString);
+            $result = $this->contactsRepository->PostRequest($this->uri . $this->queryString);
         } catch(Exception $e) {
             watchdog('ms_crm', 'create a contact failed <pre>%post_data</pre>', array('%post_data' => print_r($this->postBody), WATCHDOG_ERROR));
             throw new Exception($e->getMessage());

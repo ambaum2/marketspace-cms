@@ -9,13 +9,28 @@ class MS_Constant_Contact_Contacts_Submission {
     }
 
     /**
+     * return email if submission has an email address
+     * otherwise return false
+     * @param $submission
+     * @return bool|string
+     */
+    static function SubmissionHasEmail($submission) {
+        $email = false;
+        foreach($submission as $key => $component) {
+            if(isset($component['value']['email_addresses'][0]['email_address'])) {
+                $email = $component['value']['email_addresses'][0]['email_address'];
+            }
+        }
+        return $email;
+    }
+    /**
      * parse the submission array and turn it into
      * an object that constant contact can use.
      * max depth two levels
      *
      * @todo should i use recursion - possibly but may be unecessary
      */
-    public function GetSubmissionJson() {
+     public function GetSubmission() {
         $result = array();
         foreach ($this->submission->data as $cid => $values) {
             foreach ($values['value'] as $delta => $value) {
@@ -147,6 +162,14 @@ class MS_Constant_Contact_Contacts_Fields {
         return $result;
     }
 
+    static function GetFormFromCache($form_build_id) {
+        $result = db_query("select f.data
+             from cache_form as f
+            where f.cid = 'form_". $form_build_id . "'"
+        )->fetchObject();
+
+        return $result->data;
+    }
     /**
      * get the settings field default value path - we
      * are coding to a strict implmentation right now so
@@ -301,16 +324,12 @@ class MS_CC_Settings_Field_Email_Addresses extends MS_Constant_Contact_Contacts_
     public function setAddress()
     {
         $field = array(
-            '#type' => 'textfield',
-            '#title' => 'List Id',
+            '#type' => 'container',
+            '#title' => 'Email Address- No settings',
             '#size' => 50,
-            '#ajax' => array(
-                'callback' => 'ms_crm_cc_settings',
-                'method' => 'replace',
-                'wrapper' => 'cc_field_settings_form',
-            ),
         );
-        $this->address = $field;
+        //$this->address = $field;
+
     }
 
     /**
@@ -335,11 +354,10 @@ class MS_CC_Settings_Field_Email_Addresses extends MS_Constant_Contact_Contacts_
     }
 
     public function GetDisplayFields(iMS_Constant_Contact_Field $field = null) {
-        $element[$this->component['extra']['field_type']] = array(
+       $element = array();
+        $element['email_addresses'][0]['email_address'] = array(
             '#type' => 'textfield',
-            '#title' => $this->component['name'],
-            '#required' => $this->component['mandatory'],
-            '#size' => 20,
+            '#title' => 'Email Address',
         );
         return $element;
     }
@@ -370,30 +388,17 @@ class MS_CC_Settings_Field_Lists extends MS_Constant_Contact_Contacts_Fields imp
      */
     public function setLists()
     {
-        $field['lists_add'] = array(
-            '#type' => 'button',
-            '#size' => 50,
-            '#value' => t('Add List'),
-            '#ajax' => array(
-                'callback' => 'ms_crm_cc_settings_sub_field',
-                'method' => 'replace',
-                'wrapper' => 'ms_cc_settings_list',
-            ),
-        );
-        $field['lists'] = array(
-            '#type' => 'container',
-            '#attributes' => array(
-                'id' => array(
-                    'ms_cc_settings_list',
-                ),
+        $field = array(
+            '#type' => 'select',
+            '#multiple' => true,
+            '#title' => t('Select Lists'),
+            '#required' => true,
+            '#options' => array(
+                '1966704516' => t("New Local Sellers"),
             ),
         );
 
         $this->lists = $field;
-    }
-
-    public function AddList() {
-
     }
 
     /**
@@ -413,25 +418,22 @@ class MS_CC_Settings_Field_Lists extends MS_Constant_Contact_Contacts_Fields imp
         $this->settingsMatchup = array($field_name => array('#size'=>'maxlength'));
     } /** @var array map a settings field back to a display field */
 
-    /**
-     * @param $value
-     */
-    public function GetFormStateValue($value) {
-        // TODO: Implement GetFormStateValue() method.
-    }
-
     public function GetSettingsFields(iMS_Constant_Contact_Field $field = null) {
         return parent::GetSettingsFields($this);
     }
 
     public function GetDisplayFields(iMS_Constant_Contact_Field $field = null) {
-        $element[$this->component['extra']['field_type']] = array(
-            '#type' => 'textfield',
-            '#title' => $this->component['name'],
-            '#required' => $this->component['mandatory'],
-            '#size' => 20,
+        $form = array();
+
+        $field['lists'][0]['id'] = array(
+            '#type' => 'hidden',
+            '#value' => '1966704516',
         );
-        return $element;
+        /*$field['lists'][1] = array(
+            '#type' => 'hidden',
+            '#value' => 'hay!',
+        );*/
+        return $field;
     }
 }
 
@@ -548,8 +550,8 @@ class MS_CC_Settings_Field_Address extends MS_CC_Settings_Field_Addresses {
             '#type' => 'select',
             '#title' => t('Select Address Type'),
             '#options' => array(
-                0 => t('BUSINESS'),
-                1 => t('PERSONAL'),
+                'BUSINESS' => t('BUSINESS'),
+                'PERSONAL' => t('PERSONAL'),
             ),
             //'#default_value' => isset(MS_Constant_Contact_Contacts_Fields::GetFormStateInfo()) ?
             '#description' => t('Set the type of address'),
@@ -580,7 +582,7 @@ class MS_CC_Settings_Field_Address extends MS_CC_Settings_Field_Addresses {
     {
         $this->country_code = array(
             '#type' => 'select',
-            '#title' => t('Select Address Type'),
+            '#title' => t('Country'),
             '#options' => array('US' => 'United States', 'CA' => 'Canada'),
             //'#default_value' => isset(MS_Constant_Contact_Contacts_Fields::GetFormStateInfo()) ?
             '#description' => t('Set the type of address'),

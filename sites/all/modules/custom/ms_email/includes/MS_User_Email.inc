@@ -3,11 +3,11 @@ require 'vendor/autoload.php';
 use Mailgun\Mailgun;
 
 class MS_User_Email {
-    public $mailer;
-    public $email_model;
+    protected  $mailer;
+    protected  $email_model;
     public $email;
-    public $tempPassword;
-    public $passwordResetUrl;
+    private $tempPassword;
+    private $passwordResetUrl;
 
     /**
      * @param $email string
@@ -22,10 +22,10 @@ class MS_User_Email {
      * register local seller if username does not
      * exist. Send a registration email
      */
-    public static function RegisterLocalSellerUser() {
-        if(!self::UserNameExists()) {
-            self::CreateLocalSeller();
-            self::sendRegistrationEmail();
+    public function RegisterLocalSellerUser() {
+        if(!$this->UserNameExists()) {
+            $this->CreateLocalSeller();
+            $this->sendRegistrationEmail();
         }
     }
 

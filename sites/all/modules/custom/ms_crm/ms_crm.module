@@ -101,8 +101,25 @@ function ms_crm_webform_component_presave(&$component)
     die;*/
 }
 function ms_crm_webform_submission_presave($node, &$submission) {
-    var_export($submission);
-    //echo "<pre>submission" . print_r($submission, true) . "</pre>";
-    echo "<pre>post" . print_r($_POST,true) . "</pre>";
-    die;
+    if($email = MS_Constant_Contact_Contacts_Submission::SubmissionHasEmail($submission->data)) {
+        $cc_submission = new MS_Constant_Contact_Contacts_Submission($submission, $node);
+        watchdog('cc_submission', 'submission <pre>%cc_submission</pre>', array('%cc_submission' => print_r($cc_submission, true)), WATCHDOG_INFO);
+        $constant_contact = new MS_Individuals_Contacts();
+        $constant_contact->postBody = $cc_submission->GetSubmission();
+        $result = $constant_contact->post();
+        watchdog('cc_post', 'post result <pre>%ccresult</pre> and post body <pre>%post_body</pre>',
+            array('%ccresult' => print_r($result, true), '%post_body' => print_r($constant_contact->postBody, true)), WATCHDOG_INFO);
+        if($result['error']['code'] == 201) {
+            $registration = new MS_User_Email($email);
+            $registration->RegisterLocalSellerUser();
+        }
+    }
+//    dpm($email);
+//    dpm($submission);
+//    dpm($result);
+//    dpm($constant_contact->postBody);
+    //var_export($submission);
+//    echo "<pre>submission" . print_r($submission, true) . "</pre>";
+//    echo "<pre>post" . print_r($_POST,true) . "</pre>";
+//    die;
 }

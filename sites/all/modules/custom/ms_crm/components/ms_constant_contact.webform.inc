@@ -72,8 +72,7 @@ function _webform_edit_ms_crm_cc($component) {
     } elseif(isset($_POST['_triggering_element_name'])) {
         $field = new MS_Constant_Contact_Contacts_Fields($_POST['extra']['field_type'], $component);
     }
-
-    if($field) {
+    if(isset($field)) {
         $f = $field->GetSettingsForm();
         $form['extra']['cc']['settings'] = $f;
     }
@@ -111,21 +110,9 @@ function ms_crm_cc_settings(&$form, &$form_state) {
 }
 
 /**
- * Callback for settings form fields
- *
- * Selects and returns the fieldset with the names in it.
- */
-function ms_crm_cc_settings_sub_field(&$form, &$form_state) {
-    watchdog('cc_settings_subfield', "<pre>%form_state</pre>", array('%form_state' => print_r($form_state, true)), WATCHDOG_INFO);
-    return $form;
-    //return $form['names_fieldset'];
-}
-/**
  * Implements _webform_render_component().
  */
 function _webform_render_ms_crm_cc($component, $value = NULL, $filter = FALSE) {
-//    $node = isset($component['nid']) ? node_load($component['nid']) : NULL;
-//    $cid = $component['cid'];
     $cc_field = new MS_Constant_Contact_Contacts_Fields($component['extra']['field_type'], $component);
     $element = $cc_field->fieldType->GetDisplayFields();
     return $element;
