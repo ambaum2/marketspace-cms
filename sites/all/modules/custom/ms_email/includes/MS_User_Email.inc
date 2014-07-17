@@ -38,7 +38,7 @@ class MS_User_Email {
         $this->email_model->subject = t(variable_get('ms_email_new_user_registration_subject'), array('!email' => $this->email));
 
         $this->email_model->html = t($new_user_registration_body['value'],
-            array('%one-time-sign-in-url' => $this->passwordResetUrl, '%email' => $this->email, '%password' => $this->tempPassword));
+            array('!one-time-sign-in-url' => $this->passwordResetUrl, '!email' => $this->email, '!password' => $this->tempPassword));
         $this->mailer->send($this->email_model);
     }
 

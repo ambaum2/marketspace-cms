@@ -25,7 +25,7 @@ function ms_email_admin_settings() {
         '#type' => 'text_format',
         '#title' => t('Registration Email Body'),
         '#default_value' => $new_user_registration_body['value'],
-        '#description' => t("Use replace patterns for variables: %one-time-sign-in-url, %email, %password", array('%url' => 'https://constantcontact.mashery.com/io-docs')),
+        '#description' => t("Use replace patterns for variables: !one-time-sign-in-url, !email, !password", array('%url' => 'https://constantcontact.mashery.com/io-docs')),
         '#required' => TRUE,
     );
 
@@ -33,7 +33,7 @@ function ms_email_admin_settings() {
         '#type' => 'textfield',
         '#title' => t('New Registration Email Subject'),
         '#default_value' => variable_get('ms_email_new_user_registration_subject', 'New User Registration for %email'),
-        '#description' => t("Use replace patterns for variables", array('%url' => 'https://constantcontact.mashery.com/io-docs')),
+        '#description' => t("Use replace patterns for variables", array('!url' => 'https://constantcontact.mashery.com/io-docs')),
         '#size' => 60,
         '#maxlength' => 128,
         '#required' => TRUE,

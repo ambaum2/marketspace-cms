@@ -96,30 +96,28 @@ function ms_crm_seller_signup() {
 
 function ms_crm_webform_component_presave(&$component)
 {
-    /*dpm($component);
-    echo "<pre>post" . print_r($component,true) . "</pre>";
-    die;*/
+
 }
 function ms_crm_webform_submission_presave($node, &$submission) {
-    if($email = MS_Constant_Contact_Contacts_Submission::SubmissionHasEmail($submission->data)) {
+    if($node->type == "constant_contact_forms") {
         $cc_submission = new MS_Constant_Contact_Contacts_Submission($submission, $node);
-        watchdog('cc_submission', 'submission <pre>%cc_submission</pre>', array('%cc_submission' => print_r($cc_submission, true)), WATCHDOG_INFO);
-        $constant_contact = new MS_Individuals_Contacts();
-        $constant_contact->postBody = $cc_submission->GetSubmission();
-        $result = $constant_contact->post();
-        watchdog('cc_post', 'post result <pre>%ccresult</pre> and post body <pre>%post_body</pre>',
-            array('%ccresult' => print_r($result, true), '%post_body' => print_r($constant_contact->postBody, true)), WATCHDOG_INFO);
-        if($result['error']['code'] == 201) {
-            $registration = new MS_User_Email($email);
-            $registration->RegisterLocalSellerUser();
+        $unserialized_submission = $cc_submission->GetUnserializedSubmission();
+        $cc_submission->submission = $unserialized_submission;
+        if($email = MS_Constant_Contact_Contacts_Submission::SubmissionHasEmail($unserialized_submission->data)) {
+            watchdog('cc_submission', 'submission <pre>%cc_submission</pre>', array('%cc_submission' => print_r($submission, true)), WATCHDOG_INFO);
+            $constant_contact = new MS_Individuals_Contacts();
+            $constant_contact->postBody = $cc_submission->GetSubmission();
+            $result = $constant_contact->post();
+            watchdog('cc_post', 'post result <pre>%ccresult</pre> and post body <pre>%post_body</pre>',
+                array('%ccresult' => print_r($result, true), '%post_body' => print_r($constant_contact->postBody, true)), WATCHDOG_INFO);
+            if($result['error']['code'] == 201) {
+                $registration = new MS_User_Email($email);
+                $registration->RegisterLocalSellerUser();
+            } else {
+                watchdog('ms_crm', 'error submitting the form !error', array('!error' => $result['primary_error_message']), WATCHDOG_ERROR);
+                drupal_set_message(t("The following error occured: !error", array('!error' => $result['primary_error_message'])), 'error');
+                drupal_goto("node/" . $submission->nid);
+            }
         }
     }
-//    dpm($email);
-//    dpm($submission);
-//    dpm($result);
-//    dpm($constant_contact->postBody);
-    //var_export($submission);
-//    echo "<pre>submission" . print_r($submission, true) . "</pre>";
-//    echo "<pre>post" . print_r($_POST,true) . "</pre>";
-//    die;
 }

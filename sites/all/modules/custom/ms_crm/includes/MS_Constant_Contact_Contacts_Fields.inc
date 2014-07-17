@@ -3,7 +3,7 @@ class MS_Constant_Contact_Contacts_Submission {
     public $submission;
     public $node;
 
-    public function __construct($submission, $node) {
+    public function __construct($submission = null, $node = null) {
         $this->submission = $submission;
         $this->node = $node;
     }
@@ -32,25 +32,225 @@ class MS_Constant_Contact_Contacts_Submission {
      */
      public function GetSubmission() {
         $result = array();
+         foreach ($this->submission->data as $cid => $values) {
+             foreach ($values['value'] as $delta => $value) {
+                 if($this->IsSerialized($value)) {
+                     $array_value = unserialize($value);
+                     foreach($array_value as $k => $item) {
+                         if(is_array($array_value)) {
+                             foreach($array_value as $l => $v) {
+                                 $result[$delta][$l] = $v; //notice I don't have index $k because constant contact only has two levels to their json request
+                             }
+                         } else {
+                             $result[$delta][$k] = $item;
+                         }
+                     }
+                 } else {
+                     $result[$delta] = $value;
+                 }
+             }
+         }
+        return $result;
+    }
+
+    /**
+     * submissions are passed by reference so use this to avoid that
+     * plus we cna then recreate the data array of submission
+     * escape that
+     * @return stdClass
+     */
+    private function CreateDefaultSubmission() {
+        $submission = new stdClass();
+        $submission->nid = $this->submission->nid;
+        $submission->uid = $this->submission->uid;
+        $submission->remote_addr = $this->submission->remote_addr;
+        $submission->is_draft = $this->submission->is_draft;
+
+        return $submission;
+    }
+    /**
+     * unserialize submission
+     *
+     */
+    public function GetUnserializedSubmission() {
+        $result = $this->CreateDefaultSubmission();
         foreach ($this->submission->data as $cid => $values) {
             foreach ($values['value'] as $delta => $value) {
-                if(is_array($value) && isset($value[''])) {
-                    foreach($value as $k => $item) {
-                        if(is_array($value)) {
-                            foreach($value as $l => $v) {
-                                $result[$delta][$l] = $v; //notice I don't have index $k because constant contact only has two levels to their json request
-                            }
-                        } else {
-                            $result[$delta][$k] = $item;
-                        }
-                    }
+                if($this->IsSerialized($value)) {
+                    $result->data[$cid]['value'][$delta] = unserialize($value);
                 } else {
-                    $result[$delta] = $value;
+                    $name = $this->GetComponentName($cid, $this->submission->nid);
+                    $result->data[$cid]['value'][$name] = $value;
                 }
             }
         }
         return $result;
     }
+    public function GetSerializedSubmission() {
+        $result = $this->CreateDefaultSubmission();
+        foreach ($this->submission->data as $cid => $values) {
+            foreach ($values['value'] as $delta => $value) {
+                if($this->IsSerialized($value)) {
+                    $result->data[$cid]['value'][$delta] = serialize($value);
+                } else {
+                    $name = $this->GetComponentName($cid, $this->submission->nid);
+                    $result->data[$cid]['value'][$name] = $value;
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * checks if a component is a constant contact
+     * component
+     * @return bool
+     */
+    public function GetComponentName($cid, $nid) {
+        $result = false;
+        $component = db_query("
+            select c.form_key from mspacecms.webform_component as c
+            where c.nid = $nid and c.cid = $cid
+        ")->fetchObject();
+
+        return $component->form_key;
+    }
+
+    /**
+     * geta a single submission value must return a string always
+     * or else it causes errors in drupal_write_record
+     * around line 7170 $fields[$field] = (string) $fields[$field];
+     * @param $value
+     * @return string
+     */
+    public function GetSingleSubmissionValue($value) {
+        $delta_key = "";
+        $temp_result = "";
+        foreach($value as $delta => $field) {
+            $delta_key = $delta;
+            if(is_array($field)) {
+                foreach($field as $key => $v) {
+                    $temp_result[] = $v;
+                }
+            } else { //this concats to handle the situation where you have array('first_name' => 'alan', 'middle_name' => 'matthew') - this should be avoided in practice
+                $temp_result .= $field;
+            }
+        }
+
+        if(is_array($temp_result)) {
+            $result[$delta_key] = serialize($temp_result);
+        } else {
+            $result = $temp_result;
+        }
+        return $result;
+    }
+
+
+
+    /**
+     * Tests if an input is valid PHP serialized string.
+     *
+     * Checks if a string is serialized using quick string manipulation
+     * to throw out obviously incorrect strings. Unserialize is then run
+     * on the string to perform the final verification.
+     *
+     * Valid serialized forms are the following:
+     * <ul>
+     * <li>boolean: <code>b:1;</code></li>
+     * <li>integer: <code>i:1;</code></li>
+     * <li>double: <code>d:0.2;</code></li>
+     * <li>string: <code>s:4:"test";</code></li>
+     * <li>array: <code>a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}</code></li>
+     * <li>object: <code>O:8:"stdClass":0:{}</code></li>
+     * <li>null: <code>N;</code></li>
+     * </ul>
+     *
+     * @author		Chris Smith <code+php@chris.cs278.org>
+     * @copyright	Copyright (c) 2009 Chris Smith (http://www.cs278.org/)
+     * @license		http://sam.zoy.org/wtfpl/ WTFPL
+     * @param		string	$value	Value to test for serialized form
+     * @param		mixed	$result	Result of unserialize() of the $value
+     * @return		boolean			True if $value is serialized data, otherwise false
+     */
+    public function IsSerialized($value, &$result = null)
+    {
+        // Bit of a give away this one
+        if (!is_string($value))
+        {
+            return false;
+        }
+
+        // Serialized false, return true. unserialize() returns false on an
+        // invalid string or it could return false if the string is serialized
+        // false, eliminate that possibility.
+        if ($value === 'b:0;')
+        {
+            $result = false;
+            return true;
+        }
+
+        $length	= strlen($value);
+        $end	= '';
+
+        switch ($value[0])
+        {
+            case 's':
+                if ($value[$length - 2] !== '"')
+                {
+                    return false;
+                }
+            case 'b':
+            case 'i':
+            case 'd':
+                // This looks odd but it is quicker than isset()ing
+                $end .= ';';
+            case 'a':
+            case 'O':
+                $end .= '}';
+
+                if ($value[1] !== ':')
+                {
+                    return false;
+                }
+
+                switch ($value[2])
+                {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5:
+                    case 6:
+                    case 7:
+                    case 8:
+                    case 9:
+                        break;
+
+                    default:
+                        return false;
+                }
+            case 'N':
+                $end .= ';';
+
+                if ($value[$length - 1] !== $end[0])
+                {
+                    return false;
+                }
+                break;
+
+            default:
+                return false;
+        }
+
+        if (($result = @unserialize($value)) === false)
+        {
+            $result = null;
+            return false;
+        }
+        return true;
+    }
+
 }
 class MS_Constant_Contact_Contacts_Fields {
 
@@ -225,8 +425,14 @@ class MS_Constant_Contact_Contacts_Fields {
         $form = array();
         foreach($df->displayFields as $key => $field) {
             $form[$field] = $df->{$field};
+            $this->SetDisplayComponentValues($form[$field]);
         }
         return $form;
+    }
+
+    protected  function SetDisplayComponentValues($field) {
+        $field['#weight'] = $this->component['weight'];
+        return $field;
     }
 }
 
@@ -296,7 +502,8 @@ class MS_CC_Settings_Field_Text_Field extends MS_Constant_Contact_Contacts_Field
             '#required' => $this->component['mandatory'],
             '#size' => 20,
         );
-         return $element;
+        $element['#weight'] = $this->component['weight'];
+        return $element;
     }
 }
 class MS_CC_Settings_Field_Email_Addresses extends MS_Constant_Contact_Contacts_Fields implements iMS_Constant_Contact_Field {
@@ -359,6 +566,7 @@ class MS_CC_Settings_Field_Email_Addresses extends MS_Constant_Contact_Contacts_
             '#type' => 'textfield',
             '#title' => 'Email Address',
         );
+        $element['#weight'] = $this->component['weight'];
         return $element;
     }
 }
@@ -428,6 +636,7 @@ class MS_CC_Settings_Field_Lists extends MS_Constant_Contact_Contacts_Fields imp
         $field['lists'][0]['id'] = array(
             '#type' => 'hidden',
             '#value' => '1966704516',
+            '#weight' => $this->component['weight'],
         );
         /*$field['lists'][1] = array(
             '#type' => 'hidden',
@@ -510,6 +719,7 @@ class MS_CC_Settings_Field_Addresses extends MS_Constant_Contact_Contacts_Fields
             $getter = str_replace("_", "", "get" . $field);
             $form['addresses'][0][$field] = $address->$getter();
         }
+        $form['#weight'] = $this->component['weight'];
         return $form;
     }
 

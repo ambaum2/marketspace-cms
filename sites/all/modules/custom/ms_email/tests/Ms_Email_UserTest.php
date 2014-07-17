@@ -16,8 +16,10 @@ class Ms_Email_UserTest extends PHPUnit_Framework_TestCase
         $this->api = new MS_CRM_Api();
     }
     public function testSendEmail() {
-//        $email = new MS_User_Email("ambaum2@gmail.com");
-//        $email->passwordResetUrl = "dev.cms.communitymarketspace.com";
+//        $timestamp = REQUEST_TIME;
+//        $url = url("user/reset/2/$timestamp/" . user_pass_rehash(1234, $timestamp, 'al2@thedotworldgroup.com'), array('absolute' => TRUE));
+//        $email = new MS_User_Email("al2@thedotworldgroup.com");
+//        $email->passwordResetUrl = $url; //"http://dev.cms.communitymarketspace.com";
 //        $email->tempPassword = "1234";
 //        $email->sendRegistrationEmail();
     }
@@ -28,6 +30,6 @@ class Ms_Email_UserTest extends PHPUnit_Framework_TestCase
     public function testNewLocalSellerRegistration() {
         $email = new MS_User_Email("ambaum2@gmail.com");
 
-        $email->RegisterLocalSellerUser();
+        //$email->RegisterLocalSellerUser();
     }
 }

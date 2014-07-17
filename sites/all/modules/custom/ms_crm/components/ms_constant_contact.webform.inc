@@ -115,6 +115,7 @@ function ms_crm_cc_settings(&$form, &$form_state) {
 function _webform_render_ms_crm_cc($component, $value = NULL, $filter = FALSE) {
     $cc_field = new MS_Constant_Contact_Contacts_Fields($component['extra']['field_type'], $component);
     $element = $cc_field->fieldType->GetDisplayFields();
+    //drupal_write_record()
     return $element;
 }
 
@@ -137,4 +138,30 @@ function _webform_display_ms_crm_cc($component, $value, $format = 'html') {
   $element['#format'] = $format;
 
   return $element;
+}
+
+/**
+ * A hook for changing the input values before saving to the database.
+ *
+ * Webform expects a component to consist of a single field, or a single array
+ * of fields. If you have a component that requires a deeper form tree
+ * you must flatten the data into a single array using this callback
+ * or by setting #parents on each field to avoid data loss and/or unexpected
+ * behavior.
+ *
+ * Note that Webform will save the result of this function directly into the
+ * database.
+ *
+ * @param $component
+ *   A Webform component array.
+ * @param $value
+ *   The POST data associated with the user input.
+ * @return
+ *   An array of values to be saved into the database. Note that this should be
+ *   a numerically keyed array.
+ */
+function _webform_submit_ms_crm_cc($component, $value) {
+    $ms_cc = new MS_Constant_Contact_Contacts_Submission();
+    $result = $ms_cc->GetSingleSubmissionValue($value);
+    return $result;
 }
