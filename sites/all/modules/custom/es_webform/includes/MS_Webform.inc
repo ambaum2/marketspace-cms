@@ -33,7 +33,7 @@ class MS_Webform {
             ->fields('a',array('entity_id'))
             ->condition('field_form_category_tid', (int)$tid);
         $query->leftJoin('field_data_field_market_space_settings', 's', 's.entity_id = a.entity_id');
-        $query->orderBy('field_market_space_settings_weight', 'DESC');
+        $query->orderBy('field_market_space_settings_weight', 'ASC');
         $node_webforms = $query->execute()->fetchAll();
         if(count($node_webforms) > 0) {
             return $node_webforms;
