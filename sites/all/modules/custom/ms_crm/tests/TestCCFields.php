@@ -15,6 +15,16 @@ class TestApi extends PHPUnit_Framework_TestCase
         drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
     }
 
+    public function testGetAllCustomFieldsForForm() {
+        $node_query = db_query("
+            select nid from mspacecms.node as n
+            where n.type='constant_contact_forms'
+        ")->fetchObject();
+        $node = node_load($node_query->nid);
+
+        $custom = new MS_Constant_Contact_Contacts_Fields();
+        //print_r($custom->GetFieldsByTypeForForm($node_query->nid, 'custom_fields'));
+    }
     /**
      * integration test for contant contact is component
      * should be pretty stable since it looks up valid

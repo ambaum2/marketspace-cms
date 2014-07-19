@@ -114,7 +114,7 @@ function ms_crm_webform_submission_presave($node, &$submission) {
                 $registration = new MS_User_Email($email);
                 $registration->RegisterLocalSellerUser();
             } else {
-                watchdog('ms_crm', 'error submitting the form !error', array('!error' => $result['primary_error_message']), WATCHDOG_ERROR);
+                watchdog('ms_crm', 'error submitting the form !error', array('!error' => $result['primary_error_message']), WATCHDOG_INFO);
                 drupal_set_message(t("The following error occured: !error", array('!error' => $result['primary_error_message'])), 'error');
                 drupal_goto("node/" . $submission->nid);
             }

@@ -19,7 +19,7 @@ class TestCCSubmission extends PHPUnit_Framework_TestCase
         $submission = $this->getSubmissionTestData();
         $cc = new MS_Constant_Contact_Contacts_Submission($submission);
         $result = $cc->GetUnserializedSubmission();
-        print_r($result);
+        //print_r($result);
         $expected = array(3 => false, 4=> false, 6 => true, 2 => true, 5 => true);
         foreach($result->data as $cid => $value) {
             foreach($value['value'] as $delta => $val) {
@@ -36,17 +36,27 @@ class TestCCSubmission extends PHPUnit_Framework_TestCase
         //print_r($value);
         foreach($value as $key => $field) {
             $result = $cc->GetSingleSubmissionValue($field[0]);
-            //print_r($result);
+           // print_r($result);
             $this->assertEquals($field[1], is_array($result));
         }
     }
+//    public function testarray() {
+//        $result = array();
+//        $test = array('mykey2' => 'some value');
+//        $test2 = array('mykey' => array('custom_fields' =>array('myvalues')));
+//
+//        $result = $test;
+//        $result = $test2;
+//        print_r($result);
+//    }
     public function testGetSubmission() {
         $submission = $this->getTestData();
         $node = node_load($submission->nid);
         $cc = new MS_Constant_Contact_Contacts_Submission($submission, $node);
         $result = $cc->GetSubmission();
+        print_r($result);
         $this->assertEquals(2, count($result));
-        //print_r($result);
+
     }
 
     public function getSubmissionTestData() {

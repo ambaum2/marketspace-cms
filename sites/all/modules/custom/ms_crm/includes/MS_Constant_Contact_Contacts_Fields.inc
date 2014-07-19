@@ -2,7 +2,6 @@
 class MS_Constant_Contact_Contacts_Submission {
     public $submission;
     public $node;
-
     public function __construct($submission = null, $node = null) {
         $this->submission = $submission;
         $this->node = $node;
@@ -33,24 +32,100 @@ class MS_Constant_Contact_Contacts_Submission {
      public function GetSubmission() {
         $result = array();
          foreach ($this->submission->data as $cid => $values) {
-             foreach ($values['value'] as $delta => $value) {
+             foreach ($values['value'] as $delta => $value) { //delta is the field key
                  if($this->IsSerialized($value)) {
                      $array_value = unserialize($value);
                      foreach($array_value as $k => $item) {
                          if(is_array($array_value)) {
                              foreach($array_value as $l => $v) {
-                                 $result[$delta][$l] = $v; //notice I don't have index $k because constant contact only has two levels to their json request
+                                 $index = $this->SpecialFieldSubmissionHandling($cid, $l);
+                                 $result[$delta][$index] = $v; //notice I don't have index $k because constant contact only has two levels to their json request
                              }
                          } else {
-                             $result[$delta][$k] = $item;
+                             $index = $this->SpecialFieldSubmissionHandling($cid, $k);
+                             $result[$delta][$index] = $item;
                          }
                      }
                  } else {
-                     $result[$delta] = $value;
+                     $field_info = $this->SpecialFieldSubmissionHandling($cid);
+                     if(isset($field_info['index'])) { //since index can be 0
+                        $result[$delta][$field_info['index']] = $value[0]; //@TODO this will of course fail if there are multiple elements but that is not currently possible in constant contact
+                        if($field_info['field_type'] == 'custom_fields') { //@todo add event observer here so field classes can hook into here and make changes
+                            $result[$delta][$field_info['index']]['name'] = "CustomField" . ($field_info['index'] + 1); //constant contact needs to start at 1
+                        }
+                     } else {
+                         if($field_info['field_type'] == 'notes') {
+                             if(empty($value[0]['note'])) {
+                                 $value[0]['note'] = "none"; //@todo need to check if the class calls for specific handling for a field
+                             }
+                         }
+                        $result[$delta] = $value;
+                     }
                  }
              }
          }
         return $result;
+    }
+
+    /**
+     * certain fields in constant contact can have seperate
+     * fields in webform but need to be nested under the same
+     * array key
+     * @param $cid
+     * @return mixed
+     */
+    public function SpecialFieldSubmissionHandling($cid) {
+        $type = $this->GetComponentType($cid, $this->node->nid);
+        $result['field_type'] = $type;
+        $special_fields = array('custom_fields');
+        if(in_array($type, $special_fields)) {
+            $info = $this->GetComponentTypeInfo($this->node->nid, $cid, $type);
+            $result['index'] = $info['index'];
+        }
+        return $result;
+    }
+
+    /**
+     * gets the index number for a component when
+     * multiple components exist with the same
+     * field type. This is so that multiple elements
+     * can exist in json body - that is the index 0
+     * does not get overwritten
+     * @param $nid
+     * @param $cid
+     * @param $field_name
+     * @return mixed
+     */
+    public function GetComponentTypeInfo($nid, $cid, $field_name) {
+        $components = db_query("
+            select c.extra, c.cid from mspacecms.webform_component as c
+            where c.nid = $nid and c.type = 'ms_crm_cc'
+        ")->fetchAll();
+        $result = array();
+        $count = 0;
+        foreach($components as $key => $value) {
+            $info = unserialize($value->extra);
+            if($info['field_type'] == $field_name) {
+                $result[$value->cid] = array('index' => $count++);
+            }
+        }
+        return $result[$cid];
+    }
+
+    /**
+     * return components field type
+     * @param $cid
+     * @param $nid
+     * @return mixed
+     */
+    public function GetComponentType($cid, $nid) {
+        $component = db_query("
+            select c.extra from mspacecms.webform_component as c
+            where c.nid = $nid and c.type = 'ms_crm_cc' and c.cid = $cid
+            ")->fetchObject();
+        $result = array();
+        $info = unserialize($component->extra);
+        return $info['field_type'];
     }
 
     /**
@@ -69,6 +144,8 @@ class MS_Constant_Contact_Contacts_Submission {
         return $submission;
     }
     /**
+     * unserialize a submission component if it is
+     * serialized
      * unserialize submission
      *
      */
@@ -86,6 +163,13 @@ class MS_Constant_Contact_Contacts_Submission {
         }
         return $result;
     }
+
+    /**
+     * to avoid errors when saving to database in common.inc
+     * we need to serialize values that are nested multiple
+     * levels
+     * @return stdClass
+     */
     public function GetSerializedSubmission() {
         $result = $this->CreateDefaultSubmission();
         foreach ($this->submission->data as $cid => $values) {
@@ -104,6 +188,8 @@ class MS_Constant_Contact_Contacts_Submission {
     /**
      * checks if a component is a constant contact
      * component
+     * @param $cid
+     * @param $nid
      * @return bool
      */
     public function GetComponentName($cid, $nid) {
@@ -273,17 +359,11 @@ class MS_Constant_Contact_Contacts_Fields {
      * call if component does not exist
      * @todo I'm not sure if this is ever actually needed
      * @param null $key
+     * @throws Exception
      * @internal param null $component
      */
     function __construct1($key) {
-        if(!empty($key)) {
-            $this->namespace = $key;
-        }
-        if (!empty($component)) {
-            $this->component = $component;
-        }
-
-        $this->InitializeSettingsField($this->namespace);
+        throw new Exception("Constructor not implemented");
     }
     /**
      * call if component already exists
@@ -369,6 +449,30 @@ class MS_Constant_Contact_Contacts_Fields {
         )->fetchObject();
 
         return $result->data;
+    }
+
+    /**
+     * return am array of all
+     * components of a specific type
+     * keyed by cid and containing an index
+     * @param $nid
+     * @param $field_name
+     * @return array
+     */
+    public function GetFieldsByTypeForForm($nid, $field_name) {
+        $components = db_query("
+            select c.extra, c.cid from mspacecms.webform_component as c
+            where c.nid = $nid and c.type = 'ms_crm_cc'
+        ")->fetchAll();
+        $result = array();
+        $count = 0;
+        foreach($components as $key => $value) {
+            $info = unserialize($value->extra);
+            if($info['field_type'] == $field_name) {
+                $result[$value->cid] = array('index' => $count++);
+            }
+        }
+        return $result;
     }
     /**
      * get the settings field default value path - we
@@ -571,6 +675,70 @@ class MS_CC_Settings_Field_Email_Addresses extends MS_Constant_Contact_Contacts_
     }
 }
 
+class MS_CC_Settings_Field_Notes extends MS_Constant_Contact_Contacts_Fields implements iMS_Constant_Contact_Field {
+    public $displayFields = array();
+    public $settingsFields = array('note');
+    public $settingsMatchup = array();
+    public $component;
+    public $note;
+    /**
+     * dynamically create the generic text field
+     * @param null $field_name
+     * @param null $component
+     */
+    public function __construct($field_name, $component) {
+        $this->displayFields = array($field_name);
+        $this->setSettingsMatchup($field_name);
+        $this->component = $component;
+        $this->setNote();
+    }
+
+    /**
+     * set the address no params yet
+     */
+    public function setNote()
+    {
+        $field = array(
+            '#type' => 'container',
+            '#title' => 'Email Address- No settings',
+            '#size' => 50,
+        );
+        //$this->address = $field;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getNote()
+    {
+        return $this->note;
+    }
+
+    /**
+     * @param $field_name
+     * @internal param array $settingsMatchup
+     */
+    public function setSettingsMatchup($field_name)
+    {
+        $this->settingsMatchup = array($field_name => array('#size'=>'maxlength'));
+    } /** @var array map a settings field back to a display field */
+
+    public function GetSettingsFields(iMS_Constant_Contact_Field $field = null) {
+        return parent::GetSettingsFields($this);
+    }
+
+    public function GetDisplayFields(iMS_Constant_Contact_Field $field = null) {
+        $element = array();
+        $element['notes'][0]['note'] = array(
+            '#type' => 'textarea',
+            '#title' => $this->component['name'],
+            '#maxlength' => 500, //cc api sets a max of 500
+        );
+        $element['#weight'] = $this->component['weight'];
+        return $element;
+    }
+}
+
 class MS_CC_Settings_Field_Lists extends MS_Constant_Contact_Contacts_Fields implements iMS_Constant_Contact_Field {
     public $displayFields = array();
     public $settingsFields = array('lists');
@@ -642,6 +810,82 @@ class MS_CC_Settings_Field_Lists extends MS_Constant_Contact_Contacts_Fields imp
             '#type' => 'hidden',
             '#value' => 'hay!',
         );*/
+        return $field;
+    }
+}
+
+class MS_CC_Settings_Field_Custom_Fields extends MS_Constant_Contact_Contacts_Fields implements iMS_Constant_Contact_Field {
+    public $displayFields = array();
+    public $settingsFields = array('customField');
+    public $settingsMatchup = array();
+    public $component;
+    public $form_state;
+    public $customField;
+
+    /**
+     * dynamically create the generic text field
+     * @param null $field_name
+     * @param null $component
+     */
+    public function __construct($field_name, $component) {
+        $this->displayFields = array($field_name);
+        $this->setSettingsMatchup($field_name);
+        $this->component = $component;
+        $this->setCustomField();
+    }
+
+    /**
+     * set lists property
+     */
+    public function setCustomField()
+    {
+        $field = array(
+            '#type' => 'textfield',
+            '#multiple' => true,
+            '#title' => t('Custom Field Name'),
+            '#description' => t('This is the name that will show up in the constant contact administrative area'),
+            '#required' => true,
+        );
+
+        $this->customField = $field;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCustomField()
+    {
+        return $this->customField;
+    }
+
+    /**
+     * @param $field_name
+     * @internal param array $settingsMatchup
+     */
+    public function setSettingsMatchup($field_name)
+    {
+        $this->settingsMatchup = array($field_name => array('#size'=>'maxlength'));
+    } /** @var array map a settings field back to a display field */
+
+    public function GetSettingsFields(iMS_Constant_Contact_Field $field = null) {
+        return parent::GetSettingsFields($this);
+    }
+
+    public function GetDisplayFields(iMS_Constant_Contact_Field $field = null) {
+        $form = array();
+        //$custom_field_index = $this->GetIndex();
+        $all_custom_fields = $this->GetFieldsByTypeForForm($this->component['nid'], "custom_fields");
+        $index = $all_custom_fields[$this->component['cid']]['index'];
+        $field['custom_fields'][$index]['name'] = array(
+            '#type' => 'hidden',
+            '#value' => $this->component['extra']['cc']['settings'][$this->settingsFields[0]],
+        );
+        $field['custom_fields'][$index]['value'] = array(
+            '#type' => 'textfield',
+            '#maxlength' => 50,
+            '#title' => $this->component['name'],
+        );
+        $field['#weight'] = $this->component['weight'];
         return $field;
     }
 }

@@ -49,6 +49,7 @@ function _webform_edit_ms_crm_cc($component) {
             'middle_name' => t('Middle Name'),
             'prefix_name' => t('Prefix'),
             'work_phone' => t('Work Phone Number'),
+            'notes' => t('Note'),
             'custom_fields' => t('Custom Field')
         ),
         '#default_value' => isset($component['extra']['field_type']) ? $component['extra']['field_type'] : '1',
@@ -156,9 +157,7 @@ function _webform_display_ms_crm_cc($component, $value, $format = 'html') {
  *   A Webform component array.
  * @param $value
  *   The POST data associated with the user input.
- * @return
- *   An array of values to be saved into the database. Note that this should be
- *   a numerically keyed array.
+ * @return string An array of values to be saved into the database. Note that this should be
  */
 function _webform_submit_ms_crm_cc($component, $value) {
     $ms_cc = new MS_Constant_Contact_Contacts_Submission();
