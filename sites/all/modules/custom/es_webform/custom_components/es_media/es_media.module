@@ -54,7 +54,8 @@ function es_media_get_user_image() {
 }
 
 function es_media_add_image() {
-	
+	//file_save_upload()
+    //use in conjunction with image_scale_and_crop and image_resize
 }
 function es_media_webform_component_info() {
   $components['es_media'] = array(
